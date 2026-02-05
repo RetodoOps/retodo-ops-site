@@ -1,9 +1,50 @@
-:root { --bg:#0b0c10; --card:#111318; --text:#e9eef7; --muted:#a9b4c3; --line:#232733; }
+:root {
+  --bg: #0a141a;          /* deep blue-black */
+  --bg2: #050b10;         /* darker for gradient */
+  --card: #0f1820;
+  --text: #e9eef7;
+  --muted: #a9b4c3;
+  --line: #1b2a33;
+
+  /* pulled from your logo palette */
+  --brand: #457b86;       /* teal/blue */
+  --brand-accent: #74ffff;/* bright cyan highlight */
+}
 * { box-sizing: border-box; }
-body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+  line-height: 1.5;
+  background: radial-gradient(900px 500px at 20% 0%, rgba(69,123,134,.22), transparent 60%),
+              radial-gradient(900px 500px at 80% 10%, rgba(116,255,255,.10), transparent 55%),
+              linear-gradient(180deg, var(--bg), var(--bg2));
+}
 a { color: inherit; }
 .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px; }
 .header { display:flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-logo {
+  height: 34px;
+  width: auto;
+  display: block;
+}
+
+.brand-text { display: flex; flex-direction: column; }
+
+.brand-name {
+  font-weight: 750;
+  font-size: 26px;
+  letter-spacing: .3px;
+  color: var(--brand);
+  /* subtle “logo-like” edge */
+  text-shadow: 0 0 0.6px var(--brand-accent);
+}
+
+.btn.primary { background: var(--brand-accent); color: #041014; border-color: transparent; }
+.btn { border-radius: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); }
 .brand-name { font-weight: 700; font-size: 50px; letter-spacing: .3px; }
 .brand-tag { color: var(--muted); margin-top: 2px; font-size: 14px; }
 .hero { padding: 34px 0 10px; }
