@@ -33,14 +33,6 @@ a { color: inherit; }
 
 .brand-text { display: flex; flex-direction: column; }
 
-.brand-name {
-  font-weight: 750;
-  font-size: 26px;
-  letter-spacing: .3px;
-  color: var(--brand);
-  /* subtle “logo-like” edge */
-  text-shadow: 0 0 0.6px var(--brand-accent);
-}
 
 .btn.primary { background: var(--brand-accent); color: #041014; border-color: transparent; }
 .btn { border-radius: 14px; }
