@@ -54,6 +54,7 @@ a{ color: inherit; }
   display:block;
 }
 
+/* Header line under logo — now shows your name */
 .brand-tag{
   font-size: 22px;
   font-weight: 600;
@@ -67,14 +68,6 @@ a{ color: inherit; }
   padding: 34px 0 10px;
 }
 
-.kicker{
-  font-size: 18px;
-  font-weight: 650;
-  color: var(--text);
-  letter-spacing: .2px;
-  margin: 0 0 10px;
-}
-
 .hero h1{
   font-size: 30px;
   line-height: 1.25;
@@ -82,6 +75,7 @@ a{ color: inherit; }
   color: var(--text);
 }
 
+/* Tagline chip */
 .subhead{
   display: inline-block;
   font-size: 20px;
