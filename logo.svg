@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 140" fill="none" role="img" aria-label="Retodo Ops">
+  <title>Retodo Ops</title>
+
+  <!-- Globe mark: global localization with Scandinavia anchor point -->
+  <!-- Outer circle -->
+  <circle cx="62" cy="70" r="48" stroke="#0a1628" stroke-width="4.5"/>
+
+  <!-- Equator -->
+  <line x1="14" y1="70" x2="110" y2="70" stroke="#0a1628" stroke-width="2.5"/>
+
+  <!-- Left meridian: accent blue — represents EU/Western language markets -->
+  <path d="M62,22 Q22,70 62,118" stroke="#0ea5e9" stroke-width="3.5"/>
+
+  <!-- Right meridian: navy -->
+  <path d="M62,22 Q102,70 62,118" stroke="#0a1628" stroke-width="2.5"/>
+
+  <!-- Upper latitude arc -->
+  <path d="M20,50 Q62,41 104,50" stroke="#0a1628" stroke-width="1.5" opacity="0.38"/>
+
+  <!-- Lower latitude arc -->
+  <path d="M19,90 Q62,100 105,90" stroke="#0a1628" stroke-width="1.5" opacity="0.32"/>
+
+  <!-- Scandinavia anchor dot (orange) — the geographic specialisation -->
+  <circle cx="78" cy="41" r="8" fill="#f97316"/>
+  <circle cx="78" cy="41" r="4" fill="#ffffff" opacity="0.55"/>
+
+  <!-- Wordmark -->
+  <text
+    x="128"
+    y="92"
+    font-family="'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-weight="800"
+    font-size="56"
+    letter-spacing="-1.5"
+    fill="#0a1628">Retodo<tspan fill="#0ea5e9"> Ops</tspan></text>
+
+  <!-- Optional tagline -->
+  <text
+    x="130"
+    y="115"
+    font-family="'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-weight="500"
+    font-size="15"
+    letter-spacing="2.5"
+    fill="#64748b">SCANDINAVIAN LANGUAGE SERVICES</text>
+</svg>
