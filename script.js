@@ -27,4 +27,22 @@
   /* Year */
   var y = document.getElementById('year');
   if (y) y.textContent = new Date().getFullYear();
+
+  /* Cookie consent */
+  var cookieBanner = document.getElementById('cookieBanner');
+  if (cookieBanner) {
+    if (!localStorage.getItem('cookieConsent')) {
+      cookieBanner.classList.remove('hidden');
+    } else {
+      cookieBanner.classList.add('hidden');
+    }
+    document.getElementById('cookieAccept').addEventListener('click', function () {
+      localStorage.setItem('cookieConsent', 'accepted');
+      cookieBanner.classList.add('hidden');
+    });
+    document.getElementById('cookieDecline').addEventListener('click', function () {
+      localStorage.setItem('cookieConsent', 'declined');
+      cookieBanner.classList.add('hidden');
+    });
+  }
 })();

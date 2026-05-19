@@ -404,3 +404,190 @@ ul { list-style: none; }
   .team-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-form { padding: 28px 20px; }
 }
+
+/* ─── Client Logo Strip ──────────────────────────────────────── */
+.clients-section { background: var(--white); padding: 40px 0; border-bottom: 1px solid var(--border); }
+.clients-label { text-align: center; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 28px; }
+.clients-strip { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px 24px; }
+.client-logo {
+  height: 40px; padding: 0 20px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--muted);
+  letter-spacing: .3px; white-space: nowrap;
+  transition: border-color .15s, color .15s;
+}
+.client-logo:hover { border-color: var(--accent); color: var(--navy); }
+
+/* ─── Process Steps ──────────────────────────────────────────── */
+.process-section { background: var(--navy); color: var(--white); }
+.process-section .section-title { color: var(--white); }
+.process-section .section-desc  { color: rgba(255,255,255,.62); }
+.process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+.process-grid::before {
+  content: ''; position: absolute;
+  top: 28px; left: calc(12.5% + 14px); right: calc(12.5% + 14px);
+  height: 2px; background: rgba(14,165,233,.3);
+  z-index: 0;
+}
+.process-step { text-align: center; padding: 0 16px; position: relative; }
+.process-num {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent); color: var(--white);
+  font-size: 20px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px; position: relative; z-index: 1;
+  box-shadow: 0 0 0 6px rgba(14,165,233,.2);
+}
+.process-step h4 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+.process-step p  { font-size: 14px; color: rgba(255,255,255,.58); line-height: 1.6; }
+
+/* ─── B2B / Agency Section ───────────────────────────────────── */
+.agency-section { background: var(--bg); }
+.agency-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.agency-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px 26px;
+  transition: box-shadow .2s, transform .2s, border-color .2s;
+  position: relative; overflow: hidden;
+}
+.agency-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--orange); transform: scaleX(0); transform-origin: left; transition: transform .25s;
+}
+.agency-card:hover { box-shadow: var(--shadow); transform: translateY(-4px); border-color: rgba(249,115,22,.3); }
+.agency-card:hover::after { transform: scaleX(1); }
+.agency-icon { width: 50px; height: 50px; background: rgba(249,115,22,.09); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
+.agency-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
+.agency-card p  { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 18px; }
+.agency-link { color: var(--orange-dark); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; transition: gap .15s; }
+.agency-link:hover { gap: 8px; }
+
+/* ─── GitHub Integration Banner ──────────────────────────────── */
+.github-banner {
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  color: var(--white); border-radius: 20px;
+  padding: 48px 40px; margin-top: 40px;
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 32px; align-items: center;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.github-banner h3 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+.github-banner p  { font-size: 15px; color: rgba(255,255,255,.62); line-height: 1.65; max-width: 56ch; }
+.github-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.github-pill {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 100px; padding: 4px 14px;
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,.75);
+  font-family: 'Courier New', monospace;
+}
+.github-logo { font-size: 64px; opacity: .8; }
+
+/* ─── Coverage Map Visual ────────────────────────────────────── */
+.coverage-visual {
+  background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 100%);
+  border-radius: 20px; padding: 40px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.coverage-visual::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 400px 300px at 50% 60%, rgba(14,165,233,.15), transparent);
+}
+.coverage-globe { font-size: 80px; margin-bottom: 20px; position: relative; z-index: 1; }
+.coverage-flags { display: flex; justify-content: center; gap: 12px; font-size: 32px; margin-bottom: 20px; position: relative; z-index: 1; }
+.coverage-tagline { font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 6px; position: relative; z-index: 1; }
+.coverage-sub { font-size: 14px; color: rgba(255,255,255,.55); position: relative; z-index: 1; }
+
+/* ─── Responsive additions ───────────────────────────────────── */
+@media (max-width: 1024px) {
+  .process-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  .process-grid::before { display: none; }
+  .agency-cards { grid-template-columns: 1fr; }
+  .github-banner { grid-template-columns: 1fr; }
+  .github-logo { display: none; }
+}
+@media (max-width: 768px) {
+  .process-grid { grid-template-columns: 1fr; }
+  .clients-strip { gap: 10px; }
+}
+
+/* ─── GitHub Banner (full section) ──────────────────────────── */
+.github-banner-section { background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); padding: 80px 0; }
+.github-banner-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.github-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,.8);
+  margin-bottom: 16px;
+}
+.github-banner-text h2 { font-size: clamp(24px, 3.5vw, 36px); font-weight: 800; color: var(--white); margin-bottom: 14px; }
+.github-banner-text h2 em { color: #58a6ff; font-style: normal; }
+.github-banner-text p { font-size: 16px; color: rgba(255,255,255,.62); line-height: 1.7; }
+.github-code-block {
+  background: #0d1117; border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px; overflow: hidden;
+  font-family: 'Courier New', monospace; font-size: 13px;
+}
+.code-header {
+  background: #161b22; border-bottom: 1px solid rgba(255,255,255,.1);
+  padding: 10px 16px; display: flex; align-items: center; gap: 6px;
+}
+.code-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.2); }
+.code-dot:nth-child(1) { background: #ff5f57; }
+.code-dot:nth-child(2) { background: #febc2e; }
+.code-dot:nth-child(3) { background: #28c840; }
+.code-filename { margin-left: 8px; font-size: 12px; color: rgba(255,255,255,.45); }
+.code-body { margin: 0; padding: 20px 16px; color: rgba(255,255,255,.75); line-height: 1.7; overflow-x: auto; white-space: pre; }
+
+/* ─── Process section on light bg override ───────────────────── */
+.process-light .process-step h4 { color: var(--navy); }
+.process-light .process-step p  { color: var(--muted); }
+.process-light .process-grid::before { background: rgba(14,165,233,.2); }
+
+@media (max-width: 1024px) {
+  .github-banner-inner { grid-template-columns: 1fr; }
+  .github-code-block { display: none; }
+}
+
+/* ─── Translator CTA Section ─────────────────────────────────── */
+.translator-section { background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 100%); color: var(--white); }
+.translator-section .section-eyebrow { color: var(--accent); }
+.translator-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.translator-text h2 { font-size: clamp(22px, 3vw, 34px); font-weight: 800; color: var(--white); margin-bottom: 14px; }
+.translator-text p { font-size: 16px; color: rgba(255,255,255,.7); line-height: 1.7; margin-bottom: 20px; }
+.translator-perks { display: flex; flex-wrap: wrap; gap: 8px; }
+.perk-tag {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 100px; padding: 4px 14px;
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,.8);
+}
+.translator-cta-box {
+  background: var(--white); border-radius: 20px; padding: 36px 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.translator-cta-box h3 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+.translator-cta-box p { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+
+/* ─── Cookie Banner ──────────────────────────────────────────── */
+.cookie-banner {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  width: calc(100% - 48px); max-width: 680px;
+  background: var(--navy); color: var(--white);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px; padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.3);
+  z-index: 9999; transition: opacity .3s, transform .3s;
+}
+.cookie-banner.hidden { opacity: 0; transform: translateX(-50%) translateY(20px); pointer-events: none; }
+.cookie-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; flex-wrap: wrap; }
+.cookie-banner p { font-size: 14px; color: rgba(255,255,255,.75); margin: 0; flex: 1; min-width: 200px; }
+.cookie-banner a { color: var(--accent); text-decoration: underline; }
+.cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .translator-inner { grid-template-columns: 1fr; gap: 32px; }
+  .translator-cta-box { padding: 24px 20px; }
+  .cookie-banner { bottom: 12px; padding: 12px 16px; }
+}
