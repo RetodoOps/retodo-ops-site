@@ -591,3 +591,127 @@ ul { list-style: none; }
   .translator-cta-box { padding: 24px 20px; }
   .cookie-banner { bottom: 12px; padding: 12px 16px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOTION & ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Keyframes ──────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-9px); }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(14,165,233,.5), 0 0 0 6px rgba(14,165,233,.2); }
+  70%  { box-shadow: 0 0 0 14px rgba(14,165,233,0),  0 0 0 6px rgba(14,165,233,.2); }
+  100% { box-shadow: 0 0 0 0   rgba(14,165,233,0),  0 0 0 6px rgba(14,165,233,.2); }
+}
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes drawLine {
+  from { transform: scaleX(0) translateX(0); }
+  to   { transform: scaleX(1) translateX(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+@keyframes navShadow {
+  to { box-shadow: 0 2px 24px rgba(0,0,0,.35); }
+}
+@keyframes statPop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Navbar scroll shadow ───────────────────────────────────── */
+.navbar.scrolled { box-shadow: 0 2px 24px rgba(0,0,0,.35); }
+
+/* ─── Hero lang-cards: staggered float ──────────────────────── */
+.hero-visual .lang-card {
+  animation: float 5s ease-in-out infinite;
+  will-change: transform;
+}
+.hero-visual .lang-card:nth-child(1) { animation-duration: 4.8s; animation-delay:  0.0s; }
+.hero-visual .lang-card:nth-child(2) { animation-duration: 5.4s; animation-delay:  0.4s; }
+.hero-visual .lang-card:nth-child(3) { animation-duration: 4.2s; animation-delay:  0.8s; }
+.hero-visual .lang-card:nth-child(4) { animation-duration: 5.8s; animation-delay:  0.2s; }
+.hero-visual .lang-card:nth-child(5) { animation-duration: 4.6s; animation-delay:  1.0s; }
+
+/* ─── Hero content slide-up entrance ────────────────────────── */
+.hero-content > * {
+  opacity: 0;
+  animation: slideUp .7s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-content .hero-eyebrow { animation-delay: .1s; }
+.hero-content h1            { animation-delay: .22s; }
+.hero-content .hero-desc    { animation-delay: .34s; }
+.hero-content .hero-actions { animation-delay: .46s; }
+.hero-content .hero-trust   { animation-delay: .58s; }
+
+/* ─── Stats: pop in individually ────────────────────────────── */
+.stat-item { opacity: 0; }
+.stat-item.counted { animation: statPop .5s cubic-bezier(.22,1,.36,1) forwards; }
+.stat-item:nth-child(1).counted { animation-delay: .0s; }
+.stat-item:nth-child(2).counted { animation-delay: .1s; }
+.stat-item:nth-child(3).counted { animation-delay: .2s; }
+.stat-item:nth-child(4).counted { animation-delay: .3s; }
+
+/* ─── Logo strip: infinite marquee ──────────────────────────── */
+.clients-track { overflow: hidden; padding: 8px 0; }
+.clients-strip {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+  gap: 0 32px !important;
+}
+.clients-strip:hover { animation-play-state: paused; }
+.client-logo { flex-shrink: 0; }
+
+/* ─── Process: line draws in; numbers pulse ──────────────────── */
+.process-grid.line-ready::before {
+  transform-origin: left center;
+  animation: drawLine .9s cubic-bezier(.22,1,.36,1) forwards;
+}
+.process-num { animation: pulse-ring 2.5s ease-out infinite; }
+
+/* ─── Staggered grid fade-in ─────────────────────────────────── */
+.stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);
+}
+.stagger > *.visible { opacity: 1; transform: translateY(0); }
+.stagger > *:nth-child(1) { transition-delay: .05s; }
+.stagger > *:nth-child(2) { transition-delay: .13s; }
+.stagger > *:nth-child(3) { transition-delay: .21s; }
+.stagger > *:nth-child(4) { transition-delay: .29s; }
+.stagger > *:nth-child(5) { transition-delay: .37s; }
+.stagger > *:nth-child(6) { transition-delay: .45s; }
+
+/* ─── Typewriter cursor ──────────────────────────────────────── */
+.type-cursor {
+  display: inline-block; width: 2px; height: 1em;
+  background: var(--accent); margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink .7s step-end infinite;
+}
+
+/* ─── Respect reduced motion ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-visual .lang-card,
+  .clients-strip,
+  .process-num,
+  .hero-content > * { animation: none !important; }
+  .hero-content > * { opacity: 1; }
+  .stat-item { opacity: 1; }
+  .stagger > * { opacity: 1; transform: none; }
+}
