@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Services — Retodo Lang</title>
+  <title>Services — Retodo Ops</title>
   <meta name="description" content="Professional Scandinavian translation services: document, legal, technical, medical, software localization, and media translation by native experts." />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -12,7 +12,7 @@
   <nav class="navbar">
     <div class="container">
       <div class="navbar-inner">
-        <a href="index.html" class="navbar-logo">Retodo<span>Lang</span></a>
+        <a href="index.html" class="navbar-logo">Retodo<span> Ops</span></a>
         <ul class="navbar-nav">
           <li><a href="services.html" class="nav-link">Services</a></li>
           <li><a href="industries.html" class="nav-link">Industries</a></li>
@@ -20,7 +20,6 @@
           <li><a href="about.html" class="nav-link">About</a></li>
         </ul>
         <div class="navbar-cta">
-          <a href="contact.html" class="btn btn-outline btn-sm">Contact</a>
           <a href="contact.html" class="btn btn-primary btn-sm">Get a Quote</a>
         </div>
         <button class="hamburger" id="menuBtn" aria-label="Toggle menu">
@@ -33,7 +32,6 @@
       <a href="industries.html">Industries</a>
       <a href="languages.html">Languages</a>
       <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
       <a href="contact.html" style="color:var(--orange);font-weight:700;">Get a Quote &rarr;</a>
     </div>
   </nav>
@@ -42,7 +40,7 @@
     <div class="container">
       <div class="eyebrow">What We Offer</div>
       <h1>Expert Translation Services</h1>
-      <p>Specialized, ISO-certified translation for every document type and industry need &mdash; in all Scandinavian languages.</p>
+      <p>Specialized, ISO-compliant translation for every document type and industry need &mdash; in all Scandinavian languages.</p>
       <a href="contact.html" class="btn btn-primary">Get a Free Quote</a>
     </div>
   </section>
@@ -83,7 +81,7 @@
           <div class="visual-stat">
             <div class="vs-icon">🌐</div>
             <div>
-              <div class="vs-value">5</div>
+              <div class="vs-value">4</div>
               <div class="vs-label">Scandinavian languages covered</div>
             </div>
           </div>
@@ -175,13 +173,13 @@
         <div class="sd-text">
           <h2>💻 Software Localization</h2>
           <p>Localization is more than translation &mdash; it's adapting your product to feel native in the target market. Our localization engineers and linguists work together to ensure your software resonates with Scandinavian users.</p>
-          <p>We support all major formats, CAT tools, and integrate directly with your development workflow.</p>
+          <p>We integrate directly into your GitHub repository via GitHub Actions, support XLIFF, JSON, and PO formats, and push translated strings back to your branch automatically &mdash; keeping your release pipeline unblocked.</p>
           <ul class="check-list">
-            <li>UI strings, menus &amp; tooltips</li>
-            <li>Help documentation &amp; knowledge bases</li>
+            <li>GitHub Actions &amp; CI/CD pipeline integration</li>
+            <li>XLIFF, JSON, PO &amp; all major i18n formats</li>
+            <li>UI strings, menus, tooltips &amp; help docs</li>
             <li>App store listings &amp; marketing copy</li>
-            <li>Date, currency &amp; format localization</li>
-            <li>QA testing &amp; linguistic review</li>
+            <li>LQA testing &amp; linguistic review</li>
           </ul>
           <a href="contact.html" class="btn btn-primary">Request This Service</a>
         </div>
@@ -308,8 +306,8 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <div class="footer-logo">Retodo<span>Lang</span></div>
-          <p>Professional Scandinavian translation and localization services. ISO 17100 certified. Trusted by businesses across Europe and globally.</p>
+          <div class="footer-logo">Retodo<span> Ops</span></div>
+          <p>Professional Scandinavian translation and localization services. ISO 17100 compliant. Trusted by businesses across Europe and globally.</p>
         </div>
         <div class="footer-col">
           <h4>Services</h4>
@@ -329,7 +327,6 @@
             <li><a href="languages.html#swedish">Swedish</a></li>
             <li><a href="languages.html#danish">Danish</a></li>
             <li><a href="languages.html#finnish">Finnish</a></li>
-            <li><a href="languages.html#icelandic">Icelandic</a></li>
           </ul>
         </div>
         <div class="footer-col">
@@ -338,16 +335,26 @@
             <li><a href="about.html">About Us</a></li>
             <li><a href="about.html#team">Our Team</a></li>
             <li><a href="industries.html">Industries</a></li>
-            <li><a href="contact.html">Contact</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <div>&copy; <span id="year"></span> Retodo Language Solutions. All rights reserved.</div>
+        <div>&copy; <span id="year"></span> Retodo Ops Language Solutions. All rights reserved.</div>
         <div><a href="mailto:ops@retodo-ops.com">ops@retodo-ops.com</a></div>
       </div>
     </div>
   </footer>
+
+  <!-- COOKIE BANNER -->
+  <div class="cookie-banner hidden" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <div class="cookie-inner">
+      <p>We use cookies to improve your experience and analyse site usage. See our <a href="#">Privacy Policy</a> for details.</p>
+      <div class="cookie-actions">
+        <button class="btn btn-outline btn-sm" id="cookieDecline">Decline</button>
+        <button class="btn btn-primary btn-sm" id="cookieAccept">Accept All</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
