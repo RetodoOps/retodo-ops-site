@@ -7,11 +7,33 @@
     menuBtn.addEventListener('click', function () { mobileNav.classList.toggle('open'); });
   }
 
-  /* ── Active nav link ─────────────────────────────────────── */
-  var page = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('.nav-link').forEach(function (a) {
-    if (a.getAttribute('href') === page) a.classList.add('active');
+  /* ── Active nav link (scroll-spy for anchor links) ──────── */
+  var navLinks = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+  var sections = navLinks.map(function (a) {
+    return document.querySelector(a.getAttribute('href'));
   });
+
+  function updateActiveLink() {
+    var scrollY = window.scrollY + 120;
+    var active = null;
+    sections.forEach(function (sec, i) {
+      if (sec && sec.offsetTop <= scrollY) active = i;
+    });
+    navLinks.forEach(function (a, i) {
+      a.classList.toggle('active', i === active);
+    });
+  }
+  if (navLinks.length) {
+    window.addEventListener('scroll', updateActiveLink, { passive: true });
+    updateActiveLink();
+  }
+
+  /* ── Also mark contact page link active on contact.html ─── */
+  if (location.pathname.indexOf('contact') !== -1) {
+    document.querySelectorAll('.nav-link').forEach(function (a) {
+      if (a.getAttribute('href') && a.getAttribute('href').indexOf('contact') !== -1) a.classList.add('active');
+    });
+  }
 
   /* ── Navbar scroll shadow ────────────────────────────────── */
   var navbar = document.querySelector('.navbar');
