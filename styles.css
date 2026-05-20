@@ -121,7 +121,8 @@ ul { list-style: none; }
 }
 .hero h1 { font-size: clamp(32px, 4.5vw, 54px); font-weight: 800; line-height: 1.15; margin-bottom: 20px; letter-spacing: -.4px; }
 .hero h1 em { font-style: normal; color: var(--accent); }
-.hero-desc { font-size: 18px; color: rgba(255,255,255,.74); line-height: 1.65; margin-bottom: 36px; max-width: 52ch; }
+.hero-desc { font-size: 17px; color: rgba(255,255,255,.74); line-height: 1.7; margin-bottom: 16px; max-width: 56ch; }
+.hero-desc:last-of-type { margin-bottom: 36px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 44px; }
 .hero-trust { display: flex; flex-wrap: wrap; gap: 22px; }
 .hero-trust-item { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.64); font-size: 14px; }
@@ -166,6 +167,19 @@ ul { list-style: none; }
 .section-desc { font-size: 17px; color: var(--muted); line-height: 1.65; }
 
 /* ─── Services Grid ──────────────────────────────────────────── */
+/* ─── Intro scale section ────────────────────────────────────── */
+.intro-scale-section { padding: 64px 0; background: var(--bg); }
+.intro-scale-inner { max-width: 780px; }
+.intro-scale-title {
+  font-size: clamp(24px, 3vw, 36px); font-weight: 800;
+  color: var(--navy); line-height: 1.25; margin-bottom: 20px;
+}
+.intro-scale-title em { font-style: normal; color: var(--accent); }
+.intro-scale-body {
+  font-size: 17px; color: var(--muted); line-height: 1.75; max-width: 72ch;
+}
+
+/* ─── Services grid ──────────────────────────────────────────── */
 .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .service-card {
   background: var(--white); border: 1px solid var(--border);
