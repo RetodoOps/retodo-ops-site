@@ -64,7 +64,13 @@
   /* ── Logo strip marquee — duplicate for seamless loop ───── */
   var strip = document.querySelector('.clients-strip');
   if (strip) {
-    strip.innerHTML += strip.innerHTML; /* duplicate for seamless loop */
+    strip.innerHTML += strip.innerHTML;
+  }
+
+  /* ── Shorts strip marquee — duplicate for seamless loop ──── */
+  var shortsStrip = document.querySelector('.video-shorts-strip');
+  if (shortsStrip) {
+    shortsStrip.innerHTML += shortsStrip.innerHTML;
   }
 
   /* ── IntersectionObserver factory ───────────────────────── */
@@ -186,7 +192,11 @@
     'sv-saas':      'art-sv-saas',
     'dk-contracts': 'art-dk-contracts',
     'eu-mdr':       'art-eu-mdr',
-    'fi-hardest':   'art-fi-hardest'
+    'fi-hardest':   'art-fi-hardest',
+    'wl-agency':    'art-wl-agency',
+    'gdpr-nordic':  'art-gdpr-nordic',
+    'tm-savings':   'art-tm-savings',
+    'nordic-ecom':  'art-nordic-ecom'
   };
 
   function openArticle(key) {
