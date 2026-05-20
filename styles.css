@@ -726,50 +726,39 @@ ul { list-style: none; }
 .video-shorts-title em { color: var(--accent); font-style: normal; }
 .video-shorts-sub { font-size: 15px; color: var(--muted); max-width: 44ch; line-height: 1.6; text-align: right; }
 
-/* scrollable track */
+/* marquee track */
 .video-shorts-track {
-  overflow-x: auto; overflow-y: visible;
-  padding: 0 24px 40px;
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
+  padding-bottom: 40px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
 }
-.video-shorts-track::-webkit-scrollbar { height: 4px; }
-.video-shorts-track::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+@keyframes shortsMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 .video-shorts-strip {
   display: flex; gap: 20px;
   width: max-content; padding: 4px 0;
+  animation: shortsMarquee 48s linear infinite;
 }
+.video-shorts-strip:hover { animation-play-state: paused; }
 
 /* individual card */
 .short-card {
-  width: 240px; flex-shrink: 0;
+  width: 260px; flex-shrink: 0;
   background: var(--white); border: 1px solid var(--border);
   border-radius: 16px; overflow: hidden;
-  transition: transform .2s, box-shadow .2s;
+  transition: transform .25s, box-shadow .25s;
   cursor: pointer;
 }
-.short-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(10,22,40,.14); }
+.short-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(10,22,40,.16); }
 
 /* thumbnail */
 .short-thumb {
   position: relative; height: 160px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-end; justify-content: flex-start;
 }
-.short-flag { font-size: 48px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.3)); }
-.short-play {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0);
-  transition: background .2s;
-}
-.short-play svg {
-  width: 48px; height: 48px; color: white;
-  opacity: 0; transform: scale(0.8);
-  transition: opacity .2s, transform .2s;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,.5));
-}
-.short-card:hover .short-play { background: rgba(0,0,0,.25); }
-.short-card:hover .short-play svg { opacity: 1; transform: scale(1); }
 
 .short-duration {
   position: absolute; bottom: 8px; right: 10px;
@@ -789,28 +778,8 @@ ul { list-style: none; }
 .short-meta h4 { font-size: 13px; font-weight: 700; color: var(--navy); line-height: 1.4; margin-bottom: 6px; }
 .short-meta p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-/* fade edges */
-.video-shorts-track::before,
-.video-shorts-track::after {
-  content: ''; position: sticky;
-  top: 0; bottom: 0; width: 40px; flex-shrink: 0;
-  pointer-events: none; z-index: 2;
-}
-
-@keyframes shortSlide {
-  from { opacity: 0; transform: translateX(24px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-.short-card { animation: shortSlide .4s cubic-bezier(.22,1,.36,1) both; }
-.short-card:nth-child(1) { animation-delay: .05s; }
-.short-card:nth-child(2) { animation-delay: .12s; }
-.short-card:nth-child(3) { animation-delay: .19s; }
-.short-card:nth-child(4) { animation-delay: .26s; }
-.short-card:nth-child(5) { animation-delay: .33s; }
-.short-card:nth-child(6) { animation-delay: .40s; }
-
 @media (prefers-reduced-motion: reduce) {
-  .short-card { animation: none; }
+  .video-shorts-strip { animation: none; }
 }
 
 /* ─── Crowdin logo wordmark ──────────────────────────────────── */
