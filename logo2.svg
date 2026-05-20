@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" fill="none" role="img" aria-label="Retodo Ops">
+  <title>Retodo Ops</title>
+
+  <!-- Neural network mark: AI-forward language intelligence -->
+
+  <!-- Connection lines (drawn beneath nodes) -->
+  <line x1="44" y1="50" x2="38" y2="12" stroke="#0a1628" stroke-width="1.8" opacity="0.62"/>
+  <line x1="44" y1="50" x2="68" y2="22" stroke="#0ea5e9" stroke-width="1.8" opacity="0.72"/>
+  <line x1="44" y1="50" x2="78" y2="54" stroke="#0a1628" stroke-width="1.8" opacity="0.58"/>
+  <line x1="44" y1="50" x2="26" y2="80" stroke="#0a1628" stroke-width="1.8" opacity="0.58"/>
+  <line x1="44" y1="50" x2="10" y2="40" stroke="#0a1628" stroke-width="1.8" opacity="0.62"/>
+  <line x1="38" y1="12" x2="68" y2="22" stroke="#0ea5e9" stroke-width="1.4" opacity="0.52"/>
+  <line x1="68" y1="22" x2="78" y2="54" stroke="#0a1628" stroke-width="1.4" opacity="0.46"/>
+
+  <!-- Nodes -->
+  <!-- Central hub -->
+  <circle cx="44" cy="50" r="8.5" fill="#0a1628"/>
+  <!-- Top node: orange accent (key intelligence node) -->
+  <circle cx="38" cy="12" r="5.5" fill="#f97316"/>
+  <!-- Top-right node: accent blue -->
+  <circle cx="68" cy="22" r="6" fill="#0ea5e9"/>
+  <!-- Right node -->
+  <circle cx="78" cy="54" r="4.5" fill="#1e3a5f"/>
+  <!-- Bottom-left node -->
+  <circle cx="26" cy="80" r="4.5" fill="#1e3a5f"/>
+  <!-- Left node -->
+  <circle cx="10" cy="40" r="5" fill="#0a1628"/>
+
+  <!-- Wordmark -->
+  <text
+    x="98"
+    y="67"
+    font-family="'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-weight="800"
+    font-size="46"
+    letter-spacing="-1"
+    fill="#0a1628">Retodo<tspan fill="#0ea5e9"> Ops</tspan></text>
+</svg>
