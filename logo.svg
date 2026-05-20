@@ -1,46 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 140" fill="none" role="img" aria-label="Retodo Ops">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" fill="none" role="img" aria-label="Retodo Ops">
   <title>Retodo Ops</title>
 
-  <!-- Globe mark: global localization with Scandinavia anchor point -->
-  <!-- Outer circle -->
-  <circle cx="62" cy="70" r="48" stroke="#0a1628" stroke-width="4.5"/>
+  <!-- Neural network mark: AI-forward language intelligence -->
 
-  <!-- Equator -->
-  <line x1="14" y1="70" x2="110" y2="70" stroke="#0a1628" stroke-width="2.5"/>
+  <!-- Connection lines (drawn beneath nodes) -->
+  <line x1="44" y1="50" x2="38" y2="12" stroke="#0a1628" stroke-width="1.8" opacity="0.62"/>
+  <line x1="44" y1="50" x2="68" y2="22" stroke="#0ea5e9" stroke-width="1.8" opacity="0.72"/>
+  <line x1="44" y1="50" x2="78" y2="54" stroke="#0a1628" stroke-width="1.8" opacity="0.58"/>
+  <line x1="44" y1="50" x2="26" y2="80" stroke="#0a1628" stroke-width="1.8" opacity="0.58"/>
+  <line x1="44" y1="50" x2="10" y2="40" stroke="#0a1628" stroke-width="1.8" opacity="0.62"/>
+  <line x1="38" y1="12" x2="68" y2="22" stroke="#0ea5e9" stroke-width="1.4" opacity="0.52"/>
+  <line x1="68" y1="22" x2="78" y2="54" stroke="#0a1628" stroke-width="1.4" opacity="0.46"/>
 
-  <!-- Left meridian: accent blue — represents EU/Western language markets -->
-  <path d="M62,22 Q22,70 62,118" stroke="#0ea5e9" stroke-width="3.5"/>
-
-  <!-- Right meridian: navy -->
-  <path d="M62,22 Q102,70 62,118" stroke="#0a1628" stroke-width="2.5"/>
-
-  <!-- Upper latitude arc -->
-  <path d="M20,50 Q62,41 104,50" stroke="#0a1628" stroke-width="1.5" opacity="0.38"/>
-
-  <!-- Lower latitude arc -->
-  <path d="M19,90 Q62,100 105,90" stroke="#0a1628" stroke-width="1.5" opacity="0.32"/>
-
-  <!-- Scandinavia anchor dot (orange) — the geographic specialisation -->
-  <circle cx="78" cy="41" r="8" fill="#f97316"/>
-  <circle cx="78" cy="41" r="4" fill="#ffffff" opacity="0.55"/>
+  <!-- Nodes -->
+  <!-- Central hub -->
+  <circle cx="44" cy="50" r="8.5" fill="#0a1628"/>
+  <!-- Top node: orange accent (key intelligence node) -->
+  <circle cx="38" cy="12" r="5.5" fill="#f97316"/>
+  <!-- Top-right node: accent blue -->
+  <circle cx="68" cy="22" r="6" fill="#0ea5e9"/>
+  <!-- Right node -->
+  <circle cx="78" cy="54" r="4.5" fill="#1e3a5f"/>
+  <!-- Bottom-left node -->
+  <circle cx="26" cy="80" r="4.5" fill="#1e3a5f"/>
+  <!-- Left node -->
+  <circle cx="10" cy="40" r="5" fill="#0a1628"/>
 
   <!-- Wordmark -->
   <text
-    x="128"
-    y="92"
+    x="98"
+    y="67"
     font-family="'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
     font-weight="800"
-    font-size="56"
-    letter-spacing="-1.5"
+    font-size="46"
+    letter-spacing="-1"
     fill="#0a1628">Retodo<tspan fill="#0ea5e9"> Ops</tspan></text>
-
-  <!-- Optional tagline -->
-  <text
-    x="130"
-    y="115"
-    font-family="'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
-    font-weight="500"
-    font-size="15"
-    letter-spacing="2.5"
-    fill="#64748b">SCANDINAVIAN LANGUAGE SERVICES</text>
 </svg>
