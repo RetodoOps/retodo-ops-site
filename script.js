@@ -152,4 +152,46 @@
     codeObs.observe(codeBody);
   }
 
+  /* ── Article modal ───────────────────────────────────────── */
+  var modal      = document.getElementById('articleModal');
+  var modalBody  = document.getElementById('modalBody');
+  var modalClose = document.getElementById('modalClose');
+  var overlay    = document.getElementById('modalOverlay');
+
+  var articleMap = {
+    'no-market':    'art-no-market',
+    'ai-workflow':  'art-ai-workflow',
+    'sv-saas':      'art-sv-saas',
+    'dk-contracts': 'art-dk-contracts',
+    'eu-mdr':       'art-eu-mdr',
+    'fi-hardest':   'art-fi-hardest'
+  };
+
+  function openArticle(key) {
+    var src = document.getElementById(articleMap[key]);
+    if (!src || !modal) return;
+    modalBody.innerHTML = src.innerHTML;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    modalBody.scrollTop = 0;
+    if (modalClose) modalClose.focus();
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.short-card[data-article]').forEach(function (card) {
+    card.addEventListener('click', function () { openArticle(card.dataset.article); });
+    card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openArticle(card.dataset.article); }
+    });
+  });
+
+  if (modalClose) modalClose.addEventListener('click', closeModal);
+  if (overlay)    overlay.addEventListener('click', closeModal);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
 })();

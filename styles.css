@@ -879,3 +879,67 @@ ul { list-style: none; }
 .about-story-photo { margin: 0; border-radius: 16px; overflow: hidden; }
 .about-story-photo img { width: 100%; height: 260px; object-fit: cover; display: block; transition: transform .4s; }
 .about-story-photo:hover img { transform: scale(1.04); }
+
+/* ─── Short card: read label instead of play ─────────────────── */
+.short-card { background: none; border: none; text-align: left; cursor: pointer; }
+.short-read-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0); transition: background .2s;
+  font-size: 15px; font-weight: 700; color: white;
+  opacity: 0; letter-spacing: .5px;
+}
+.short-card:hover .short-read-label { background: rgba(0,0,0,.28); opacity: 1; }
+
+/* ─── Article Modal ──────────────────────────────────────────── */
+.article-modal {
+  position: fixed; inset: 0; z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0;
+  transition: opacity .25s;
+}
+.article-modal.open { pointer-events: all; opacity: 1; }
+.article-modal-overlay {
+  position: absolute; inset: 0;
+  background: rgba(10,22,40,.72); backdrop-filter: blur(4px);
+}
+.article-modal-panel {
+  position: relative; z-index: 1;
+  background: var(--white); border-radius: 20px;
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto; box-shadow: 0 32px 80px rgba(0,0,0,.35);
+  transform: translateY(20px); transition: transform .3s cubic-bezier(.22,1,.36,1);
+}
+.article-modal.open .article-modal-panel { transform: translateY(0); }
+.modal-close {
+  position: sticky; top: 16px; float: right; margin: 16px 16px 0 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--border);
+  font-size: 20px; line-height: 1; cursor: pointer; color: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s; z-index: 2;
+}
+.modal-close:hover { background: var(--border); }
+
+/* article body inside modal */
+.article-modal-body { padding: 0 40px 48px; clear: both; }
+.article-modal-body .art-hero {
+  margin: 0 -40px 28px; height: 180px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 20px 20px 0 0;
+}
+.article-modal-body .art-flag { font-size: 72px; }
+.article-modal-body .short-tag { font-size: 11px; }
+.article-modal-body h2 { font-size: clamp(20px,3vw,28px); font-weight: 800; color: var(--navy); margin: 12px 0 6px; line-height: 1.25; }
+.art-byline { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.article-modal-body p  { font-size: 16px; color: #334155; line-height: 1.75; margin-bottom: 16px; }
+.article-modal-body h3 { font-size: 18px; font-weight: 700; color: var(--navy); margin: 28px 0 10px; }
+.article-modal-body ul { padding-left: 20px; margin-bottom: 16px; }
+.article-modal-body ul li { font-size: 15px; color: #334155; line-height: 1.7; margin-bottom: 6px; }
+.article-modal-body strong { color: var(--navy); }
+
+@media (max-width: 600px) {
+  .article-modal-body { padding: 0 20px 32px; }
+  .article-modal-body .art-hero { margin: 0 -20px 24px; }
+}
