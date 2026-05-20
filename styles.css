@@ -194,8 +194,22 @@ ul { list-style: none; }
 .service-card:hover { box-shadow: var(--shadow); transform: translateY(-4px); border-color: rgba(14,165,233,.3); }
 .service-card:hover::after { transform: scaleX(1); }
 .service-icon { width: 50px; height: 50px; background: rgba(14,165,233,.09); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
-.service-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
-.service-card p  { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 18px; }
+.service-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.service-card p  { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
+.service-list {
+  margin: 0 0 16px 0; padding-left: 18px;
+  font-size: 13px; color: var(--muted); line-height: 1.6;
+}
+.service-list li { margin-bottom: 4px; }
+.service-list--numbered { list-style: decimal; }
+.service-metrics {
+  display: flex; flex-direction: column; gap: 5px;
+  border-top: 1px solid var(--border); padding-top: 14px; margin-top: auto;
+}
+.service-metric {
+  font-size: 12px; font-weight: 500; color: var(--navy);
+}
+.service-card { display: flex; flex-direction: column; }
 .service-link { color: var(--accent-dark); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; transition: gap .15s; }
 .service-link:hover { gap: 8px; }
 
