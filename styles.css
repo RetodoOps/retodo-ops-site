@@ -34,8 +34,9 @@ ul { list-style: none; }
 /* ─── Navbar ─────────────────────────────────────────────────── */
 .navbar {
   position: sticky; top: 0; z-index: 100;
-  background: var(--navy);
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 var(--border);
 }
 .navbar-inner {
   display: flex; align-items: center;
@@ -44,17 +45,17 @@ ul { list-style: none; }
 }
 .navbar-logo {
   font-size: 22px; font-weight: 800;
-  color: var(--white); letter-spacing: -.4px; white-space: nowrap;
+  color: var(--navy); letter-spacing: -.4px; white-space: nowrap;
 }
 .navbar-logo span { color: var(--accent); }
 .navbar-nav { display: flex; align-items: center; gap: 4px; flex: 1; }
 .nav-link {
-  color: rgba(255,255,255,.82); font-size: 15px; font-weight: 500;
+  color: var(--muted); font-size: 15px; font-weight: 500;
   padding: 8px 14px; border-radius: 6px;
   transition: background .15s, color .15s; white-space: nowrap;
 }
-.nav-link:hover { background: rgba(255,255,255,.09); color: var(--white); }
-.nav-link.active { color: var(--accent); }
+.nav-link:hover { background: rgba(10,22,40,.06); color: var(--navy); }
+.nav-link.active { color: var(--accent); background: rgba(14,165,233,.07); }
 .navbar-cta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
 /* ─── Buttons ────────────────────────────────────────────────── */
@@ -81,7 +82,7 @@ ul { list-style: none; }
   display: none; flex-direction: column; gap: 5px;
   background: none; border: none; cursor: pointer; padding: 4px;
 }
-.hamburger span { display: block; width: 24px; height: 2px; background: var(--white); border-radius: 2px; transition: all .2s; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--navy); border-radius: 2px; transition: all .2s; }
 .mobile-nav {
   display: none; flex-direction: column;
   background: var(--navy); border-top: 1px solid rgba(255,255,255,.08);
