@@ -142,7 +142,7 @@ ul { list-style: none; }
 
 /* ─── Stats Bar ──────────────────────────────────────────────── */
 .stats-bar { background: var(--accent); }
-.stats-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+.stats-inner { display: grid; grid-template-columns: repeat(3, 1fr); }
 .stat-item {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 26px 16px; text-align: center;
@@ -295,12 +295,30 @@ ul { list-style: none; }
   background: rgba(14,165,233,.07); border: 1px solid rgba(14,165,233,.18);
   border-radius: 8px; padding: 8px 12px;
 }
+.security-docs { margin: 32px 0; }
+.security-docs-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.security-docs-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+.security-docs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.security-doc-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 18px;
+  transition: box-shadow .2s, border-color .2s;
+}
+.security-doc-card:hover { box-shadow: var(--shadow); border-color: rgba(14,165,233,.3); }
+.security-doc-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+.security-doc-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 5px; }
+.security-doc-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 8px; }
+.security-doc-meta { font-size: 11px; color: var(--accent-dark); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+
 .security-contact-bar {
   text-align: center; padding: 20px 24px;
   background: var(--white); border: 1px solid var(--border);
   border-radius: 12px; font-size: 14px; color: var(--muted);
 }
 .security-contact-bar a { color: var(--accent-dark); font-weight: 600; }
+
+@media (max-width: 768px) { .security-docs-grid { grid-template-columns: 1fr; } }
 
 /* ─── Testimonials ───────────────────────────────────────────── */
 .testimonials-section { background: var(--bg); }
@@ -494,28 +512,42 @@ ul { list-style: none; }
 .process-section { background: var(--navy); color: var(--white); }
 .process-section .section-title { color: var(--white); }
 .process-section .section-desc  { color: rgba(255,255,255,.62); }
-.process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
-.process-grid--5 { grid-template-columns: repeat(5, 1fr); }
-.process-grid::before {
-  content: ''; position: absolute;
-  top: 28px; left: calc(12.5% + 14px); right: calc(12.5% + 14px);
-  height: 2px; background: rgba(14,165,233,.3);
-  z-index: 0;
+/* ─── Process Diagram (forked) ───────────────────────────────── */
+.process-diagram { display: flex; flex-direction: column; gap: 0; }
+
+.process-row--top  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; }
+.process-row--bottom { display: grid; grid-template-columns: 1fr; max-width: 320px; margin: 0 auto; }
+
+.process-fork-label-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  margin: 4px 0;
 }
-.process-grid--5::before {
-  left: calc(10% + 14px); right: calc(10% + 14px);
+.process-fork-tag {
+  text-align: center; padding: 6px 0;
+  font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  border-top: 2px solid transparent;
 }
-.process-step { text-align: center; padding: 0 16px; position: relative; }
+.process-fork-tag--ai    { color: var(--accent); border-color: var(--accent); background: rgba(14,165,233,.06); }
+.process-fork-tag--human { color: var(--orange);  border-color: var(--orange);  background: rgba(249,115,22,.06); }
+
+.process-split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.process-path { display: flex; flex-direction: column; }
+.process-path--ai    { border-right: 1px solid rgba(14,165,233,.2); }
+.process-path--human { }
+
+.process-step { text-align: center; padding: 28px 16px; position: relative; }
 .process-num {
-  width: 56px; height: 56px; border-radius: 50%;
+  width: 52px; height: 52px; border-radius: 50%;
   background: var(--accent); color: var(--white);
-  font-size: 20px; font-weight: 800;
+  font-size: 18px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 20px; position: relative; z-index: 1;
-  box-shadow: 0 0 0 6px rgba(14,165,233,.2);
+  margin: 0 auto 16px; position: relative; z-index: 1;
+  box-shadow: 0 0 0 5px rgba(14,165,233,.2);
 }
-.process-step h4 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
-.process-step p  { font-size: 14px; color: rgba(255,255,255,.58); line-height: 1.6; }
+.process-num--ai    { background: var(--accent); box-shadow: 0 0 0 5px rgba(14,165,233,.2); }
+.process-num--human { background: var(--orange);  box-shadow: 0 0 0 5px rgba(249,115,22,.2); }
+.process-step h4 { font-size: 15px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+.process-step p  { font-size: 13px; color: rgba(255,255,255,.58); line-height: 1.6; }
 
 /* ─── B2B / Agency Section ───────────────────────────────────── */
 .agency-section { background: var(--bg); }
@@ -575,14 +607,14 @@ ul { list-style: none; }
 
 /* ─── Responsive additions ───────────────────────────────────── */
 @media (max-width: 1024px) {
-  .process-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-  .process-grid::before { display: none; }
+  .process-row--top, .process-split-row { grid-template-columns: 1fr; }
+  
   .agency-cards { grid-template-columns: 1fr; }
   .github-banner { grid-template-columns: 1fr; }
   .github-logo { display: none; }
 }
 @media (max-width: 768px) {
-  .process-grid, .process-grid--5 { grid-template-columns: 1fr; }
+  .process-fork-label-row { grid-template-columns: 1fr; gap: 8px; }
   .clients-strip { gap: 10px; }
   .security-grid { grid-template-columns: 1fr; }
 }
@@ -619,7 +651,7 @@ ul { list-style: none; }
 /* ─── Process section on light bg override ───────────────────── */
 .process-light .process-step h4 { color: var(--navy); }
 .process-light .process-step p  { color: var(--muted); }
-.process-light .process-grid::before { background: rgba(14,165,233,.2); }
+
 
 @media (max-width: 1024px) {
   .github-banner-inner { grid-template-columns: 1fr; }
@@ -753,7 +785,7 @@ ul { list-style: none; }
 .client-logo { flex-shrink: 0; }
 
 /* ─── Process: line draws in; numbers pulse ──────────────────── */
-.process-grid.line-ready::before {
+/* process-grid.line-ready legacy – kept for safety */.process-grid.line-ready-unused::before {
   transform-origin: left center;
   animation: drawLine .9s cubic-bezier(.22,1,.36,1) forwards;
 }
