@@ -152,6 +152,21 @@ ul { list-style: none; }
 .stat-number { font-size: 34px; font-weight: 800; color: var(--white); letter-spacing: -1px; line-height: 1; }
 .stat-label  { font-size: 13px; color: rgba(255,255,255,.82); margin-top: 5px; font-weight: 500; }
 
+/* ─── Compliance Strip ───────────────────────────────────────── */
+.compliance-strip {
+  background: var(--navy); padding: 10px 0;
+}
+.compliance-strip-inner {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 6px 20px; font-size: 12.5px;
+}
+.compliance-label {
+  font-weight: 700; color: var(--accent); white-space: nowrap;
+}
+.compliance-item {
+  color: rgba(255,255,255,.72);
+}
+
 /* ─── Section Header ─────────────────────────────────────────── */
 .section-header { text-align: center; max-width: 680px; margin: 0 auto 56px; }
 .section-eyebrow {
@@ -259,6 +274,33 @@ ul { list-style: none; }
 .cert-icon { font-size: 26px; flex-shrink: 0; }
 .cert-badge h4 { font-size: 15px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
 .cert-badge p  { font-size: 13px; color: rgba(255,255,255,.52); }
+
+/* ─── Testimonials ───────────────────────────────────────────── */
+/* ─── Security Section ───────────────────────────────────────── */
+.security-section { background: var(--bg); }
+.security-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+  margin-bottom: 32px;
+}
+.security-block {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px 26px;
+}
+.security-block-icon { font-size: 28px; margin-bottom: 14px; }
+.security-block h3 { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+.security-block p  { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
+.cert-pills { display: flex; flex-direction: column; gap: 8px; }
+.cert-pill-item {
+  font-size: 13px; color: var(--navy); font-weight: 500;
+  background: rgba(14,165,233,.07); border: 1px solid rgba(14,165,233,.18);
+  border-radius: 8px; padding: 8px 12px;
+}
+.security-contact-bar {
+  text-align: center; padding: 20px 24px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 12px; font-size: 14px; color: var(--muted);
+}
+.security-contact-bar a { color: var(--accent-dark); font-weight: 600; }
 
 /* ─── Testimonials ───────────────────────────────────────────── */
 .testimonials-section { background: var(--bg); }
@@ -453,11 +495,15 @@ ul { list-style: none; }
 .process-section .section-title { color: var(--white); }
 .process-section .section-desc  { color: rgba(255,255,255,.62); }
 .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+.process-grid--5 { grid-template-columns: repeat(5, 1fr); }
 .process-grid::before {
   content: ''; position: absolute;
   top: 28px; left: calc(12.5% + 14px); right: calc(12.5% + 14px);
   height: 2px; background: rgba(14,165,233,.3);
   z-index: 0;
+}
+.process-grid--5::before {
+  left: calc(10% + 14px); right: calc(10% + 14px);
 }
 .process-step { text-align: center; padding: 0 16px; position: relative; }
 .process-num {
@@ -536,8 +582,9 @@ ul { list-style: none; }
   .github-logo { display: none; }
 }
 @media (max-width: 768px) {
-  .process-grid { grid-template-columns: 1fr; }
+  .process-grid, .process-grid--5 { grid-template-columns: 1fr; }
   .clients-strip { gap: 10px; }
+  .security-grid { grid-template-columns: 1fr; }
 }
 
 /* ─── GitHub Banner (full section) ──────────────────────────── */
