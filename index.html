@@ -55,123 +55,171 @@
           </div>
         </div>
         <div class="hero-map-wrap" aria-hidden="true">
-          <svg class="hero-map" viewBox="0 0 440 460" xmlns="http://www.w3.org/2000/svg">
+          <svg class="hero-map" viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <!-- Arc gradient -->
-              <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0"/>
-                <stop offset="50%" stop-color="#0ea5e9" stop-opacity="0.9"/>
-                <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
-              </linearGradient>
-              <!-- Glow filter -->
-              <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+              <filter id="mapGlow" x="-40%" y="-40%" width="180%" height="180%">
                 <feGaussianBlur stdDeviation="4" result="blur"/>
                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
-              <filter id="cityGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <filter id="cityGlow" x="-80%" y="-80%" width="260%" height="260%">
                 <feGaussianBlur stdDeviation="3" result="blur"/>
                 <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
             </defs>
 
-            <!-- Ocean background -->
-            <rect width="440" height="460" fill="rgba(14,165,233,0.04)" rx="16"/>
+            <!-- Lat/lon grid (3° intervals) -->
+            <line x1="0" y1="26"  x2="560" y2="26"  class="map-grid"/>
+            <line x1="0" y1="104" x2="560" y2="104" class="map-grid"/>
+            <line x1="0" y1="182" x2="560" y2="182" class="map-grid"/>
+            <line x1="0" y1="260" x2="560" y2="260" class="map-grid"/>
+            <line x1="0" y1="338" x2="560" y2="338" class="map-grid"/>
+            <line x1="0" y1="416" x2="560" y2="416" class="map-grid"/>
+            <line x1="251" y1="0" x2="251" y2="520" class="map-grid"/>
+            <line x1="299" y1="0" x2="299" y2="520" class="map-grid"/>
+            <line x1="347" y1="0" x2="347" y2="520" class="map-grid"/>
+            <line x1="396" y1="0" x2="396" y2="520" class="map-grid"/>
+            <line x1="444" y1="0" x2="444" y2="520" class="map-grid"/>
+            <line x1="492" y1="0" x2="492" y2="520" class="map-grid"/>
+            <line x1="541" y1="0" x2="541" y2="520" class="map-grid"/>
 
-            <!-- Context countries (light) -->
-            <!-- UK outline -->
-            <path class="map-ctx" d="M78 318 Q68 308 65 290 Q63 275 70 262 Q78 250 90 248 Q102 246 108 256 Q114 266 110 280 Q106 294 98 308 Z"/>
+            <!-- Grid labels -->
+            <text class="map-grid-label" x="3" y="340">60&#xB0;N</text>
+            <text class="map-grid-label" x="3" y="262">63&#xB0;N</text>
+            <text class="map-grid-label" x="3" y="184">66&#xB0;N</text>
+            <text class="map-grid-label" x="3" y="106">69&#xB0;N</text>
+            <text class="map-grid-label" x="344" y="516">10&#xB0;E</text>
+            <text class="map-grid-label" x="440" y="516">20&#xB0;E</text>
+
+            <!-- Context land masses -->
+            <!-- UK Scotland -->
+            <path class="map-ctx" d="M 192,374 Q 180,395 190,420 Q 210,400 228,382 Z"/>
+            <!-- England -->
+            <path class="map-ctx" d="M 228,400 Q 218,445 234,496 Q 258,510 270,490 Q 258,454 248,420 Z"/>
             <!-- Ireland -->
-            <path class="map-ctx" d="M52 298 Q44 290 44 278 Q44 267 52 260 Q60 254 68 260 Q74 268 70 282 Q66 296 56 300 Z"/>
-            <!-- Germany/Netherlands -->
-            <path class="map-ctx" d="M148 352 L185 348 L220 344 L245 340 L255 360 L240 378 L205 382 L170 378 L148 370 Z"/>
-            <!-- Estonia/Latvia -->
-            <path class="map-ctx" d="M272 222 L300 218 L312 228 L308 245 L280 248 L268 238 Z"/>
-            <!-- Poland -->
-            <path class="map-ctx" d="M200 358 L240 354 L258 358 L260 374 L235 382 L200 380 Z"/>
+            <path class="map-ctx" d="M 175,412 Q 163,432 174,456 Q 188,448 192,424 Z"/>
+            <!-- N Germany / Netherlands -->
+            <path class="map-ctx" d="M 294,492 L 410,484 L 424,510 L 280,516 Z"/>
+            <!-- Baltic states -->
+            <path class="map-ctx" d="M 476,356 L 516,348 L 522,374 L 506,412 L 484,406 Z"/>
 
-            <!-- Nordic countries -->
-            <!-- Iceland -->
-            <path id="map-iceland" class="map-country" d="M22 58 Q30 44 52 42 Q78 40 102 46 Q118 52 122 66 Q124 82 106 90 Q84 96 58 92 Q34 88 22 76 Z" filter="url(#glow)"/>
-            <!-- Norway — simplified coast -->
-            <path id="map-norway" class="map-country" d="M136 275 L130 255 L126 232 L122 208 L119 184 L118 160 L120 136 L126 112 L134 90 L144 72 L156 60 L168 56 L178 60 L180 74 L174 88 L170 104 L168 122 L164 140 L160 158 L158 176 L156 195 L154 214 L152 232 L151 250 L150 266 L144 278 Z" filter="url(#glow)"/>
-            <!-- Sweden -->
-            <path id="map-sweden" class="map-country" d="M178 60 L196 56 L214 56 L228 62 L234 78 L234 96 L232 116 L228 136 L224 156 L218 176 L212 196 L204 216 L196 234 L186 250 L176 262 L166 270 L158 264 L152 250 L152 234 L154 216 L158 196 L160 176 L162 156 L164 136 L168 118 L170 100 L172 82 L174 68 Z" filter="url(#glow)"/>
-            <!-- Finland -->
-            <path id="map-finland" class="map-country" d="M234 96 L248 86 L264 80 L280 78 L295 82 L305 94 L308 110 L306 128 L300 146 L290 162 L278 174 L264 182 L248 186 L235 180 L228 168 L228 150 L230 132 L232 114 Z" filter="url(#glow)"/>
-            <!-- Denmark -->
-            <path id="map-denmark" class="map-country" d="M154 284 L158 268 L164 260 L172 260 L178 270 L178 284 L170 296 L158 296 Z" filter="url(#glow)"/>
+            <!-- ── NORDIC COUNTRIES (geographic coordinate paths) ── -->
+            <!-- Coordinate system: x=(lon+26)*9.655, y=(73-lat)*26  -->
+
+            <!-- NORWAY -->
+            <!-- West coast N, fjords simplified; E border with Sweden; N border with Finland/Russia -->
+            <path id="map-norway" class="map-country" filter="url(#mapGlow)"
+              d="M 319,391
+                 Q 305,367 301,330
+                 Q 306,292 319,270
+                 Q 310,275 350,250
+                 L 387,149 L 416,120
+                 Q 433,87 498,47
+                 L 549,68 L 536,86
+                 L 500,87 Q 470,100 444,117
+                 Q 430,143 415,195
+                 Q 389,234 371,260
+                 Q 366,286 368,312
+                 Q 366,325 362,351
+                 L 357,364
+                 Q 338,390 319,391 Z"/>
+
+            <!-- SWEDEN -->
+            <path id="map-sweden" class="map-country" filter="url(#mapGlow)"
+              d="M 444,117
+                 Q 481,148 483,191
+                 Q 416,274 426,355
+                 Q 405,374 401,420
+                 L 388,460 L 376,451
+                 Q 366,397 357,364
+                 L 362,351
+                 Q 366,325 368,312
+                 Q 366,286 371,260
+                 Q 389,234 415,195
+                 Q 430,143 444,117 Z"/>
+
+            <!-- FINLAND -->
+            <path id="map-finland" class="map-country" filter="url(#mapGlow)"
+              d="M 444,117
+                 L 500,87 L 536,86
+                 Q 549,120 549,156
+                 Q 540,208 534,260
+                 Q 529,312 520,325
+                 Q 518,332 492,334
+                 Q 473,338 459,325
+                 L 454,312
+                 Q 459,260 464,208
+                 Q 473,156 483,191
+                 Q 481,148 444,117 Z"/>
+
+            <!-- DENMARK (Jutland peninsula) -->
+            <path id="map-denmark" class="map-country" filter="url(#mapGlow)"
+              d="M 353,398
+                 Q 327,413 331,456
+                 L 334,474 L 395,468
+                 L 373,448 L 356,406 Z"/>
+            <!-- Zealand island -->
+            <path class="map-country map-country--island"
+              d="M 364,447 L 378,441 L 385,453 L 373,462 Z"/>
+
+            <!-- ICELAND -->
+            <path id="map-iceland" class="map-country" filter="url(#mapGlow)"
+              d="M 15,195 Q 20,186 68,168
+                 L 121,178 L 120,214
+                 L 111,250 L 68,251
+                 Q 38,239 15,214 Z"/>
+
+            <!-- ── ARC CONNECTIONS ── -->
+            <path id="arc-oslo-london"    class="map-arc" d="M 355,340 Q 262,382 228,422"/>
+            <path id="arc-sto-berlin"     class="map-arc" d="M 426,355 Q 412,424 382,492"/>
+            <path id="arc-oslo-sto"  class="map-arc map-arc--local" d="M 355,340 Q 390,348 426,355"/>
+            <path id="arc-sto-hel"   class="map-arc map-arc--local" d="M 426,355 Q 459,344 492,334"/>
+            <path id="arc-cph-oslo"  class="map-arc map-arc--local" d="M 347,445 Q 350,394 355,340"/>
+
+            <!-- Traveling dots -->
+            <circle class="map-traveler" r="4">
+              <animateMotion dur="5s" repeatCount="indefinite" begin="0s"><mpath href="#arc-oslo-london"/></animateMotion>
+            </circle>
+            <circle class="map-traveler" r="4">
+              <animateMotion dur="6s" repeatCount="indefinite" begin="1.5s"><mpath href="#arc-sto-berlin"/></animateMotion>
+            </circle>
+            <circle class="map-traveler" r="3">
+              <animateMotion dur="3s" repeatCount="indefinite" begin="0.4s"><mpath href="#arc-oslo-sto"/></animateMotion>
+            </circle>
+            <circle class="map-traveler" r="3">
+              <animateMotion dur="3.5s" repeatCount="indefinite" begin="1s"><mpath href="#arc-sto-hel"/></animateMotion>
+            </circle>
+            <circle class="map-traveler" r="2.5">
+              <animateMotion dur="4s" repeatCount="indefinite" begin="2s"><mpath href="#arc-cph-oslo"/></animateMotion>
+            </circle>
+
+            <!-- City pulse rings -->
+            <circle class="city-ring" cx="355" cy="340" r="12" style="animation-delay:0s"/>
+            <circle class="city-ring" cx="426" cy="355" r="12" style="animation-delay:.8s"/>
+            <circle class="city-ring" cx="492" cy="334" r="12" style="animation-delay:1.6s"/>
+            <circle class="city-ring" cx="347" cy="445" r="10" style="animation-delay:2.4s"/>
+            <circle class="city-ring" cx="40"  cy="230" r="10" style="animation-delay:3.2s"/>
+
+            <!-- City dots -->
+            <circle class="city-dot" cx="355" cy="340" r="5" filter="url(#cityGlow)"><title>Oslo</title></circle>
+            <circle class="city-dot" cx="426" cy="355" r="5" filter="url(#cityGlow)"><title>Stockholm</title></circle>
+            <circle class="city-dot" cx="492" cy="334" r="5" filter="url(#cityGlow)"><title>Helsinki</title></circle>
+            <circle class="city-dot" cx="347" cy="445" r="4" filter="url(#cityGlow)"><title>Copenhagen</title></circle>
+            <circle class="city-dot" cx="40"  cy="230" r="4" filter="url(#cityGlow)"><title>Reykjavik</title></circle>
+            <!-- Context endpoints -->
+            <circle class="city-dot city-dot--ctx" cx="228" cy="422" r="3"><title>London</title></circle>
+            <circle class="city-dot city-dot--ctx" cx="382" cy="492" r="3"><title>Berlin</title></circle>
 
             <!-- Country labels -->
-            <text class="map-label" x="149" y="172">NO</text>
-            <text class="map-label" x="200" y="154">SE</text>
-            <text class="map-label" x="270" y="128">FI</text>
-            <text class="map-label" x="167" y="280">DK</text>
-            <text class="map-label" x="72" y="68">IS</text>
+            <text class="map-label" x="363" y="200">NO</text>
+            <text class="map-label" x="420" y="230">SE</text>
+            <text class="map-label" x="492" y="216">FI</text>
+            <text class="map-label" x="358" y="442">DK</text>
+            <text class="map-label" x="65"  y="222">IS</text>
 
-            <!-- Connection arcs: Nordic capitals to Europe -->
-            <!-- Oslo → London -->
-            <path id="arc1" class="map-arc" d="M 152 264 Q 90 290 88 310"/>
-            <!-- Stockholm → Amsterdam/Berlin -->
-            <path id="arc2" class="map-arc" d="M 196 238 Q 180 300 190 358"/>
-            <!-- Helsinki → Tallinn/Europe -->
-            <path id="arc3" class="map-arc" d="M 252 178 Q 280 240 284 236"/>
-            <!-- Oslo ↔ Stockholm -->
-            <path id="arc4" class="map-arc map-arc--local" d="M 152 264 Q 175 248 196 238"/>
-            <!-- Stockholm ↔ Helsinki -->
-            <path id="arc5" class="map-arc map-arc--local" d="M 196 238 Q 224 210 252 178"/>
-            <!-- Copenhagen ↔ Oslo -->
-            <path id="arc6" class="map-arc map-arc--local" d="M 168 285 Q 156 274 152 264"/>
-
-            <!-- Traveling dots along arcs -->
-            <circle class="map-traveler" r="3.5">
-              <animateMotion dur="4.5s" repeatCount="indefinite" begin="0s">
-                <mpath href="#arc1"/>
-              </animateMotion>
-            </circle>
-            <circle class="map-traveler" r="3.5">
-              <animateMotion dur="5.5s" repeatCount="indefinite" begin="1.5s">
-                <mpath href="#arc2"/>
-              </animateMotion>
-            </circle>
-            <circle class="map-traveler" r="3">
-              <animateMotion dur="3.8s" repeatCount="indefinite" begin="0.8s">
-                <mpath href="#arc4"/>
-              </animateMotion>
-            </circle>
-            <circle class="map-traveler" r="3">
-              <animateMotion dur="4.2s" repeatCount="indefinite" begin="2.2s">
-                <mpath href="#arc5"/>
-              </animateMotion>
-            </circle>
-
-            <!-- City dots with pulse rings -->
-            <!-- Oslo -->
-            <circle class="city-ring" cx="152" cy="264" r="10" style="animation-delay:0s"/>
-            <circle class="city-dot" cx="152" cy="264" r="5" filter="url(#cityGlow)"><title>Oslo</title></circle>
-            <!-- Stockholm -->
-            <circle class="city-ring" cx="196" cy="238" r="10" style="animation-delay:0.8s"/>
-            <circle class="city-dot" cx="196" cy="238" r="5" filter="url(#cityGlow)"><title>Stockholm</title></circle>
-            <!-- Helsinki -->
-            <circle class="city-ring" cx="252" cy="178" r="10" style="animation-delay:1.6s"/>
-            <circle class="city-dot" cx="252" cy="178" r="5" filter="url(#cityGlow)"><title>Helsinki</title></circle>
-            <!-- Copenhagen -->
-            <circle class="city-ring" cx="168" cy="285" r="8" style="animation-delay:2.4s"/>
-            <circle class="city-dot" cx="168" cy="285" r="4" filter="url(#cityGlow)"><title>Copenhagen</title></circle>
-            <!-- Reykjavik -->
-            <circle class="city-ring" cx="72" cy="66" r="8" style="animation-delay:3.2s"/>
-            <circle class="city-dot" cx="72" cy="66" r="4" filter="url(#cityGlow)"><title>Reykjavik</title></circle>
-            <!-- London (connection endpoint) -->
-            <circle class="city-dot city-dot--ctx" cx="88" cy="310" r="3.5"><title>London</title></circle>
-            <!-- Berlin (connection endpoint) -->
-            <circle class="city-dot city-dot--ctx" cx="190" cy="358" r="3.5"><title>Berlin</title></circle>
-            <!-- Tallinn (connection endpoint) -->
-            <circle class="city-dot city-dot--ctx" cx="284" cy="236" r="3"><title>Tallinn</title></circle>
-
-            <!-- City name labels -->
-            <text class="city-label" x="162" y="262">Oslo</text>
-            <text class="city-label" x="206" y="236">Stockholm</text>
-            <text class="city-label" x="262" y="176">Helsinki</text>
-            <text class="city-label" x="148" y="296">Copenhagen</text>
+            <!-- City labels -->
+            <text class="city-label" x="362" y="337">Oslo</text>
+            <text class="city-label" x="432" y="352">Stockholm</text>
+            <text class="city-label" x="498" y="330">Helsinki</text>
           </svg>
         </div>
       </div>
@@ -600,77 +648,105 @@ Website: https://retodo-ops.com</p>
     <div class="clients-track">
       <div class="clients-strip">
 
-        <!-- Crowdin -->
+        <!-- Crowdin (official colors: #45a826 green) -->
         <div class="tool-logo tool-logo--crowdin">
-          <svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crowdin">
-            <path d="M18 6 C10 6 4 12 4 20 C4 28 10 34 18 34 C24 34 29 31 32 26 L26 23 C24 26 21 28 18 28 C14 28 10 24 10 20 C10 16 14 12 18 12 C21 12 24 14 26 17 L32 14 C29 9 24 6 18 6 Z" fill="#45a826"/>
-            <text x="38" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#1a1a1a">rowdin</text>
-            <text x="38" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#45a826" transform="translate(-6,0)">C</text>
+          <svg viewBox="0 0 130 40" xmlns="http://www.w3.org/2000/svg" aria-label="Crowdin">
+            <!-- Crown/owl icon -->
+            <circle cx="20" cy="20" r="14" fill="#45a826"/>
+            <path d="M13 22 Q15 14 20 12 Q25 14 27 22 Q24 18 20 19 Q16 18 13 22 Z" fill="white"/>
+            <path d="M15 26 Q17 22 20 22 Q23 22 25 26 Q22 24 20 24 Q18 24 15 26 Z" fill="white"/>
+            <text x="40" y="26" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="800" fill="#1a1a1a">Crowdin</text>
           </svg>
         </div>
 
-        <!-- memoQ -->
+        <!-- memoQ (dark blue #003f87 + orange Q) -->
         <div class="tool-logo tool-logo--memoq">
-          <svg viewBox="0 0 110 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="memoQ">
-            <rect x="2" y="4" width="32" height="32" rx="6" fill="#003f87"/>
-            <text x="18" y="27" font-family="'Segoe UI',system-ui,sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">Q</text>
-            <text x="40" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="700" fill="#003f87">memo</text>
-            <text x="78" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="900" fill="#f05a28">Q</text>
+          <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" aria-label="memoQ">
+            <rect x="2" y="6" width="28" height="28" rx="5" fill="#003f87"/>
+            <text x="16" y="26" font-family="Georgia,serif" font-size="20" font-weight="900" fill="white" text-anchor="middle">q</text>
+            <text x="36" y="24" font-family="'Segoe UI',sans-serif" font-size="13" font-weight="700" fill="#003f87">memo</text>
+            <text x="72" y="24" font-family="'Segoe UI',sans-serif" font-size="15" font-weight="900" fill="#f05a28">Q</text>
           </svg>
         </div>
 
-        <!-- Phrase -->
+        <!-- Phrase (official color: #5a2fc2 purple) -->
         <div class="tool-logo tool-logo--phrase">
-          <svg viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Phrase">
-            <rect x="2" y="8" width="24" height="24" rx="5" fill="#5a2fc2"/>
-            <text x="14" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">P</text>
-            <text x="32" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="700" fill="#5a2fc2">Phrase</text>
+          <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" aria-label="Phrase">
+            <!-- Stylised speech bubble icon -->
+            <rect x="2" y="6" width="26" height="22" rx="5" fill="#5a2fc2"/>
+            <polygon points="8,28 14,34 14,28" fill="#5a2fc2"/>
+            <text x="14" y="21" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="900" fill="white" text-anchor="middle">P</text>
+            <text x="34" y="25" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="700" fill="#5a2fc2">Phrase</text>
           </svg>
         </div>
 
-        <!-- SDL Trados -->
+        <!-- SDL Trados (official: #0f4b8c blue) -->
         <div class="tool-logo tool-logo--trados">
-          <svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trados Studio">
-            <rect x="2" y="6" width="28" height="28" rx="5" fill="#0f4b8c"/>
-            <text x="16" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="900" fill="white" text-anchor="middle">T</text>
-            <text x="36" y="19" font-family="'Segoe UI',system-ui,sans-serif" font-size="10" font-weight="700" fill="#666">SDL</text>
-            <text x="36" y="31" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="800" fill="#0f4b8c">Trados</text>
+          <svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" aria-label="SDL Trados Studio">
+            <rect x="2" y="6" width="26" height="28" rx="4" fill="#0f4b8c"/>
+            <text x="15" y="26" font-family="'Segoe UI',sans-serif" font-size="15" font-weight="900" fill="white" text-anchor="middle">T</text>
+            <text x="34" y="17" font-family="'Segoe UI',sans-serif" font-size="9"  font-weight="700" fill="#666">SDL</text>
+            <text x="34" y="30" font-family="'Segoe UI',sans-serif" font-size="14" font-weight="800" fill="#0f4b8c">Trados</text>
           </svg>
         </div>
 
-        <!-- Google Translate -->
+        <!-- Google (multicolor, no "Translate") -->
         <div class="tool-logo tool-logo--google">
-          <svg viewBox="0 0 150 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Google Translate">
-            <!-- Google G -->
-            <text x="2" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#4285f4">G</text>
-            <text x="22" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#ea4335">o</text>
-            <text x="38" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#fbbc05">o</text>
-            <text x="54" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#4285f4">g</text>
-            <text x="70" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#34a853">l</text>
-            <text x="80" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#ea4335">e</text>
-            <text x="100" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="600" fill="#666">Translate</text>
+          <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" aria-label="Google">
+            <text x="4"  y="30" font-family="'Segoe UI',sans-serif" font-size="26" font-weight="900" fill="#4285f4">G</text>
+            <text x="22" y="30" font-family="'Segoe UI',sans-serif" font-size="26" font-weight="900" fill="#ea4335">o</text>
+            <text x="39" y="30" font-family="'Segoe UI',sans-serif" font-size="26" font-weight="900" fill="#fbbc05">o</text>
+            <text x="56" y="30" font-family="'Segoe UI',sans-serif" font-size="26" font-weight="900" fill="#4285f4">g</text>
+            <text x="73" y="30" font-family="'Segoe UI',sans-serif" font-size="26" font-weight="900" fill="#34a853">l</text>
+            <text x="83" y="30" font-family="'Segoe UI',sans-serif" font-size="26" font-weight="900" fill="#ea4335">e</text>
           </svg>
         </div>
 
-        <!-- Microsoft Translator -->
+        <!-- Microsoft (four squares, no "Translator") -->
         <div class="tool-logo tool-logo--microsoft">
-          <svg viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Microsoft Translator">
-            <!-- MS squares -->
-            <rect x="2" y="8" width="11" height="11" fill="#f25022"/>
-            <rect x="14" y="8" width="11" height="11" fill="#7fba00"/>
-            <rect x="2" y="20" width="11" height="11" fill="#00a4ef"/>
-            <rect x="14" y="20" width="11" height="11" fill="#ffb900"/>
-            <text x="32" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="600" fill="#333">Microsoft</text>
-            <text x="32" y="38" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" font-weight="600" fill="#00a4ef">Translator</text>
+          <svg viewBox="0 0 110 40" xmlns="http://www.w3.org/2000/svg" aria-label="Microsoft">
+            <rect x="2"  y="8"  width="12" height="12" fill="#f25022"/>
+            <rect x="16" y="8"  width="12" height="12" fill="#7fba00"/>
+            <rect x="2"  y="22" width="12" height="12" fill="#00a4ef"/>
+            <rect x="16" y="22" width="12" height="12" fill="#ffb900"/>
+            <text x="34" y="26" font-family="'Segoe UI',sans-serif" font-size="14" font-weight="600" fill="#333">Microsoft</text>
           </svg>
         </div>
 
-        <!-- DeepL -->
-        <div class="tool-logo tool-logo--deepl">
-          <svg viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DeepL">
-            <circle cx="20" cy="20" r="14" fill="#0f2b46"/>
-            <text x="20" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="900" fill="white" text-anchor="middle">D</text>
-            <text x="40" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#0f2b46">DeepL</text>
+        <!-- Microsoft Teams (purple/blue) -->
+        <div class="tool-logo tool-logo--teams">
+          <svg viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" aria-label="Microsoft Teams">
+            <rect x="2" y="6" width="28" height="28" rx="6" fill="#6264a7"/>
+            <text x="16" y="27" font-family="'Segoe UI',sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle">T</text>
+            <text x="36" y="25" font-family="'Segoe UI',sans-serif" font-size="14" font-weight="600" fill="#6264a7">Teams</text>
+          </svg>
+        </div>
+
+        <!-- GitHub -->
+        <div class="tool-logo tool-logo--github">
+          <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" aria-label="GitHub">
+            <!-- Simplified octocat shape -->
+            <circle cx="20" cy="20" r="14" fill="#1b1f24"/>
+            <path d="M20 8 C13 8 8 13 8 20 C8 25.5 11.5 30 16.5 31.5 C17.1 31.6 17.3 31.2 17.3 30.9 L17.3 28.8 C14 29.5 13.3 27.3 13.3 27.3 C12.7 25.8 11.8 25.4 11.8 25.4 C10.5 24.5 11.9 24.5 11.9 24.5 C13.3 24.6 14 26 14 26 C15.3 28.2 17.3 27.5 18 27.1 C18.1 26.2 18.5 25.6 18.9 25.2 C15.9 24.9 12.7 23.7 12.7 18.5 C12.7 17 13.2 15.8 14.1 14.8 C14 14.5 13.5 13 14.3 11 C14.3 11 15.5 10.7 17.3 12.5 C18.1 12.3 19 12.2 20 12.2 C21 12.2 21.9 12.3 22.7 12.5 C24.5 10.7 25.7 11 25.7 11 C26.5 13 26 14.5 25.9 14.8 C26.8 15.8 27.3 17 27.3 18.5 C27.3 23.7 24.1 24.9 21.1 25.2 C21.6 25.7 22 26.6 22 28 L22 30.9 C22 31.2 22.2 31.6 22.8 31.5 C27.8 30 31.3 25.5 31.3 20 C32 13 27 8 20 8 Z" fill="white"/>
+            <text x="38" y="26" font-family="'Segoe UI',sans-serif" font-size="15" font-weight="700" fill="#1b1f24">GitHub</text>
+          </svg>
+        </div>
+
+        <!-- Guru (guru.com - green brand) -->
+        <div class="tool-logo tool-logo--guru">
+          <svg viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg" aria-label="Guru">
+            <circle cx="20" cy="20" r="14" fill="#00a862"/>
+            <text x="20" y="26" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="900" fill="white" text-anchor="middle">G</text>
+            <text x="38" y="26" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="700" fill="#00a862">Guru</text>
+          </svg>
+        </div>
+
+        <!-- TMS (generic TMS integration badge) -->
+        <div class="tool-logo tool-logo--tms">
+          <svg viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg" aria-label="TMS Compatible">
+            <rect x="2" y="8" width="24" height="24" rx="4" fill="#1e3a5f"/>
+            <text x="14" y="25" font-family="'Segoe UI',sans-serif" font-size="10" font-weight="900" fill="white" text-anchor="middle">TMS</text>
+            <text x="32" y="25" font-family="'Segoe UI',sans-serif" font-size="14" font-weight="700" fill="#1e3a5f">TMS</text>
           </svg>
         </div>
 
@@ -678,7 +754,7 @@ Website: https://retodo-ops.com</p>
     </div>
   </section>
 
-  <!-- HOW WE WORK -->
+    <!-- HOW WE WORK -->
   <section id="process" class="section" style="background:var(--navy);color:var(--white);">
     <div class="container">
       <div class="section-header">
@@ -969,31 +1045,37 @@ jobs:
       </div>
       <div class="industries-grid">
         <div class="industry-card">
+          <div class="industry-card-photo" style="background-image:url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=70')"></div>
           <div class="industry-icon">⚖️</div>
           <h3>Legal &amp; Compliance</h3>
           <p>Court documents, contracts, intellectual property, and regulatory compliance for Nordic jurisdictions.</p>
         </div>
         <div class="industry-card">
+          <div class="industry-card-photo" style="background-image:url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=70')"></div>
           <div class="industry-icon">🏥</div>
           <h3>Medical &amp; Life Sciences</h3>
           <p>Clinical documentation, pharmaceutical content, medical device manuals, and patient materials.</p>
         </div>
         <div class="industry-card">
+          <div class="industry-card-photo" style="background-image:url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=70')"></div>
           <div class="industry-icon">💻</div>
           <h3>Technology &amp; Software</h3>
           <p>Software UI, technical documentation, APIs, and digital products for Scandinavian users.</p>
         </div>
         <div class="industry-card">
+          <div class="industry-card-photo" style="background-image:url('https://images.unsplash.com/photo-1562519819-016930ada31s?auto=format&fit=crop&w=600&q=70')"></div>
           <div class="industry-icon">🔧</div>
           <h3>Automotive &amp; Industrial Tools</h3>
           <p>Technical documentation, safety manuals, user guides, and software interfaces for automotive manufacturers and industrial tool companies.</p>
         </div>
         <div class="industry-card">
+          <div class="industry-card-photo" style="background-image:url('https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=600&q=70')"></div>
           <div class="industry-icon">⚡</div>
           <h3>Energy &amp; Oil</h3>
           <p>Technical manuals, safety documents, and regulatory filings for the Nordic energy sector.</p>
         </div>
         <div class="industry-card">
+          <div class="industry-card-photo" style="background-image:url('https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=600&q=70')"></div>
           <div class="industry-icon">🎮</div>
           <h3>Gaming &amp; Interactive Media</h3>
           <p>UI localization, in-game text, narrative content, and community messaging for game studios. Cultural adaptation for Nordic players.</p>

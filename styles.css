@@ -1027,23 +1027,35 @@ ul { list-style: none; }
   padding: 10px 0;
 }
 .hero-map {
-  width: 100%; max-width: 380px; height: auto;
-  filter: drop-shadow(0 8px 40px rgba(14,165,233,.3));
+  width: 100%; max-width: 400px; height: auto;
 }
 
-/* Context countries (UK, Germany, etc.) */
+/* Map grid lines */
+.map-grid {
+  stroke: rgba(14,165,233,.12); stroke-width: .5; fill: none;
+}
+.map-grid-label {
+  font-size: 8px; fill: rgba(14,165,233,.35);
+  font-family: 'Segoe UI',system-ui,sans-serif;
+  pointer-events: none;
+}
+
+/* Context countries */
 .map-ctx {
-  fill: rgba(255,255,255,.04);
+  fill: rgba(255,255,255,.05);
   stroke: rgba(255,255,255,.12);
-  stroke-width: 1;
+  stroke-width: .8;
 }
 
 /* Nordic countries */
 .map-country {
-  fill: rgba(14,165,233,.18);
-  stroke: rgba(14,165,233,.5);
-  stroke-width: 1.2;
+  fill: rgba(14,165,233,.16);
+  stroke: rgba(14,165,233,.55);
+  stroke-width: 1;
 }
+.map-country--island { opacity: .8; }
+
+/* Sequential glow per country */
 #map-norway  { animation: countryGlow 7s ease-in-out 0.0s infinite; }
 #map-sweden  { animation: countryGlow 7s ease-in-out 1.4s infinite; }
 #map-finland { animation: countryGlow 7s ease-in-out 2.8s infinite; }
@@ -1051,61 +1063,46 @@ ul { list-style: none; }
 #map-iceland { animation: countryGlow 7s ease-in-out 5.6s infinite; }
 
 @keyframes countryGlow {
-  0%, 70%, 100% { fill: rgba(14,165,233,.15); stroke: rgba(14,165,233,.45); }
-  35%           { fill: rgba(14,165,233,.48); stroke: rgba(14,165,233,.95); }
+  0%, 70%, 100% { fill: rgba(14,165,233,.16); stroke: rgba(14,165,233,.50); }
+  35%           { fill: rgba(14,165,233,.45); stroke: rgba(14,165,233,.95); }
 }
 
-/* Arc paths (international connections) */
+/* Arc paths */
 .map-arc {
   fill: none;
-  stroke: rgba(14,165,233,.35);
+  stroke: rgba(14,165,233,.38);
   stroke-width: 1.2;
-  stroke-dasharray: 6 4;
+  stroke-dasharray: 5 4;
   animation: arcDash 3s linear infinite;
 }
 .map-arc--local {
   stroke: rgba(14,165,233,.22);
-  stroke-width: 1;
+  stroke-width: .9;
   animation-duration: 2s;
 }
-@keyframes arcDash {
-  to { stroke-dashoffset: -20; }
-}
+@keyframes arcDash { to { stroke-dashoffset: -18; } }
 
-/* Traveling dots along arcs */
-.map-traveler {
-  fill: var(--accent);
-  opacity: .85;
-}
+/* Traveling dots */
+.map-traveler { fill: var(--accent); opacity: .9; }
 
-/* City pulse rings */
+/* City rings */
 .city-ring {
-  fill: none;
-  stroke: rgba(14,165,233,.5);
-  stroke-width: 1.5;
-  animation: ringPulse 2.5s ease-out infinite;
+  fill: none; stroke: rgba(14,165,233,.55); stroke-width: 1.5;
+  animation: ringPulse 2.8s ease-out infinite;
 }
 @keyframes ringPulse {
-  0%   { r: 6; opacity: .8; }
-  100% { r: 18; opacity: 0; }
+  0%   { r: 7;  opacity: .9; }
+  100% { r: 22; opacity: 0; }
 }
 
 /* City dots */
-.city-dot {
-  fill: var(--white);
-  stroke: var(--accent);
-  stroke-width: 1.5;
-}
-.city-dot--ctx {
-  fill: rgba(255,255,255,.5);
-  stroke: rgba(255,255,255,.35);
-  stroke-width: 1;
-}
+.city-dot        { fill: var(--white); stroke: var(--accent); stroke-width: 1.5; }
+.city-dot--ctx   { fill: rgba(255,255,255,.45); stroke: rgba(255,255,255,.3); stroke-width: 1; }
 
-/* Country/city labels */
+/* Map text labels */
 .map-label {
-  font-size: 12px; font-weight: 800; letter-spacing: .6px;
-  fill: rgba(255,255,255,.55); text-anchor: middle;
+  font-size: 11px; font-weight: 800; letter-spacing: .5px;
+  fill: rgba(255,255,255,.6); text-anchor: middle;
   pointer-events: none; font-family: 'Segoe UI',system-ui,sans-serif;
 }
 .city-label {
@@ -1121,13 +1118,28 @@ ul { list-style: none; }
 /* ─── Tool / partner logo tiles ──────────────────────────────── */
 .tool-logo {
   flex-shrink: 0;
-  height: 56px; padding: 0 20px;
+  height: 60px; padding: 0 18px;
   background: var(--white); border: 1px solid var(--border);
   border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  transition: box-shadow .2s, border-color .2s;
+  transition: box-shadow .2s, border-color .2s, transform .15s;
 }
-.tool-logo:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(14,165,233,.12); }
-.tool-logo svg { height: 32px; width: auto; display: block; }
+.tool-logo:hover { border-color: rgba(14,165,233,.4); box-shadow: 0 4px 16px rgba(14,165,233,.12); transform: translateY(-2px); }
+.tool-logo svg { height: 36px; width: auto; display: block; }
+
+/* ─── Industry card photos ───────────────────────────────────── */
+.industry-card-photo {
+  margin: -30px -26px 16px;
+  height: 140px; overflow: hidden;
+  border-radius: 16px 16px 0 0;
+  background-size: cover; background-position: center;
+  background-color: var(--navy-mid);
+  position: relative;
+}
+.industry-card-photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(10,22,40,.6) 100%);
+}
+.industry-card:hover .industry-card-photo { filter: brightness(1.1); }
 
 /* ─── Policy document buttons ────────────────────────────────── */
 .policy-docs-row { margin-top: 32px; }
