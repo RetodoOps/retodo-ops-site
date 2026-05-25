@@ -196,7 +196,10 @@
     'wl-agency':    'art-wl-agency',
     'gdpr-nordic':  'art-gdpr-nordic',
     'tm-savings':   'art-tm-savings',
-    'nordic-ecom':  'art-nordic-ecom'
+    'nordic-ecom':  'art-nordic-ecom',
+    'doc-security': 'doc-security',
+    'doc-infosec':  'doc-infosec',
+    'doc-bcp':      'doc-bcp'
   };
 
   function openArticle(key) {
