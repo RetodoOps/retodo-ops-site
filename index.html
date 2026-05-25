@@ -55,11 +55,11 @@
           </div>
         </div>
         <div class="hero-map-wrap" aria-hidden="true">
-          <img class="hero-map-photo"
-               src="https://maps.wikimedia.org/img/osm-intl,4,64,18,480x440.png"
-               srcset="https://maps.wikimedia.org/img/osm-intl,4,64,18,480x440@2x.png 2x"
-               alt="Map of Scandinavia — Norway, Sweden, Denmark, Finland"
-               loading="lazy" width="480" height="440" />
+          <iframe class="hero-map-frame"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=-5%2C54%2C35%2C72&amp;layer=mapnik"
+            title="Map of Scandinavia and Nordic countries"
+            loading="lazy"
+            frameborder="0"></iframe>
         </div>
       </div>
     </div>
@@ -489,17 +489,31 @@ Website: https://retodo-ops.com</p>
 
         <!-- Crowdin -->
         <div class="tool-logo tool-logo--crowdin">
-          <img src="https://logo.clearbit.com/crowdin.com" alt="Crowdin" loading="lazy" />
+          <svg viewBox="0 0 120 36" xmlns="http://www.w3.org/2000/svg" aria-label="Crowdin">
+            <circle cx="18" cy="18" r="14" fill="#45A526"/>
+            <circle cx="12.5" cy="14" r="3.5" fill="white"/>
+            <circle cx="23.5" cy="14" r="3.5" fill="white"/>
+            <circle cx="12.5" cy="14" r="1.8" fill="#2E6E16"/>
+            <circle cx="23.5" cy="14" r="1.8" fill="#2E6E16"/>
+            <path d="M11 20 Q18 26 25 20" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            <polygon points="18,20 15.5,23.5 20.5,23.5" fill="white"/>
+            <text x="38" y="24" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="700" fill="#1A1A1A">Crowdin</text>
+          </svg>
         </div>
 
         <!-- memoQ -->
         <div class="tool-logo tool-logo--memoq">
-          <img src="https://logo.clearbit.com/memoq.com" alt="memoQ" loading="lazy" />
+          <svg viewBox="0 0 82 36" xmlns="http://www.w3.org/2000/svg" aria-label="memoQ">
+            <text x="2" y="27" font-family="'Helvetica Neue',Arial,sans-serif" font-size="23" font-weight="700" fill="#003F87">memo</text>
+            <text x="58" y="27" font-family="'Helvetica Neue',Arial,sans-serif" font-size="25" font-weight="800" fill="#F05A28">Q</text>
+          </svg>
         </div>
 
         <!-- Phrase -->
         <div class="tool-logo tool-logo--phrase">
-          <img src="https://logo.clearbit.com/phrase.com" alt="Phrase" loading="lazy" />
+          <svg viewBox="0 0 74 36" xmlns="http://www.w3.org/2000/svg" aria-label="Phrase">
+            <text x="2" y="27" font-family="'Helvetica Neue',Arial,sans-serif" font-size="21" font-weight="600" fill="#5A2D9D">phrase</text>
+          </svg>
         </div>
 
         <!-- SDL Trados (official: #0f4b8c blue) -->
@@ -556,7 +570,16 @@ Website: https://retodo-ops.com</p>
 
         <!-- Timeoff.guru -->
         <div class="tool-logo tool-logo--guru">
-          <img src="https://logo.clearbit.com/timeoff.guru" alt="Timeoff.guru" loading="lazy" />
+          <svg viewBox="0 0 112 36" xmlns="http://www.w3.org/2000/svg" aria-label="Timeoff.guru">
+            <rect x="2" y="5" width="22" height="22" rx="4" fill="#1D72AA"/>
+            <rect x="2" y="5" width="22" height="8" rx="4" fill="#155C8A"/>
+            <rect x="2" y="9" width="22" height="4" fill="#155C8A"/>
+            <line x1="8" y1="3" x2="8" y2="9" stroke="#155C8A" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="3" x2="18" y2="9" stroke="#155C8A" stroke-width="2" stroke-linecap="round"/>
+            <polyline points="8,19 12,24 20,15" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="29" y="16" font-family="'Helvetica Neue',Arial,sans-serif" font-size="10" font-weight="700" fill="#1D72AA">timeoff</text>
+            <text x="29" y="28" font-family="'Helvetica Neue',Arial,sans-serif" font-size="10" font-weight="700" fill="#F97316">.guru</text>
+          </svg>
         </div>
 
         <!-- TMS (generic TMS integration badge) -->
@@ -1140,17 +1163,7 @@ jobs:
             <li>Automatic data deletion 30 days post-delivery</li>
           </ul>
         </div>
-        <div class="security-block">
-          <div class="security-block-icon">📋</div>
-          <h3>Compliance Certifications</h3>
-          <div class="cert-pills">
-            <div class="cert-pill-item">🔒 ISO 17100 &amp; ISO 9001:2015 &mdash; Translation &amp; quality management</div>
-            <div class="cert-pill-item">🔒 ISO 9001:2015 &mdash; Quality management system</div>
-            <div class="cert-pill-item">🔒 GDPR Compliant &mdash; Article 28 DPA included</div>
-            <div class="cert-pill-item">🔒 Aligns with legal, medical &amp; financial standards</div>
-          </div>
-        </div>
-        <div class="security-block">
+        <div class="security-block" style="grid-column:1/-1">
           <div class="security-block-icon">🏥</div>
           <h3>Regulated Industries</h3>
           <p>Ask us about compliance documentation for your sector:</p>
