@@ -81,7 +81,7 @@
   /* ── Stagger grid animations ─────────────────────────────── */
   document.querySelectorAll(
     '.services-grid,.industries-grid,.languages-grid,' +
-    '.why-features,.why-certs,.team-grid,.certs-grid,.values-grid,' +
+    '.why-pillars,.why-certs,.team-grid,.certs-grid,.values-grid,' +
     '.testimonials-grid,.agency-cards,.industry-full-grid'
   ).forEach(function (grid) {
     grid.classList.add('stagger');
