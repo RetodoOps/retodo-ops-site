@@ -55,31 +55,123 @@
           </div>
         </div>
         <div class="hero-map-wrap" aria-hidden="true">
-          <svg class="hero-map" viewBox="0 0 320 390" xmlns="http://www.w3.org/2000/svg">
+          <svg class="hero-map" viewBox="0 0 440 460" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Arc gradient -->
+              <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0"/>
+                <stop offset="50%" stop-color="#0ea5e9" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+              </linearGradient>
+              <!-- Glow filter -->
+              <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="4" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="cityGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <!-- Ocean background -->
+            <rect width="440" height="460" fill="rgba(14,165,233,0.04)" rx="16"/>
+
+            <!-- Context countries (light) -->
+            <!-- UK outline -->
+            <path class="map-ctx" d="M78 318 Q68 308 65 290 Q63 275 70 262 Q78 250 90 248 Q102 246 108 256 Q114 266 110 280 Q106 294 98 308 Z"/>
+            <!-- Ireland -->
+            <path class="map-ctx" d="M52 298 Q44 290 44 278 Q44 267 52 260 Q60 254 68 260 Q74 268 70 282 Q66 296 56 300 Z"/>
+            <!-- Germany/Netherlands -->
+            <path class="map-ctx" d="M148 352 L185 348 L220 344 L245 340 L255 360 L240 378 L205 382 L170 378 L148 370 Z"/>
+            <!-- Estonia/Latvia -->
+            <path class="map-ctx" d="M272 222 L300 218 L312 228 L308 245 L280 248 L268 238 Z"/>
+            <!-- Poland -->
+            <path class="map-ctx" d="M200 358 L240 354 L258 358 L260 374 L235 382 L200 380 Z"/>
+
+            <!-- Nordic countries -->
             <!-- Iceland -->
-            <path id="map-iceland" class="map-country" d="M18 62 Q32 50 58 52 Q88 54 96 68 Q98 84 76 90 Q50 93 24 82 Z"/>
-            <!-- Norway -->
-            <path id="map-norway" class="map-country" d="M130 265 L127 248 L124 228 L121 208 L119 188 L118 168 L120 148 L124 130 L129 115 L135 100 L141 88 L149 77 L158 70 L167 67 L174 70 L172 82 L165 94 L164 108 L166 122 L163 136 L160 150 L158 165 L156 180 L154 195 L152 210 L151 225 L150 242 L148 258 L144 268 Z"/>
+            <path id="map-iceland" class="map-country" d="M22 58 Q30 44 52 42 Q78 40 102 46 Q118 52 122 66 Q124 82 106 90 Q84 96 58 92 Q34 88 22 76 Z" filter="url(#glow)"/>
+            <!-- Norway — simplified coast -->
+            <path id="map-norway" class="map-country" d="M136 275 L130 255 L126 232 L122 208 L119 184 L118 160 L120 136 L126 112 L134 90 L144 72 L156 60 L168 56 L178 60 L180 74 L174 88 L170 104 L168 122 L164 140 L160 158 L158 176 L156 195 L154 214 L152 232 L151 250 L150 266 L144 278 Z" filter="url(#glow)"/>
             <!-- Sweden -->
-            <path id="map-sweden" class="map-country" d="M174 70 L188 66 L202 66 L214 70 L220 82 L222 96 L222 112 L220 128 L217 144 L214 160 L210 176 L205 192 L200 206 L194 220 L188 232 L182 244 L175 256 L168 264 L162 257 L158 245 L158 232 L160 218 L162 204 L163 190 L164 176 L164 162 L164 148 L164 134 L166 120 L165 106 L166 92 L172 82 Z"/>
+            <path id="map-sweden" class="map-country" d="M178 60 L196 56 L214 56 L228 62 L234 78 L234 96 L232 116 L228 136 L224 156 L218 176 L212 196 L204 216 L196 234 L186 250 L176 262 L166 270 L158 264 L152 250 L152 234 L154 216 L158 196 L160 176 L162 156 L164 136 L168 118 L170 100 L172 82 L174 68 Z" filter="url(#glow)"/>
             <!-- Finland -->
-            <path id="map-finland" class="map-country" d="M222 96 L234 88 L248 84 L262 82 L272 88 L276 102 L274 116 L270 130 L264 144 L257 156 L248 166 L238 172 L228 168 L222 158 L220 144 L220 128 L222 112 Z"/>
-            <!-- Denmark (Jutland) -->
-            <path id="map-denmark" class="map-country" d="M148 272 L152 258 L156 248 L164 250 L167 262 L164 275 L156 282 L149 280 Z"/>
-            <!-- City pulses -->
-            <g class="city-dots">
-              <circle class="city-dot" cx="153" cy="243" r="4"><title>Oslo</title></circle>
-              <circle class="city-dot" cx="197" cy="218" r="4"><title>Stockholm</title></circle>
-              <circle class="city-dot" cx="154" cy="270" r="3.5"><title>Copenhagen</title></circle>
-              <circle class="city-dot" cx="238" cy="162" r="4"><title>Helsinki</title></circle>
-              <circle class="city-dot" cx="54" cy="68" r="3.5"><title>Reykjavik</title></circle>
-            </g>
+            <path id="map-finland" class="map-country" d="M234 96 L248 86 L264 80 L280 78 L295 82 L305 94 L308 110 L306 128 L300 146 L290 162 L278 174 L264 182 L248 186 L235 180 L228 168 L228 150 L230 132 L232 114 Z" filter="url(#glow)"/>
+            <!-- Denmark -->
+            <path id="map-denmark" class="map-country" d="M154 284 L158 268 L164 260 L172 260 L178 270 L178 284 L170 296 L158 296 Z" filter="url(#glow)"/>
+
             <!-- Country labels -->
-            <text class="map-label" x="140" y="175">NO</text>
-            <text class="map-label" x="190" y="158">SE</text>
-            <text class="map-label" x="247" y="128">FI</text>
-            <text class="map-label" x="152" y="268">DK</text>
-            <text class="map-label" x="46" y="74">IS</text>
+            <text class="map-label" x="149" y="172">NO</text>
+            <text class="map-label" x="200" y="154">SE</text>
+            <text class="map-label" x="270" y="128">FI</text>
+            <text class="map-label" x="167" y="280">DK</text>
+            <text class="map-label" x="72" y="68">IS</text>
+
+            <!-- Connection arcs: Nordic capitals to Europe -->
+            <!-- Oslo → London -->
+            <path id="arc1" class="map-arc" d="M 152 264 Q 90 290 88 310"/>
+            <!-- Stockholm → Amsterdam/Berlin -->
+            <path id="arc2" class="map-arc" d="M 196 238 Q 180 300 190 358"/>
+            <!-- Helsinki → Tallinn/Europe -->
+            <path id="arc3" class="map-arc" d="M 252 178 Q 280 240 284 236"/>
+            <!-- Oslo ↔ Stockholm -->
+            <path id="arc4" class="map-arc map-arc--local" d="M 152 264 Q 175 248 196 238"/>
+            <!-- Stockholm ↔ Helsinki -->
+            <path id="arc5" class="map-arc map-arc--local" d="M 196 238 Q 224 210 252 178"/>
+            <!-- Copenhagen ↔ Oslo -->
+            <path id="arc6" class="map-arc map-arc--local" d="M 168 285 Q 156 274 152 264"/>
+
+            <!-- Traveling dots along arcs -->
+            <circle class="map-traveler" r="3.5">
+              <animateMotion dur="4.5s" repeatCount="indefinite" begin="0s">
+                <mpath href="#arc1"/>
+              </animateMotion>
+            </circle>
+            <circle class="map-traveler" r="3.5">
+              <animateMotion dur="5.5s" repeatCount="indefinite" begin="1.5s">
+                <mpath href="#arc2"/>
+              </animateMotion>
+            </circle>
+            <circle class="map-traveler" r="3">
+              <animateMotion dur="3.8s" repeatCount="indefinite" begin="0.8s">
+                <mpath href="#arc4"/>
+              </animateMotion>
+            </circle>
+            <circle class="map-traveler" r="3">
+              <animateMotion dur="4.2s" repeatCount="indefinite" begin="2.2s">
+                <mpath href="#arc5"/>
+              </animateMotion>
+            </circle>
+
+            <!-- City dots with pulse rings -->
+            <!-- Oslo -->
+            <circle class="city-ring" cx="152" cy="264" r="10" style="animation-delay:0s"/>
+            <circle class="city-dot" cx="152" cy="264" r="5" filter="url(#cityGlow)"><title>Oslo</title></circle>
+            <!-- Stockholm -->
+            <circle class="city-ring" cx="196" cy="238" r="10" style="animation-delay:0.8s"/>
+            <circle class="city-dot" cx="196" cy="238" r="5" filter="url(#cityGlow)"><title>Stockholm</title></circle>
+            <!-- Helsinki -->
+            <circle class="city-ring" cx="252" cy="178" r="10" style="animation-delay:1.6s"/>
+            <circle class="city-dot" cx="252" cy="178" r="5" filter="url(#cityGlow)"><title>Helsinki</title></circle>
+            <!-- Copenhagen -->
+            <circle class="city-ring" cx="168" cy="285" r="8" style="animation-delay:2.4s"/>
+            <circle class="city-dot" cx="168" cy="285" r="4" filter="url(#cityGlow)"><title>Copenhagen</title></circle>
+            <!-- Reykjavik -->
+            <circle class="city-ring" cx="72" cy="66" r="8" style="animation-delay:3.2s"/>
+            <circle class="city-dot" cx="72" cy="66" r="4" filter="url(#cityGlow)"><title>Reykjavik</title></circle>
+            <!-- London (connection endpoint) -->
+            <circle class="city-dot city-dot--ctx" cx="88" cy="310" r="3.5"><title>London</title></circle>
+            <!-- Berlin (connection endpoint) -->
+            <circle class="city-dot city-dot--ctx" cx="190" cy="358" r="3.5"><title>Berlin</title></circle>
+            <!-- Tallinn (connection endpoint) -->
+            <circle class="city-dot city-dot--ctx" cx="284" cy="236" r="3"><title>Tallinn</title></circle>
+
+            <!-- City name labels -->
+            <text class="city-label" x="162" y="262">Oslo</text>
+            <text class="city-label" x="206" y="236">Stockholm</text>
+            <text class="city-label" x="262" y="176">Helsinki</text>
+            <text class="city-label" x="148" y="296">Copenhagen</text>
           </svg>
         </div>
       </div>
@@ -91,7 +183,7 @@
     <div class="container">
       <div class="stats-inner">
         <div class="stat-item">
-          <div class="stat-number">5+</div>
+          <div class="stat-number">ALL</div>
           <div class="stat-label">Northern European Languages</div>
         </div>
         <div class="stat-item">
@@ -502,93 +594,188 @@ Website: https://retodo-ops.com</p>
 
   </div>
 
-  <!-- CLIENT LOGO STRIP -->
+  <!-- TECHNOLOGY PARTNERS STRIP -->
   <section class="clients-section">
-    <p class="clients-label">The specialist Nordic partner for language agencies, tech companies, and regulated businesses</p>
+    <p class="clients-label">Integrated with the tools your team already uses</p>
     <div class="clients-track">
       <div class="clients-strip">
-        <div class="client-logo">NordCo AB</div>
-        <div class="client-logo">TechFlow GmbH</div>
-        <div class="client-logo">MedNordic</div>
-        <div class="client-logo">BalticBridge</div>
-        <div class="client-logo">OsloLex</div>
-        <div class="client-logo">ScandiSaaS</div>
-        <div class="client-logo">HelsinkiHealth</div>
-        <div class="client-logo client-logo--crowdin">
-          <span class="crowdin-c">C</span><span class="crowdin-word">rowdin</span>
+
+        <!-- Crowdin -->
+        <div class="tool-logo tool-logo--crowdin">
+          <svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crowdin">
+            <path d="M18 6 C10 6 4 12 4 20 C4 28 10 34 18 34 C24 34 29 31 32 26 L26 23 C24 26 21 28 18 28 C14 28 10 24 10 20 C10 16 14 12 18 12 C21 12 24 14 26 17 L32 14 C29 9 24 6 18 6 Z" fill="#45a826"/>
+            <text x="38" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#1a1a1a">rowdin</text>
+            <text x="38" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#45a826" transform="translate(-6,0)">C</text>
+          </svg>
         </div>
-        <div class="client-logo client-logo--memoq">memo<span class="memoq-q">Q</span></div>
-        <div class="client-logo client-logo--phrase">Phrase</div>
-        <div class="client-logo client-logo--sdl">SDL <span class="sdl-trados">Trados</span></div>
-        <div class="client-logo client-logo--google"><span class="google-g">G</span>oogle Translate</div>
-        <div class="client-logo client-logo--microsoft"><span class="ms-m">M</span>icrosoft Translator</div>
+
+        <!-- memoQ -->
+        <div class="tool-logo tool-logo--memoq">
+          <svg viewBox="0 0 110 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="memoQ">
+            <rect x="2" y="4" width="32" height="32" rx="6" fill="#003f87"/>
+            <text x="18" y="27" font-family="'Segoe UI',system-ui,sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle">Q</text>
+            <text x="40" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="700" fill="#003f87">memo</text>
+            <text x="78" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="900" fill="#f05a28">Q</text>
+          </svg>
+        </div>
+
+        <!-- Phrase -->
+        <div class="tool-logo tool-logo--phrase">
+          <svg viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Phrase">
+            <rect x="2" y="8" width="24" height="24" rx="5" fill="#5a2fc2"/>
+            <text x="14" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">P</text>
+            <text x="32" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="700" fill="#5a2fc2">Phrase</text>
+          </svg>
+        </div>
+
+        <!-- SDL Trados -->
+        <div class="tool-logo tool-logo--trados">
+          <svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trados Studio">
+            <rect x="2" y="6" width="28" height="28" rx="5" fill="#0f4b8c"/>
+            <text x="16" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="900" fill="white" text-anchor="middle">T</text>
+            <text x="36" y="19" font-family="'Segoe UI',system-ui,sans-serif" font-size="10" font-weight="700" fill="#666">SDL</text>
+            <text x="36" y="31" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="800" fill="#0f4b8c">Trados</text>
+          </svg>
+        </div>
+
+        <!-- Google Translate -->
+        <div class="tool-logo tool-logo--google">
+          <svg viewBox="0 0 150 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Google Translate">
+            <!-- Google G -->
+            <text x="2" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#4285f4">G</text>
+            <text x="22" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#ea4335">o</text>
+            <text x="38" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#fbbc05">o</text>
+            <text x="54" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#4285f4">g</text>
+            <text x="70" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#34a853">l</text>
+            <text x="80" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="26" font-weight="900" fill="#ea4335">e</text>
+            <text x="100" y="28" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="600" fill="#666">Translate</text>
+          </svg>
+        </div>
+
+        <!-- Microsoft Translator -->
+        <div class="tool-logo tool-logo--microsoft">
+          <svg viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Microsoft Translator">
+            <!-- MS squares -->
+            <rect x="2" y="8" width="11" height="11" fill="#f25022"/>
+            <rect x="14" y="8" width="11" height="11" fill="#7fba00"/>
+            <rect x="2" y="20" width="11" height="11" fill="#00a4ef"/>
+            <rect x="14" y="20" width="11" height="11" fill="#ffb900"/>
+            <text x="32" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="600" fill="#333">Microsoft</text>
+            <text x="32" y="38" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" font-weight="600" fill="#00a4ef">Translator</text>
+          </svg>
+        </div>
+
+        <!-- DeepL -->
+        <div class="tool-logo tool-logo--deepl">
+          <svg viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DeepL">
+            <circle cx="20" cy="20" r="14" fill="#0f2b46"/>
+            <text x="20" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" font-weight="900" fill="white" text-anchor="middle">D</text>
+            <text x="40" y="25" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#0f2b46">DeepL</text>
+          </svg>
+        </div>
+
       </div>
     </div>
   </section>
 
   <!-- HOW WE WORK -->
-  <section id="process" class="section process-light" style="background:var(--bg);">
+  <section id="process" class="section" style="background:var(--navy);color:var(--white);">
     <div class="container">
       <div class="section-header">
-        <div class="section-eyebrow">Our Process</div>
-        <h2 class="section-title">How We <em>Work</em></h2>
-        <p class="section-desc">Every project goes through content evaluation. AI-assisted and human-only workflows run in parallel, joining at QA and delivery.</p>
+        <div class="section-eyebrow" style="background:rgba(14,165,233,.18);color:var(--accent);border-color:rgba(14,165,233,.35);">Our Process</div>
+        <h2 class="section-title" style="color:var(--white);">How We <em>Deliver</em></h2>
+        <p class="section-desc" style="color:rgba(255,255,255,.62);">Inspired by MT post-editing best practices, every project follows a structured workflow — source preparation, smart routing, native editing, and independent QA.</p>
       </div>
-      <div class="process-diagram">
 
-        <!-- Row 1: Steps 1–2 -->
-        <div class="process-row process-row--top">
-          <div class="process-step">
-            <div class="process-num">1</div>
-            <h4>Brief &amp; Scope</h4>
-            <p>You share files and project requirements. We confirm cost and timeline within 2 hours, leveraging TM matches for the best price.</p>
+      <!-- Linear flow: Steps 1–3 -->
+      <div class="wf-flow">
+        <div class="wf-step">
+          <div class="wf-icon-wrap">
+            <div class="wf-icon">📋</div>
+            <div class="wf-num">1</div>
           </div>
-          <div class="process-step">
-            <div class="process-num">2</div>
-            <h4>Content Evaluation</h4>
-            <p>We review source material for clarity, ambiguity, and completeness. Content is classified: AI-assisted or human-only. Issues flagged before translation begins.</p>
-          </div>
+          <h4>Brief &amp; Source Prep</h4>
+          <p>You share files and requirements. We confirm cost and timeline within 2 hours. Source text is pre-edited for clarity — consistent terminology, unambiguous sentences — to maximise MT quality and reduce post-editing scope.</p>
         </div>
-
-        <!-- Fork label -->
-        <div class="process-fork-label-row">
-          <div class="process-fork-tag process-fork-tag--ai">AI-Assisted Content</div>
-          <div class="process-fork-tag process-fork-tag--human">Human-Only Content</div>
-        </div>
-
-        <!-- Row 2: Two parallel paths -->
-        <div class="process-split-row">
-          <div class="process-path process-path--ai">
-            <div class="process-step">
-              <div class="process-num process-num--ai">3</div>
-              <h4>TM &amp; AI Preparation</h4>
-              <p>Translation Memory is searched for matches. AI drafts only new segments. Client terminology and glossary applied throughout.</p>
-            </div>
-            <div class="process-step">
-              <div class="process-num process-num--ai">4</div>
-              <h4>Human Post-Editing</h4>
-              <p>A senior native-speaking editor refines AI output for tone, terminology, and cultural fit. Ensures quality equal to full human translation.</p>
-            </div>
+        <div class="wf-connector"><span class="wf-arrow">→</span></div>
+        <div class="wf-step">
+          <div class="wf-icon-wrap">
+            <div class="wf-icon">🗄️</div>
+            <div class="wf-num">2</div>
           </div>
-          <div class="process-path process-path--human">
-            <div class="process-step">
-              <div class="process-num process-num--human">3</div>
-              <h4>Direct Human Translation</h4>
-              <p>Senior native linguist translates from scratch. Used for legal, medical, contracts, and any content where AI is not appropriate. No AI involvement.</p>
-            </div>
-          </div>
+          <h4>TM &amp; Glossary Match</h4>
+          <p>Your Translation Memory is searched first. Segments with 75–100% matches are applied directly and flagged for review — cutting cost and turnaround by up to 40%. Your glossary and account instructions are loaded into every engine.</p>
         </div>
-
-        <!-- Final step -->
-        <div class="process-row process-row--bottom">
-          <div class="process-step">
-            <div class="process-num">5</div>
-            <h4>QA &amp; Delivery</h4>
-            <p>An independent QA reviewer signs off before delivery. Finished file in your original format, or directly to your repo via GitHub Actions.</p>
+        <div class="wf-connector"><span class="wf-arrow">→</span></div>
+        <div class="wf-step">
+          <div class="wf-icon-wrap">
+            <div class="wf-icon">🔀</div>
+            <div class="wf-num">3</div>
           </div>
+          <h4>Content Assessment &amp; Routing</h4>
+          <p>New segments are evaluated for complexity, domain, and sensitivity. Content is routed: straightforward text to AI + post-editing; legal, medical, or sensitive content to full human translation.</p>
         </div>
-
       </div>
+
+      <!-- Fork: two parallel paths -->
+      <div class="wf-fork-row">
+        <!-- AI path -->
+        <div class="wf-path wf-path--ai">
+          <div class="wf-path-label">
+            <span class="wf-path-badge wf-path-badge--ai">⚡ AI-Assisted Path</span>
+          </div>
+          <div class="wf-step wf-step--ai">
+            <div class="wf-icon-wrap">
+              <div class="wf-icon">🤖</div>
+              <div class="wf-num wf-num--ai">4a</div>
+            </div>
+            <h4>Machine Translation Draft</h4>
+            <p>Domain-specific MT engines (trained on Nordic legal, medical, and technical corpora) generate a first-pass draft for all new segments. AI output is never delivered without human review.</p>
+          </div>
+          <div class="wf-step wf-step--ai">
+            <div class="wf-icon-wrap">
+              <div class="wf-icon">✏️</div>
+              <div class="wf-num wf-num--ai">5a</div>
+            </div>
+            <h4>Human Post-Editing</h4>
+            <p>A senior native-speaking editor applies full or light post-editing — correcting terminology, tone, cultural fit, and register. Final quality matches full human translation at significantly lower cost.</p>
+          </div>
+        </div>
+
+        <!-- Fork divider -->
+        <div class="wf-fork-divider">
+          <div class="wf-fork-or">OR</div>
+        </div>
+
+        <!-- Human path -->
+        <div class="wf-path wf-path--human">
+          <div class="wf-path-label">
+            <span class="wf-path-badge wf-path-badge--human">👤 Human-Only Path</span>
+          </div>
+          <div class="wf-step wf-step--human">
+            <div class="wf-icon-wrap">
+              <div class="wf-icon">🧑‍💼</div>
+              <div class="wf-num wf-num--human">4b</div>
+            </div>
+            <h4>Direct Human Translation</h4>
+            <p>A senior native linguist with domain expertise translates from scratch — no AI involvement. Required for legal contracts, medical device IFUs, regulatory submissions, and any content where precision is non-negotiable.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final shared step -->
+      <div class="wf-final-row">
+        <div class="wf-final-line"></div>
+        <div class="wf-step wf-step--final">
+          <div class="wf-icon-wrap">
+            <div class="wf-icon">✅</div>
+            <div class="wf-num wf-num--final">6</div>
+          </div>
+          <h4>Independent QA &amp; Delivery</h4>
+          <p>A second linguist performs Linguistic Quality Assurance — checking omissions, numerical accuracy, formatting, tag integrity, and glossary consistency. Delivery in your original format or directly to your TMS / repository.</p>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -604,6 +791,7 @@ Website: https://retodo-ops.com</p>
 
         <!-- SERVICE 1: Translation & QA (merged) -->
         <div class="service-card">
+          <div class="service-card-photo"><img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=600&q=70" alt="Professional reviewing translation documents" loading="lazy"/></div>
           <div class="service-icon">📝</div>
           <h3>Translation &amp; Quality Assurance</h3>
           <p>End-to-end human translation with built-in quality assurance. Native linguists translate into their first language, supported by your terminology, glossaries, and account-specific instructions. Independent QA review on every project.</p>
@@ -623,6 +811,7 @@ Website: https://retodo-ops.com</p>
 
         <!-- SERVICE 2: Human Post-Editing (AI-assisted + MTPE merged) -->
         <div class="service-card">
+          <div class="service-card-photo"><img src="https://images.unsplash.com/photo-1580894908361-967195033215?auto=format&fit=crop&w=600&q=70" alt="Linguist editing on screen" loading="lazy"/></div>
           <div class="service-icon">✏️</div>
           <h3>Human Post-Editing</h3>
           <p>AI or machine translation pre-generates a draft. A native linguist post-edits for accuracy, fluency, terminology, and cultural fit. Faster and more cost-effective than full human translation, without sacrificing quality.</p>
@@ -642,6 +831,7 @@ Website: https://retodo-ops.com</p>
 
         <!-- SERVICE 3: Localization (kept) -->
         <div class="service-card">
+          <div class="service-card-photo"><img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=70" alt="Mobile app localization interface" loading="lazy"/></div>
           <div class="service-icon">🌍</div>
           <h3>Localization</h3>
           <p>Adapting software, apps, websites, and digital products for Northern European markets. Beyond translation: cultural adaptation, UI integration, format localization, and in-app testing.</p>
@@ -662,6 +852,7 @@ Website: https://retodo-ops.com</p>
 
         <!-- SERVICE 4: AI Training Data (new) -->
         <div class="service-card">
+          <div class="service-card-photo"><img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?auto=format&fit=crop&w=600&q=70" alt="AI data processing visualization" loading="lazy"/></div>
           <div class="service-icon">🧠</div>
           <h3>AI Training Data</h3>
           <p>High-quality Nordic language data for training, fine-tuning, and evaluating AI and machine translation models. Native linguists create, annotate, and validate parallel corpora across all five Nordic languages.</p>
@@ -1072,36 +1263,6 @@ jobs:
           <a href="mailto:compliance@retodo-ops.com" class="btn btn-sm" style="margin-top:16px;background:rgba(14,165,233,.1);color:var(--accent-dark);border:1px solid rgba(14,165,233,.25);border-radius:8px;padding:8px 16px;display:inline-block;font-size:13px;font-weight:600;">Contact Compliance Team &rarr;</a>
         </div>
       </div>
-      <div class="security-docs">
-        <h3 class="security-docs-title">Policy Documents</h3>
-        <p class="security-docs-sub">Download our current policy documentation for vendor due diligence, procurement, or internal review.</p>
-        <div class="security-docs-grid">
-          <a href="security-compliance-overview.docx" download class="security-doc-card">
-            <div class="security-doc-icon">🔒</div>
-            <div class="security-doc-info">
-              <div class="security-doc-name">Security &amp; Compliance Overview</div>
-              <div class="security-doc-desc">High-level summary of our security posture, GDPR alignment, and ISO compliance. Suitable for vendor questionnaires.</div>
-              <div class="security-doc-meta">DOCX &middot; ~29 KB</div>
-            </div>
-          </a>
-          <a href="information-security-policy.docx" download class="security-doc-card">
-            <div class="security-doc-icon">📋</div>
-            <div class="security-doc-info">
-              <div class="security-doc-name">Information Security &amp; Data Protection Policy</div>
-              <div class="security-doc-desc">Full policy covering access control, data handling, AI/MT rules, incident response, and NDA requirements.</div>
-              <div class="security-doc-meta">DOCX &middot; ~30 KB</div>
-            </div>
-          </a>
-          <a href="business-continuity-policy.docx" download class="security-doc-card">
-            <div class="security-doc-icon">🔄</div>
-            <div class="security-doc-info">
-              <div class="security-doc-name">Business Continuity &amp; Secure Project Delivery</div>
-              <div class="security-doc-desc">How we maintain uninterrupted delivery: backup linguist pools, redundant PMs, secure transfer options, and disruption protocols.</div>
-              <div class="security-doc-meta">DOCX &middot; ~29 KB</div>
-            </div>
-          </a>
-        </div>
-      </div>
       <div class="policy-docs-row">
         <h3 class="policy-docs-title">Policy Documents</h3>
         <div class="policy-docs-grid">
@@ -1242,8 +1403,6 @@ jobs:
           <h4>Security &amp; Compliance</h4>
           <ul>
             <li><a href="#security">Security &amp; Data Protection</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
             <li><a href="#">NDA &amp; Confidentiality</a></li>
             <li><a href="mailto:security@retodo-ops.com">Report a Security Issue</a></li>
           </ul>
@@ -1262,8 +1421,6 @@ jobs:
       <div class="footer-bottom">
         <div>&copy; <span id="year"></span> Retodo Ops Language Solutions. All rights reserved.</div>
         <div>
-          <a href="#">Privacy Policy</a> &middot;
-          <a href="#">Terms of Service</a> &middot;
           <a href="mailto:ops@retodo-ops.com">ops@retodo-ops.com</a> &middot;
           <a href="mailto:security@retodo-ops.com">security@retodo-ops.com</a>
         </div>
