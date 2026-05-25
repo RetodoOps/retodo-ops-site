@@ -1021,94 +1021,16 @@ ul { list-style: none; }
   .article-modal-body .art-hero { margin: 0 -20px 24px; }
 }
 
-/* ─── Hero animated SVG map ──────────────────────────────────── */
+/* ─── Hero real map photo ─────────────────────────────────────── */
 .hero-map-wrap {
   display: flex; align-items: center; justify-content: center;
   padding: 10px 0;
 }
-.hero-map {
-  width: 100%; max-width: 400px; height: auto;
-}
-
-/* Map grid lines */
-.map-grid {
-  stroke: rgba(14,165,233,.12); stroke-width: .5; fill: none;
-}
-.map-grid-label {
-  font-size: 8px; fill: rgba(14,165,233,.35);
-  font-family: 'Segoe UI',system-ui,sans-serif;
-  pointer-events: none;
-}
-
-/* Context countries */
-.map-ctx {
-  fill: rgba(255,255,255,.05);
-  stroke: rgba(255,255,255,.12);
-  stroke-width: .8;
-}
-
-/* Nordic countries */
-.map-country {
-  fill: rgba(14,165,233,.16);
-  stroke: rgba(14,165,233,.55);
-  stroke-width: 1;
-}
-.map-country--island { opacity: .8; }
-
-/* Sequential glow per country */
-#map-norway  { animation: countryGlow 7s ease-in-out 0.0s infinite; }
-#map-sweden  { animation: countryGlow 7s ease-in-out 1.4s infinite; }
-#map-finland { animation: countryGlow 7s ease-in-out 2.8s infinite; }
-#map-denmark { animation: countryGlow 7s ease-in-out 4.2s infinite; }
-#map-iceland { animation: countryGlow 7s ease-in-out 5.6s infinite; }
-
-@keyframes countryGlow {
-  0%, 70%, 100% { fill: rgba(14,165,233,.16); stroke: rgba(14,165,233,.50); }
-  35%           { fill: rgba(14,165,233,.45); stroke: rgba(14,165,233,.95); }
-}
-
-/* Arc paths */
-.map-arc {
-  fill: none;
-  stroke: rgba(14,165,233,.38);
-  stroke-width: 1.2;
-  stroke-dasharray: 5 4;
-  animation: arcDash 3s linear infinite;
-}
-.map-arc--local {
-  stroke: rgba(14,165,233,.22);
-  stroke-width: .9;
-  animation-duration: 2s;
-}
-@keyframes arcDash { to { stroke-dashoffset: -18; } }
-
-/* Traveling dots */
-.map-traveler { fill: var(--accent); opacity: .9; }
-
-/* City rings */
-.city-ring {
-  fill: none; stroke: rgba(14,165,233,.55); stroke-width: 1.5;
-  animation: ringPulse 2.8s ease-out infinite;
-}
-@keyframes ringPulse {
-  0%   { r: 7;  opacity: .9; }
-  100% { r: 22; opacity: 0; }
-}
-
-/* City dots */
-.city-dot        { fill: var(--white); stroke: var(--accent); stroke-width: 1.5; }
-.city-dot--ctx   { fill: rgba(255,255,255,.45); stroke: rgba(255,255,255,.3); stroke-width: 1; }
-
-/* Map text labels */
-.map-label {
-  font-size: 11px; font-weight: 800; letter-spacing: .5px;
-  fill: rgba(255,255,255,.6); text-anchor: middle;
-  pointer-events: none; font-family: 'Segoe UI',system-ui,sans-serif;
-}
-.city-label {
-  font-size: 9px; font-weight: 600;
-  fill: rgba(255,255,255,.45); text-anchor: start;
-  pointer-events: none; font-family: 'Segoe UI',system-ui,sans-serif;
+.hero-map-photo {
+  width: 100%; max-width: 480px; height: auto;
+  border-radius: 16px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(14,165,233,.18);
+  display: block;
 }
 
 /* ─── Services 4-card grid (2×2) ─────────────────────────────── */
@@ -1125,6 +1047,7 @@ ul { list-style: none; }
 }
 .tool-logo:hover { border-color: rgba(14,165,233,.4); box-shadow: 0 4px 16px rgba(14,165,233,.12); transform: translateY(-2px); }
 .tool-logo svg { height: 36px; width: auto; display: block; }
+.tool-logo img { height: 32px; width: auto; max-width: 130px; display: block; object-fit: contain; }
 
 /* ─── Industry card photos ───────────────────────────────────── */
 .industry-card-photo {
