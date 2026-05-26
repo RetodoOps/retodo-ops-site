@@ -5,5 +5,5 @@
 // 4. Go to Authentication → Users → Add user  (your login email + password)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SUPABASE_URL      = 'https://taughuvjgbfwrabvpey.supabase.co';
+const SUPABASE_URL      = 'https://taughuvjgbgfwrabvpey.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhdWdodXZqZ2JnZndyYWJ2cGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTMzMjIsImV4cCI6MjA5NTM2OTMyMn0.Uyb0K4xh3Me6izqs-RyxKPMhlMsAVOq-9Yqx-9s71mA';
