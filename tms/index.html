@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetodoOps TMS — Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+<div class="login-card">
+    <div class="login-brand">
+        <h1>RetodoOps TMS</h1>
+        <p>Translation Management System</p>
+    </div>
+    <form id="loginForm">
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@company.com"
+                   autocomplete="email" required>
+        </div>
+        <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••"
+                   autocomplete="current-password" required>
+        </div>
+        <p id="loginError" class="error-msg hidden"></p>
+        <button type="submit" class="btn-primary btn-full" id="loginBtn">Sign In</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script>
+    checkSession().then(u => { if (u) location.href = 'dashboard.html'; });
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = document.getElementById('loginBtn');
+        const err = document.getElementById('loginError');
+        btn.disabled = true;
+        btn.textContent = 'Signing in…';
+        err.classList.add('hidden');
+
+        const { error } = await signIn(
+            document.getElementById('email').value,
+            document.getElementById('password').value
+        );
+
+        if (error) {
+            err.textContent = 'Invalid email or password.';
+            err.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+        } else {
+            location.href = 'dashboard.html';
+        }
+    });
+</script>
+
+</body>
+</html>
