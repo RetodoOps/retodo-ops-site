@@ -138,7 +138,7 @@ function renderTable() {
         return `<tr>
             <td><input type="checkbox" class="row-check" data-id="${p.id}"></td>
             <td>${i + 1}</td>
-            <td><span class="proj-num">${p.project_number || '—'}</span></td>
+            <td><a class="proj-num" href="project.html?id=${p.id}">${p.project_number || '—'}</a></td>
             <td>
                 <div class="customer-main">${p.clients?.name || '—'}</div>
                 ${p.sub_client ? `<div class="customer-sub">${p.sub_client}</div>` : ''}
@@ -210,12 +210,88 @@ document.getElementById('searchBox').addEventListener('input', e => {
     renderTable();
 });
 
-// ── Create Project placeholder (Phase 2) ──────────────────────────────────
-document.getElementById('createProjectBtn').addEventListener('click', () => {
-    alert('Create Project — coming in Phase 2');
-});
+// ── Language list ─────────────────────────────────────────────────────────
+const LANGUAGES = [
+    'English (US)','English (UK)','Bulgarian','Swedish','Danish','Finnish',
+    'Norwegian (Bokmål)','German','French','Spanish','Italian','Dutch',
+    'Polish','Portuguese','Russian','Chinese (Simplified)','Chinese (Traditional)',
+    'Japanese','Korean','Arabic','Turkish','Czech','Hungarian','Romanian',
+    'Slovak','Ukrainian','Greek','Hebrew','Thai','Vietnamese',
+];
+
+// ── Create Project modal ───────────────────────────────────────────────────
+let clientsList = [];
+
+async function openCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+    // Load clients into dropdown
+    if (!clientsList.length) {
+        const { data } = await _sb.from('clients').select('id,name').order('name');
+        clientsList = data || [];
+    }
+    const sel = document.getElementById('f-client');
+    sel.innerHTML = '<option value="">Select client…</option>' +
+        clientsList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    // Populate language dropdowns
+    ['f-src','f-tgt'].forEach(id => {
+        document.getElementById(id).innerHTML =
+            '<option value="">Select…</option>' +
+            LANGUAGES.map(l => `<option>${l}</option>`).join('');
+    });
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+    document.getElementById('createError').classList.add('hidden');
+    ['f-num','f-sub','f-pm','f-qa','f-ling','f-po','f-price','f-margin']
+        .forEach(id => document.getElementById(id).value = '');
+    ['f-upcoming','f-urgent','f-onhold','f-missingpo']
+        .forEach(id => document.getElementById(id).checked = false);
+}
+
+async function submitCreateProject() {
+    const btn = document.getElementById('createBtn');
+    const err = document.getElementById('createError');
+    err.classList.add('hidden');
+    const num = document.getElementById('f-num').value.trim();
+    const clientId = document.getElementById('f-client').value;
+    if (!num) { err.textContent = 'Project Number is required.'; err.classList.remove('hidden'); return; }
+    if (!clientId) { err.textContent = 'Client is required.'; err.classList.remove('hidden'); return; }
+    btn.disabled = true; btn.textContent = 'Creating…';
+    const { error } = await _sb.from('projects').insert({
+        project_number:  num,
+        client_id:       clientId,
+        sub_client:      document.getElementById('f-sub').value.trim() || null,
+        status:          document.getElementById('f-status').value,
+        source_language: document.getElementById('f-src').value || null,
+        target_language: document.getElementById('f-tgt').value || null,
+        deadline:        document.getElementById('f-deadline').value || null,
+        job_deadline:    document.getElementById('f-jobdl').value || null,
+        project_manager: document.getElementById('f-pm').value.trim() || null,
+        qa_specialist:   document.getElementById('f-qa').value.trim() || null,
+        linguist:        document.getElementById('f-ling').value.trim() || null,
+        project_type:    document.getElementById('f-type').value || null,
+        price:           parseFloat(document.getElementById('f-price').value) || 0,
+        currency:        document.getElementById('f-currency').value,
+        scoop_margin:    parseFloat(document.getElementById('f-margin').value) || 0,
+        po_number:       document.getElementById('f-po').value.trim() || null,
+        upcoming:        document.getElementById('f-upcoming').checked,
+        urgent:          document.getElementById('f-urgent').checked,
+        on_hold:         document.getElementById('f-onhold').checked,
+        missing_po:      document.getElementById('f-missingpo').checked,
+    });
+    btn.disabled = false; btn.textContent = 'Create Project';
+    if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
+    closeCreateModal();
+    // Reload projects
+    const { data } = await _sb.from('projects').select('*, clients(name)').order('deadline', { ascending: true });
+    allProjects = data || [];
+    renderTabs(); renderTable();
+}
+
+document.getElementById('createProjectBtn').addEventListener('click', openCreateModal);
 document.getElementById('changeStatusBtn').addEventListener('click', () => {
-    alert('Bulk status change — coming in Phase 2');
+    alert('Bulk status change — coming in a future phase');
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────

@@ -133,6 +133,114 @@
     </div><!-- /main -->
 </div><!-- /app -->
 
+<!-- ── CREATE PROJECT MODAL ── -->
+<div id="createModal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Create New Project</h3>
+            <button class="modal-close" onclick="closeCreateModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Project Number *</label>
+                    <input type="text" id="f-num" placeholder="e.g. B22031-001">
+                </div>
+                <div class="field">
+                    <label>Client *</label>
+                    <select id="f-client"></select>
+                </div>
+                <div class="field">
+                    <label>Sub-client</label>
+                    <input type="text" id="f-sub" placeholder="e.g. TikTok">
+                </div>
+                <div class="field">
+                    <label>Status</label>
+                    <select id="f-status">
+                        <option>Assign</option><option>Ongoing</option>
+                        <option>QA Ready</option><option>QA Issues</option>
+                        <option>PM Ready</option><option>Delivery</option>
+                        <option>Completed</option><option>Approved</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Source Language</label>
+                    <select id="f-src"></select>
+                </div>
+                <div class="field">
+                    <label>Target Language</label>
+                    <select id="f-tgt"></select>
+                </div>
+                <div class="field">
+                    <label>Deadline</label>
+                    <input type="datetime-local" id="f-deadline">
+                </div>
+                <div class="field">
+                    <label>Job Deadline</label>
+                    <input type="datetime-local" id="f-jobdl">
+                </div>
+                <div class="field">
+                    <label>Project Manager</label>
+                    <input type="text" id="f-pm">
+                </div>
+                <div class="field">
+                    <label>QA Specialist</label>
+                    <input type="text" id="f-qa">
+                </div>
+                <div class="field">
+                    <label>Linguist</label>
+                    <input type="text" id="f-ling">
+                </div>
+                <div class="field">
+                    <label>Project Type</label>
+                    <select id="f-type">
+                        <option value="">Select…</option>
+                        <option>Translation</option>
+                        <option>Proofreading</option>
+                        <option>Machine Translation Editing + Proofreading</option>
+                        <option>Update</option>
+                        <option>DTP</option>
+                        <option>Transcription</option>
+                        <option>Subtitling</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Price</label>
+                    <input type="number" id="f-price" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="field">
+                    <label>Currency</label>
+                    <select id="f-currency">
+                        <option>EUR</option><option>USD</option>
+                        <option>GBP</option><option>NOK</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Scoop Margin %</label>
+                    <input type="number" id="f-margin" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="field">
+                    <label>PO Number</label>
+                    <input type="text" id="f-po">
+                </div>
+                <div class="field field-full">
+                    <div class="flags-row">
+                        <label class="checkbox-row"><input type="checkbox" id="f-upcoming"> Upcoming</label>
+                        <label class="checkbox-row"><input type="checkbox" id="f-urgent"> Urgent</label>
+                        <label class="checkbox-row"><input type="checkbox" id="f-onhold"> On Hold</label>
+                        <label class="checkbox-row"><input type="checkbox" id="f-missingpo"> Missing PO</label>
+                    </div>
+                </div>
+            </div>
+            <p id="createError" class="error-msg hidden" style="margin-top:12px"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+            <button class="btn-primary" id="createBtn" onclick="submitCreateProject()">Create Project</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
