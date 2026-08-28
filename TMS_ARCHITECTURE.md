@@ -104,6 +104,19 @@ the underlying Client-reference field.
 
 ## Resource model
 
+Resource lifecycle is independent of work history and commercial records:
+
+- Active — available for approval and new assignment.
+- On leave — retained on existing Projects/Jobs but excluded from new work.
+- Inactive — retained permanently on historical and still-open records, while
+  excluded from all new assignments. Portal/financial access is managed
+  separately so outstanding payments can still be completed.
+
+Project Manager, QA Specialist and Project Coordinator are references to
+Internal Resources, with a name snapshot retained for readable history. An
+Inactive Internal Resource remains visible on the Project and can be replaced
+with an Active Internal Resource.
+
 Classification:
 
 - A — Preferred

@@ -28,7 +28,9 @@ during the module review.
    → `Ready to Deliver`, and `Completed` → `Delivered to Client`.
 6. Run `tms/migrations/003_resources_module.sql` once.
 7. Run `tms/migrations/004_jobs_and_supplier_pos.sql` once.
-8. Commit/push the updated repository files so Netlify deploys them.
+8. Run `tms/migrations/005_project_financial_backfill.sql` once.
+9. Run `tms/migrations/006_internal_staff_assignments.sql` once.
+10. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -77,6 +79,13 @@ during the module review.
 18. Open a Resource, add an approved language pair, service, specialization,
     rate, education and availability period. Confirm a non-approved Resource
     still cannot be assigned.
+19. Confirm Aleksandra appears as an Internal Resource in the Project Manager,
+    QA Specialist and Project Coordinator selectors. Change an Internal
+    Resource to `Inactive`; confirm existing Project links remain visible and
+    the Resource disappears from selectors for new Projects.
+20. In Project creation, focus a language selector and press `S`; confirm
+    Swedish is selected. Enter deadline date and time directly from the
+    keyboard and confirm the saved deadline is correct.
 19. Add an Administrator-only private note and confirm it cannot be read by a
     non-Administrator. Generate the blind CV and confirm that both DOCX and PDF
     exclude the Resource's name, email, phone, LinkedIn URL and rates.

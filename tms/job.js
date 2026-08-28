@@ -8,7 +8,10 @@ const nullable = id => val(id) || null;
 const money = (amount, currency = purchaseOrder?.currency || job?.supplier_currency || 'EUR') => `${Number(amount || 0).toFixed(2)} ${currency}`;
 const resourceName = resource => resource?.legal_name || resource?.company_name || resource?.internal_number || 'Unknown Resource';
 const toLocalDT = iso => { if(!iso)return ''; const d=new Date(iso),p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
-const fourHoursFromNow = () => toLocalDT(new Date(Date.now()+4*60*60*1000).toISOString());
+const datePart = iso => toLocalDT(iso).slice(0,10);
+const timePart = iso => toLocalDT(iso).slice(11,16);
+const combineDateTime = (dateId,timeId) => {const date=val(dateId);return date?`${date}T${val(timeId)||'17:00'}`:null};
+const fourHoursFromNow = () => new Date(Date.now()+4*60*60*1000).toISOString();
 
 function closeModal(id){document.getElementById(id).classList.add('hidden')}
 function showError(message,id='jobError'){const el=document.getElementById(id);el.textContent=message;el.classList.remove('hidden');el.scrollIntoView({behavior:'smooth',block:'nearest'})}
@@ -28,7 +31,7 @@ function populateHeader(){
 }
 
 function populateOverview(){
-  const fields={'j-number':job.job_number,'j-status':job.status,'j-deadline':toLocalDT(job.deadline),'j-service':job.service_type,'j-source':job.source_language,'j-target':job.target_language,'j-quantity':job.quantity,'j-unit':job.unit,'j-rate':job.supplier_rate,'j-amount':job.resource_id?money(job.supplier_amount,job.supplier_currency):'','j-notes':job.notes};
+  const fields={'j-number':job.job_number,'j-status':job.status,'j-deadline-date':datePart(job.deadline),'j-deadline-time':timePart(job.deadline),'j-service':job.service_type,'j-source':job.source_language,'j-target':job.target_language,'j-quantity':job.quantity,'j-unit':job.unit,'j-rate':job.supplier_rate,'j-amount':job.resource_id?money(job.supplier_amount,job.supplier_currency):'','j-notes':job.notes};
   Object.entries(fields).forEach(([id,value])=>document.getElementById(id).value=value??'');
   document.getElementById('j-specialization').innerHTML='<option value="">Non-defined</option>'+specializations.map(spec=>`<option value="${spec.id}" ${spec.id===job.specialization_id?'selected':''}>${esc(spec.name)}</option>`).join('');
   document.getElementById('j-po-required').checked=!!job.po_required;
@@ -41,7 +44,7 @@ function populateOverview(){
 async function saveJob(){
   clearError();
   if(job.resource_id && val('j-status')==='Unassigned')return showError('An assigned Job cannot return to Unassigned. Cancel it or create a new Job.');
-  const payload={status:val('j-status'),deadline:val('j-deadline')||null,po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes')};
+  const payload={status:val('j-status'),deadline:combineDateTime('j-deadline-date','j-deadline-time'),po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes')};
   if(!job.resource_id){Object.assign(payload,{service_type:val('j-service'),specialization_id:nullable('j-specialization'),quantity:val('j-quantity')===''?null:Number(val('j-quantity')),unit:val('j-unit')})}
   const {error}=await _sb.from('project_jobs').update(payload).eq('id',jobId);if(error)return showError(error.message);
   await loadJob();setStatus('Job saved ✓');
@@ -65,7 +68,7 @@ function renderOffers(){
 function openOfferModal(){
   clearError('offerError');selectedCandidateId=null;candidateRows=[];
   document.getElementById('candidateSearch').value='';document.getElementById('candidateResults').innerHTML='<div class="empty-compact">Search matching Resources.</div>';
-  document.getElementById('o-response-due').value=fourHoursFromNow();document.getElementById('o-quantity').value=job.quantity??'';document.getElementById('o-unit').value=job.unit||'Source words';document.getElementById('o-rate').value='';document.getElementById('o-currency').value=job.supplier_currency||project.currency||'EUR';document.getElementById('o-message').value='';document.getElementById('o-disclose').checked=false;document.getElementById('o-override').checked=false;document.getElementById('o-override-reason').value='';document.getElementById('o-disclose').disabled=currentRole!=='admin';document.getElementById('o-override').disabled=currentRole!=='admin';document.getElementById('offerModal').classList.remove('hidden');searchCandidates();
+  const responseDue=fourHoursFromNow();document.getElementById('o-response-date').value=datePart(responseDue);document.getElementById('o-response-time').value=timePart(responseDue);document.getElementById('o-quantity').value=job.quantity??'';document.getElementById('o-unit').value=job.unit||'Source words';document.getElementById('o-rate').value='';document.getElementById('o-currency').value=job.supplier_currency||project.currency||'EUR';document.getElementById('o-message').value='';document.getElementById('o-disclose').checked=false;document.getElementById('o-override').checked=false;document.getElementById('o-override-reason').value='';document.getElementById('o-disclose').disabled=currentRole!=='admin';document.getElementById('o-override').disabled=currentRole!=='admin';document.getElementById('offerModal').classList.remove('hidden');searchCandidates();
 }
 
 async function searchCandidates(){
@@ -81,7 +84,7 @@ async function searchCandidates(){
 async function createOffer(){
   clearError('offerError');if(!selectedCandidateId)return showError('Select a Resource.','offerError');
   if(document.getElementById('o-override').checked&&!val('o-override-reason'))return showError('An Administrator override requires a reason.','offerError');
-  const args={p_job_id:jobId,p_resource_id:selectedCandidateId,p_response_due_at:val('o-response-due')||null,p_unit:val('o-unit')||null,p_quantity:val('o-quantity')===''?null:Number(val('o-quantity')),p_supplier_rate:val('o-rate')===''?null:Number(val('o-rate')),p_currency:val('o-currency'),p_message:nullable('o-message'),p_client_identity_disclosed:document.getElementById('o-disclose').checked,p_override:document.getElementById('o-override').checked,p_override_reason:nullable('o-override-reason')};
+  const args={p_job_id:jobId,p_resource_id:selectedCandidateId,p_response_due_at:combineDateTime('o-response-date','o-response-time'),p_unit:val('o-unit')||null,p_quantity:val('o-quantity')===''?null:Number(val('o-quantity')),p_supplier_rate:val('o-rate')===''?null:Number(val('o-rate')),p_currency:val('o-currency'),p_message:nullable('o-message'),p_client_identity_disclosed:document.getElementById('o-disclose').checked,p_override:document.getElementById('o-override').checked,p_override_reason:nullable('o-override-reason')};
   const {error}=await _sb.rpc('create_job_offer',args);if(error)return showError(error.message,'offerError');closeModal('offerModal');await loadJob();setStatus('Draft offer created ✓');
 }
 

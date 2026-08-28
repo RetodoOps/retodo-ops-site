@@ -147,10 +147,11 @@
                 <div class="field"><label>Project date</label><input type="date" id="f-date"></div>
                 <div class="field"><label>Source language</label><select id="f-src"></select></div>
                 <div class="field"><label>Target language *</label><select id="f-tgt"></select></div>
-                <div class="field"><label>Client deadline</label><input type="datetime-local" id="f-deadline"></div>
-                <div class="field"><label>Project manager</label><input id="f-pm"></div>
-                <div class="field"><label>QA specialist</label><input id="f-qa"></div>
-                <div class="field"><label>Project coordinator</label><input id="f-coordinator"></div>
+                <div class="field"><label>Client deadline date</label><input type="date" id="f-deadline-date"></div>
+                <div class="field"><label>Client deadline time</label><input type="time" id="f-deadline-time" step="60"></div>
+                <div class="field"><label>Project manager</label><select id="f-pm"></select></div>
+                <div class="field"><label>QA specialist</label><select id="f-qa"></select></div>
+                <div class="field"><label>Project coordinator</label><select id="f-coordinator"></select></div>
                 <div class="field"><label>Primary service</label><select id="f-type"><option>Translation</option><option>MTPE</option><option>Proofreading</option><option>Independent Review</option><option>LQA</option><option>Terminology</option><option>DTP</option><option>Transcription</option><option>Project Management</option><option>Other</option></select></div>
                 <div class="field"><label>Production mode</label><select id="f-production"><option>Not selected</option><option>Client CAT</option><option>Retodo memoQ</option><option>File workflow</option></select></div>
                 <div class="field"><label>CAT system</label><input id="f-cat"></div>
@@ -173,7 +174,7 @@
 
 <div id="bulkStatusModal" class="modal-overlay hidden"><div class="modal modal-small">
     <div class="modal-header"><h3>Change Project status</h3><button class="modal-close" onclick="closeBulkStatus()">×</button></div>
-    <div class="modal-body"><div class="field"><label>New status</label><select id="bulk-status"><option>Assign</option><option>Ongoing</option><option>Ready for QA</option><option>Waiting</option><option>Ready to Deliver</option><option>Delivered to Client</option><option>Approved</option></select></div><div class="form-grid"><div class="field"><label>Waiting reason</label><input id="bulk-wait-reason"></div><div class="field"><label>Follow-up</label><input id="bulk-wait-follow" type="datetime-local"></div></div><p id="bulkStatusError" class="error-msg hidden"></p></div>
+    <div class="modal-body"><div class="field"><label>New status</label><select id="bulk-status"><option>Assign</option><option>Ongoing</option><option>Ready for QA</option><option>Waiting</option><option>Ready to Deliver</option><option>Delivered to Client</option><option>Approved</option></select></div><div class="form-grid"><div class="field"><label>Waiting reason</label><input id="bulk-wait-reason"></div><div class="field"><label>Follow-up date</label><input id="bulk-wait-follow-date" type="date"></div><div class="field"><label>Follow-up time</label><input id="bulk-wait-follow-time" type="time" step="60"></div></div><p id="bulkStatusError" class="error-msg hidden"></p></div>
     <div class="modal-footer"><button class="btn-secondary" onclick="closeBulkStatus()">Cancel</button><button class="btn-primary" onclick="applyBulkStatus()">Update selected</button></div>
 </div></div>
 

@@ -219,7 +219,7 @@ const LANGUAGE_CODES = {
     'Turkish':'TR','Czech':'CS','Hungarian':'HU','Romanian':'RO','Slovak':'SK',
     'Ukrainian':'UK','Greek':'EL','Hebrew':'HE','Thai':'TH','Vietnamese':'VI',
 };
-let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [];
+let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [], internalResources = [];
 
 function projectOptions(rows, label, selected = '', empty = 'Non-defined') {
     return `<option value="">${empty}</option>` + rows.map(row =>
@@ -229,6 +229,30 @@ function projectOptions(rows, label, selected = '', empty = 'Non-defined') {
 function localDateValue(date = new Date()) {
     const pad = n => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+function combineDateTime(dateId,timeId) {
+    const date=document.getElementById(dateId).value;
+    if(!date)return null;
+    return `${date}T${document.getElementById(timeId).value||'17:00'}`;
+}
+function internalResourceName(resource) {
+    return resource.legal_name || resource.company_name || resource.internal_number;
+}
+function internalResourceOptions(selected='',empty='Non-defined') {
+    return `<option value="">${empty}</option>`+internalResources.map(resource=>
+        `<option value="${resource.id}" ${resource.id===selected?'selected':''}>${escapeHtml(internalResourceName(resource))}</option>`
+    ).join('');
+}
+function installLanguageShortcut(select) {
+    const singleKey={s:'Swedish',d:'Danish',n:'Norwegian (Bokmål)',b:'Bulgarian',g:'German',e:'English (UK)',p:'Polish',r:'Russian',t:'Turkish'};
+    let buffer='',timer;
+    select.addEventListener('keydown',event=>{
+        if(event.ctrlKey||event.altKey||event.metaKey||event.key.length!==1)return;
+        const key=event.key.toLowerCase();buffer+=key;clearTimeout(timer);timer=setTimeout(()=>buffer='',800);
+        const wanted=buffer.length===1?singleKey[key]:null;
+        const option=[...select.options].find(item=>wanted?item.value===wanted:item.text.toLowerCase().startsWith(buffer));
+        if(option){event.preventDefault();select.value=option.value;select.dispatchEvent(new Event('input',{bubbles:true}));select.dispatchEvent(new Event('change',{bubbles:true}))}
+    });
 }
 function updateProjectNamePreview() {
     const client = clientsList.find(row => row.id === document.getElementById('f-client').value);
@@ -277,16 +301,26 @@ async function openCreateModal() {
         const { data } = await _sb.from('clients').select('*').eq('restriction_status', 'Active').order('name');
         clientsList = data || [];
     }
+    if (!internalResources.length) {
+        const {data}=await _sb.from('resources').select('id,internal_number,legal_name,company_name,lifecycle_status').eq('resource_type','Internal').eq('assignment_approved',true).eq('lifecycle_status','Active').order('legal_name');
+        internalResources=data||[];
+    }
     document.getElementById('f-client').innerHTML = '<option value="">Select client…</option>' + clientsList.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
     ['f-src','f-tgt'].forEach(id => document.getElementById(id).innerHTML = '<option value="">Select…</option>' + LANGUAGES.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join(''));
     document.getElementById('f-src').value = 'English (UK)';
     document.getElementById('f-date').value = localDateValue();
+    document.getElementById('f-deadline-date').value = '';
+    document.getElementById('f-deadline-time').value = '';
+    document.getElementById('f-pm').innerHTML = internalResourceOptions(currentUserResourceId(),'Select Project Manager…');
+    document.getElementById('f-qa').innerHTML = internalResourceOptions();
+    document.getElementById('f-coordinator').innerHTML = internalResourceOptions();
     document.getElementById('f-missingpo').checked = true;
     document.getElementById('f-account').innerHTML = '<option value="">Non-defined</option>';
     document.getElementById('f-contact').innerHTML = '<option value="">Non-defined</option>';
     document.getElementById('f-billing').innerHTML = '<option value="">Default billing entity</option>';
     updateProjectNamePreview();
 }
+function currentUserResourceId(){return internalResources[0]?.id||''}
 function closeCreateModal() {
     document.getElementById('createModal').classList.add('hidden');
     document.getElementById('createError').classList.add('hidden');
@@ -305,9 +339,10 @@ async function submitCreateProject() {
         client_reference: document.getElementById('f-client-ref').value.trim() || null, email_reference: document.getElementById('f-email-ref').value.trim() || null,
         project_date: document.getElementById('f-date').value, source_language: document.getElementById('f-src').value || null,
         source_language_code: LANGUAGE_CODES[document.getElementById('f-src').value] || null,
-        target_language: target, target_language_code: LANGUAGE_CODES[target], deadline: document.getElementById('f-deadline').value || null,
-        project_manager: document.getElementById('f-pm').value.trim() || null, qa_specialist: document.getElementById('f-qa').value.trim() || null,
-        project_coordinator: document.getElementById('f-coordinator').value.trim() || null, status: 'Assign', project_type: document.getElementById('f-type').value,
+        target_language: target, target_language_code: LANGUAGE_CODES[target], deadline: combineDateTime('f-deadline-date','f-deadline-time'),
+        project_manager: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-pm').value)||{} ) || null,
+        qa_specialist: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-qa').value)||{} ) || null,
+        project_coordinator: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-coordinator').value)||{} ) || null, status: 'Assign', project_type: document.getElementById('f-type').value,
         production_mode: document.getElementById('f-production').value, cat_system: document.getElementById('f-cat').value.trim() || null,
         client_instructions: document.getElementById('f-instructions').value.trim() || null, price: Number(document.getElementById('f-price').value || 0),
         currency: document.getElementById('f-currency').value, price_source: priceSource || null,
@@ -318,13 +353,20 @@ async function submitCreateProject() {
     const { data, error } = await _sb.rpc('create_project', { p_payload: payload });
     btn.disabled = false; btn.textContent = 'Create Project';
     if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
-    if (data?.[0]?.created_project_id) location.href = `project.html?id=${data[0].created_project_id}`;
+    if (data?.[0]?.created_project_id) {
+        const staff={project_manager_resource_id:document.getElementById('f-pm').value||null,qa_specialist_resource_id:document.getElementById('f-qa').value||null,project_coordinator_resource_id:document.getElementById('f-coordinator').value||null};
+        const staffUpdate=await _sb.from('projects').update(staff).eq('id',data[0].created_project_id);
+        if(staffUpdate.error){err.textContent=`Project created, but staff assignment failed: ${staffUpdate.error.message}`;err.classList.remove('hidden');return}
+        location.href = `project.html?id=${data[0].created_project_id}`;
+    }
 }
 
 document.getElementById('createProjectBtn').addEventListener('click', openCreateModal);
 document.getElementById('f-client').addEventListener('change', loadProjectClientDefaults);
 document.getElementById('f-account').addEventListener('change', loadProjectAccountDefaults);
 ['f-tgt','f-date','f-client-ref'].forEach(id => document.getElementById(id).addEventListener('input', updateProjectNamePreview));
+installLanguageShortcut(document.getElementById('f-src'));
+installLanguageShortcut(document.getElementById('f-tgt'));
 document.getElementById('f-po').addEventListener('input', event => {
     if (event.target.value.trim()) document.getElementById('f-missingpo').checked = false;
 });
@@ -343,7 +385,7 @@ function closeBulkStatus() {
 async function applyBulkStatus() {
     const ids = selectedProjectIds(), status = document.getElementById('bulk-status').value;
     const reason = document.getElementById('bulk-wait-reason').value.trim();
-    const follow = document.getElementById('bulk-wait-follow').value;
+    const follow = combineDateTime('bulk-wait-follow-date','bulk-wait-follow-time');
     const errorEl = document.getElementById('bulkStatusError');
     if (status === 'Waiting' && (!reason || !follow)) {
         errorEl.textContent = 'Waiting requires a reason and follow-up date.';
