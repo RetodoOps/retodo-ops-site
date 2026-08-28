@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients — RetodoOps TMS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">TMS</div></div>
+        <nav class="nav">
+            <a class="nav-item" href="dashboard.html">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard
+            </a>
+            <a class="nav-item" href="quotes.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9z"/></svg>Quotes</a>
+            <div class="nav-item" onclick="toggleSub('sub-res',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13z"/></svg>
+                Resources <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub" id="sub-res">
+                <a href="resources.html?type=internal">Internal Resource</a>
+                <a href="resources.html?type=external">External Resource</a>
+            </div>
+            <div class="nav-item active open" onclick="toggleSub('sub-cli',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                Clients <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub open" id="sub-cli"><a href="clients.html">Client List</a></div>
+            <div class="nav-item" onclick="toggleSub('sub-rep',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                Reports <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub" id="sub-rep">
+                <a href="reports.html?type=projects">Project Report</a>
+                <a href="reports.html?type=jobs">Jobs Report</a>
+                <a href="reports.html?type=margin">Margin Report</a>
+                <a href="reports.html?type=invoices">Invoice Report</a>
+            </div>
+            <hr class="nav-divider">
+            <div class="sidebar-bottom">
+                <a class="nav-item" href="profile.html">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Profile
+                </a>
+                <a class="nav-item" href="#" onclick="signOut(); return false;">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5z"/></svg>Sign Out
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="module-header">
+            <div>
+                <h1>Clients</h1>
+                <p>Client organizations, accounts and operational defaults</p>
+            </div>
+            <button class="btn-primary" onclick="openCreateClient()">+ Add client</button>
+        </div>
+        <div class="toolbar">
+            <input type="search" class="search-box" id="clientSearch" placeholder="Search clients…">
+            <select class="toolbar-select" id="clientTypeFilter">
+                <option value="">All client types</option>
+                <option value="LSP">LSP / Agency</option>
+                <option value="Direct">Direct client</option>
+            </select>
+            <select class="toolbar-select" id="restrictionFilter">
+                <option value="">All statuses</option>
+                <option>Active</option><option>On Hold</option><option>Do not work with</option>
+            </select>
+            <div class="toolbar-right"><span class="record-count" id="clientCount"></span></div>
+        </div>
+        <div class="table-wrap">
+            <table class="module-table clients-list-table">
+                <thead><tr>
+                    <th>Code</th><th>Client</th><th>Type</th><th>Country</th>
+                    <th>Accounts</th><th>Currency</th><th>Status</th><th>Updated</th>
+                </tr></thead>
+                <tbody id="clientsTbody"><tr class="state-row"><td colspan="8">Loading clients…</td></tr></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<div id="clientModal" class="modal-overlay hidden">
+    <div class="modal modal-small">
+        <div class="modal-header"><h3>Add client</h3><button class="modal-close" onclick="closeCreateClient()">×</button></div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="field field-full"><label>Client name *</label><input id="newClientName" autocomplete="organization"></div>
+                <div class="field"><label>Client code *</label><input id="newClientCode" maxlength="12" placeholder="e.g. WEL"></div>
+                <div class="field"><label>Client type *</label><select id="newClientType"><option value="LSP">LSP / Agency</option><option value="Direct">Direct client</option></select></div>
+                <div class="field"><label>Country code</label><input id="newClientCountry" maxlength="2" placeholder="e.g. US"></div>
+                <div class="field"><label>Default currency</label><select id="newClientCurrency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div>
+            </div>
+            <p id="clientCreateError" class="error-msg hidden"></p>
+        </div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeCreateClient()">Cancel</button><button class="btn-primary" id="createClientBtn" onclick="createClient()">Create and open</button></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="auth.js"></script><script src="clients.js"></script>
+</body>
+</html>

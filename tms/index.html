@@ -26,6 +26,18 @@
         </div>
         <p id="loginError" class="error-msg hidden"></p>
         <button type="submit" class="btn-primary btn-full" id="loginBtn">Sign In</button>
+        <button type="button" class="auth-link" id="forgotPasswordBtn">Forgot password?</button>
+    </form>
+
+    <form id="resetRequestForm" class="hidden">
+        <div class="field">
+            <label for="resetEmail">Email</label>
+            <input type="email" id="resetEmail" placeholder="you@company.com"
+                   autocomplete="email" required>
+        </div>
+        <p id="resetMessage" class="auth-message hidden" role="status" aria-live="polite"></p>
+        <button type="submit" class="btn-primary btn-full" id="resetRequestBtn">Send reset link</button>
+        <button type="button" class="auth-link" id="backToLoginBtn">Back to sign in</button>
     </form>
 </div>
 
@@ -56,6 +68,40 @@
         } else {
             location.href = 'dashboard.html';
         }
+    });
+
+    const loginForm = document.getElementById('loginForm');
+    const resetRequestForm = document.getElementById('resetRequestForm');
+
+    document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+        document.getElementById('resetEmail').value = document.getElementById('email').value;
+        loginForm.classList.add('hidden');
+        resetRequestForm.classList.remove('hidden');
+    });
+
+    document.getElementById('backToLoginBtn').addEventListener('click', () => {
+        resetRequestForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+    });
+
+    resetRequestForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = document.getElementById('resetRequestBtn');
+        const msg = document.getElementById('resetMessage');
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        msg.className = 'auth-message hidden';
+
+        const { error } = await requestPasswordReset(
+            document.getElementById('resetEmail').value.trim()
+        );
+
+        btn.disabled = false;
+        btn.textContent = 'Send reset link';
+        msg.textContent = error
+            ? 'The reset link could not be sent. Please check the address and try again.'
+            : 'If this address belongs to a TMS user, a password-reset link has been sent.';
+        msg.className = error ? 'error-msg' : 'auth-message success';
     });
 </script>
 

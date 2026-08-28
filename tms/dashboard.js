@@ -17,11 +17,10 @@ const TABS = [
     { key: 'due_today',    label: 'Due Today' },
     { key: 'assign',       label: 'Assign' },
     { key: 'ongoing',      label: 'Ongoing' },
-    { key: 'qa_ready',     label: 'QA Ready' },
-    { key: 'qa_issues',    label: 'QA Issues' },
-    { key: 'pm_ready',     label: 'PM Ready' },
-    { key: 'delivery',     label: 'Delivery' },
-    { key: 'completed',    label: 'Completed' },
+    { key: 'ready_for_qa', label: 'Ready for QA' },
+    { key: 'waiting',      label: 'Waiting' },
+    { key: 'ready_delivery', label: 'Ready to Deliver' },
+    { key: 'delivered',    label: 'Delivered to Client' },
     { key: 'due_tomorrow', label: 'Due Tomorrow' },
     { key: 'upcoming',     label: 'Upcoming' },
     { key: 'approved',     label: 'Approved' },
@@ -32,6 +31,9 @@ const TABS = [
 let allProjects  = [];
 let activeTab    = 'due_today';
 let searchQuery  = '';
+const escapeHtml = value => String(value ?? '')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 function sameDay(dateStr, offset = 0) {
@@ -64,11 +66,10 @@ function filterByTab(projects, tab) {
         case 'due_today':    return projects.filter(p => isToday(p.deadline));
         case 'assign':       return projects.filter(p => p.status === 'Assign');
         case 'ongoing':      return projects.filter(p => p.status === 'Ongoing');
-        case 'qa_ready':     return projects.filter(p => p.status === 'QA Ready');
-        case 'qa_issues':    return projects.filter(p => p.status === 'QA Issues');
-        case 'pm_ready':     return projects.filter(p => p.status === 'PM Ready');
-        case 'delivery':     return projects.filter(p => p.status === 'Delivery');
-        case 'completed':    return projects.filter(p => p.status === 'Completed');
+        case 'ready_for_qa': return projects.filter(p => p.status === 'Ready for QA');
+        case 'waiting':      return projects.filter(p => p.status === 'Waiting');
+        case 'ready_delivery': return projects.filter(p => p.status === 'Ready to Deliver');
+        case 'delivered':    return projects.filter(p => p.status === 'Delivered to Client');
         case 'due_tomorrow': return projects.filter(p => isTomorrow(p.deadline));
         case 'upcoming':     return projects.filter(p => p.upcoming);
         case 'approved':     return projects.filter(p => p.status === 'Approved');
@@ -81,9 +82,11 @@ function filterBySearch(projects, q) {
     if (!q) return projects;
     const lc = q.toLowerCase();
     return projects.filter(p =>
-        (p.project_number    || '').toLowerCase().includes(lc) ||
+        (p.display_name     || p.project_number || '').toLowerCase().includes(lc) ||
         (p.clients?.name     || '').toLowerCase().includes(lc) ||
-        (p.sub_client        || '').toLowerCase().includes(lc) ||
+        (p.client_accounts?.name || '').toLowerCase().includes(lc) ||
+        (p.client_reference  || '').toLowerCase().includes(lc) ||
+        (p.email_reference   || '').toLowerCase().includes(lc) ||
         (p.project_manager   || '').toLowerCase().includes(lc) ||
         (p.qa_specialist     || '').toLowerCase().includes(lc) ||
         (p.linguist          || '').toLowerCase().includes(lc) ||
@@ -119,53 +122,42 @@ function renderTable() {
     let rows = filterBySearch(filterByTab(allProjects, activeTab), searchQuery);
 
     if (!rows.length) {
-        tbody.innerHTML = `<tr class="state-row"><td colspan="16">No projects found.</td></tr>`;
+        tbody.innerHTML = `<tr class="state-row"><td colspan="15">No projects found.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = rows.map((p, i) => {
         const dlClass  = isOverdue(p.deadline) || isToday(p.deadline) ? 'deadline-today' : 'deadline-normal';
-        const jdlClass = isOverdue(p.job_deadline) ? 'deadline-today' : 'deadline-normal';
         const srcFlag  = LANG_FLAGS[p.source_language] || '🌐';
         const tgtFlag  = LANG_FLAGS[p.target_language] || '🌐';
         const price    = p.price != null
             ? `${Number(p.price).toFixed(2)} ${p.currency || 'EUR'}`
             : '0 EUR';
-        const margin   = p.scoop_margin != null
-            ? `${Number(p.scoop_margin).toFixed(2)} %`
-            : '—';
+        const expense  = `${Number(p.expense || 0).toFixed(2)} ${p.currency || 'EUR'}`;
+        const margin   = `${Number(p.margin_amount || 0).toFixed(2)} ${p.currency || 'EUR'}`;
+        const emailReference = p.email_reference || '—';
 
         return `<tr>
             <td><input type="checkbox" class="row-check" data-id="${p.id}"></td>
             <td>${i + 1}</td>
-            <td><a class="proj-num" href="project.html?id=${p.id}">${p.project_number || '—'}</a></td>
-            <td>
-                <div class="customer-main">${p.clients?.name || '—'}</div>
-                ${p.sub_client ? `<div class="customer-sub">${p.sub_client}</div>` : ''}
-            </td>
+            <td><a class="proj-num" href="project.html?id=${p.id}">${escapeHtml(p.display_name || p.project_number || '—')}</a>${p.client_reference ? `<div class="customer-sub">Client ref: ${escapeHtml(p.client_reference)}</div>` : ''}</td>
+            <td><div class="customer-main">${escapeHtml(p.clients?.name || '—')}</div></td>
+            <td>${escapeHtml(p.client_accounts?.name || 'Non-defined')}</td>
             <td>
                 <div class="lang-pair">
-                    <div class="lang-row"><span class="lang-flag">${srcFlag}</span>${p.source_language || '—'}</div>
-                    <div class="lang-row"><span class="lang-flag">${tgtFlag}</span>${p.target_language || '—'}</div>
+                    <div class="lang-row"><span class="lang-flag">${srcFlag}</span>${escapeHtml(p.source_language || '—')}</div>
+                    <div class="lang-row"><span class="lang-flag">${tgtFlag}</span>${escapeHtml(p.target_language || '—')}</div>
                 </div>
             </td>
             <td><span class="${dlClass}">${fmtDate(p.deadline)}</span></td>
-            <td>${p.project_manager || '—'}</td>
-            <td>${p.qa_specialist   || '—'}</td>
-            <td>${p.linguist        || '—'}</td>
-            <td>
-                <button class="comment-btn" title="Comments">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                </button>
-            </td>
-            <td><span class="status-badge">${p.status || '—'}</span></td>
-            <td>${p.project_type   || '—'}</td>
-            <td>${p.project_volume || '—'}</td>
-            <td><span class="${jdlClass}">${fmtDate(p.job_deadline)}</span></td>
+            <td>${escapeHtml(p.project_manager || '—')}</td>
+            <td><span class="status-badge">${escapeHtml(p.status || '—')}</span></td>
+            <td>${escapeHtml(p.project_type || '—')}</td>
+            <td>${escapeHtml(p.po_number || (p.missing_po ? 'Missing' : '—'))}</td>
             <td class="price-cell">${price}</td>
-            <td class="margin-cell">${margin}</td>
+            <td class="price-cell">${expense}</td>
+            <td class="margin-cell">${margin}<div class="customer-sub">${Number(p.scoop_margin || 0).toFixed(2)}%</div></td>
+            <td title="${escapeHtml(emailReference)}">${escapeHtml(emailReference.length > 34 ? emailReference.slice(0,31)+'…' : emailReference)}</td>
         </tr>`;
     }).join('');
 }
@@ -173,17 +165,17 @@ function renderTable() {
 // ── Export to CSV ──────────────────────────────────────────────────────────
 function exportCSV() {
     let rows = filterBySearch(filterByTab(allProjects, activeTab), searchQuery);
-    const headers = ['Project Number','Customer','Sub-client','Source Language','Target Language',
-        'Deadline','Project Manager','QA Specialist','Linguist','Status','Project Type',
-        'Project Volume','Job Deadline','Price','Currency','Scoop Margin'];
+    const headers = ['Project','Client','Account','Source Language','Target Language',
+        'Deadline','Project Manager','Status','Type','PO','Price','Expense',
+        'Margin','Margin %','Currency','Email Reference'];
     const lines = [headers.join(',')];
     rows.forEach(p => {
         lines.push([
-            p.project_number, p.clients?.name, p.sub_client,
+            p.display_name || p.project_number, p.clients?.name, p.client_accounts?.name,
             p.source_language, p.target_language,
-            p.deadline, p.project_manager, p.qa_specialist, p.linguist,
-            p.status, p.project_type, p.project_volume, p.job_deadline,
-            p.price, p.currency, p.scoop_margin
+            p.deadline, p.project_manager, p.status, p.project_type, p.po_number,
+            p.price, p.expense, p.margin_amount, p.scoop_margin, p.currency,
+            p.email_reference
         ].map(v => `"${(v ?? '').toString().replace(/"/g,'""')}"`).join(','));
     });
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
@@ -210,107 +202,181 @@ document.getElementById('searchBox').addEventListener('input', e => {
     renderTable();
 });
 
-// ── Language list ─────────────────────────────────────────────────────────
+// ── Languages and Project creation ─────────────────────────────────────────
 const LANGUAGES = [
     'English (US)','English (UK)','Bulgarian','Swedish','Danish','Finnish',
-    'Norwegian (Bokmål)','German','French','Spanish','Italian','Dutch',
+    'Norwegian (Bokmål)','Icelandic','German','French','Spanish','Italian','Dutch',
     'Polish','Portuguese','Russian','Chinese (Simplified)','Chinese (Traditional)',
     'Japanese','Korean','Arabic','Turkish','Czech','Hungarian','Romanian',
     'Slovak','Ukrainian','Greek','Hebrew','Thai','Vietnamese',
 ];
+const LANGUAGE_CODES = {
+    'English (US)':'EN-US','English (UK)':'EN-GB','Bulgarian':'BG','Swedish':'SV',
+    'Danish':'DA','Finnish':'FI','Norwegian (Bokmål)':'NB','Icelandic':'IS',
+    'German':'DE','French':'FR','Spanish':'ES','Italian':'IT','Dutch':'NL',
+    'Polish':'PL','Portuguese':'PT','Russian':'RU','Chinese (Simplified)':'ZH-CN',
+    'Chinese (Traditional)':'ZH-TW','Japanese':'JA','Korean':'KO','Arabic':'AR',
+    'Turkish':'TR','Czech':'CS','Hungarian':'HU','Romanian':'RO','Slovak':'SK',
+    'Ukrainian':'UK','Greek':'EL','Hebrew':'HE','Thai':'TH','Vietnamese':'VI',
+};
+let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [];
 
-// ── Create Project modal ───────────────────────────────────────────────────
-let clientsList = [];
-
+function projectOptions(rows, label, selected = '', empty = 'Non-defined') {
+    return `<option value="">${empty}</option>` + rows.map(row =>
+        `<option value="${row.id}" ${row.id === selected ? 'selected' : ''}>${escapeHtml(row[label])}</option>`
+    ).join('');
+}
+function localDateValue(date = new Date()) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+function updateProjectNamePreview() {
+    const client = clientsList.find(row => row.id === document.getElementById('f-client').value);
+    const target = document.getElementById('f-tgt').value;
+    if (!client || !target) {
+        document.getElementById('f-name-preview').textContent = 'Select a Client and target language';
+        return;
+    }
+    const date = (document.getElementById('f-date').value || localDateValue()).replaceAll('-', '').slice(2);
+    const ref = (document.getElementById('f-client-ref').value.trim() || 'NOREF')
+        .toUpperCase().replace(/[^A-Z0-9]/g, '') || 'NOREF';
+    document.getElementById('f-name-preview').textContent =
+        `${date}_${client.code || 'CLIENT'}_${LANGUAGE_CODES[target] || 'XX'}_${ref}`;
+}
+async function loadProjectClientDefaults() {
+    const clientId = document.getElementById('f-client').value;
+    if (!clientId) {
+        projectAccounts = []; projectContacts = []; projectBillingEntities = [];
+    } else {
+        const [a, c, b] = await Promise.all([
+            _sb.from('client_accounts').select('*').eq('client_id', clientId).eq('active', true).order('name'),
+            _sb.from('client_contacts').select('*').eq('client_id', clientId).eq('active', true).order('full_name'),
+            _sb.from('client_billing_entities').select('*').eq('client_id', clientId).eq('active', true).order('is_default', { ascending: false }),
+        ]);
+        projectAccounts = a.data || []; projectContacts = c.data || []; projectBillingEntities = b.data || [];
+        const client = clientsList.find(row => row.id === clientId);
+        document.getElementById('f-currency').value = client?.default_currency || 'EUR';
+        document.getElementById('f-cat').value = client?.default_cat_system || '';
+        document.getElementById('f-instructions').value = client?.instructions || '';
+    }
+    document.getElementById('f-account').innerHTML = projectOptions(projectAccounts, 'name');
+    document.getElementById('f-contact').innerHTML = projectOptions(projectContacts, 'full_name');
+    document.getElementById('f-billing').innerHTML = projectOptions(projectBillingEntities, 'name', projectBillingEntities.find(row => row.is_default)?.id || '', 'Default billing entity');
+    updateProjectNamePreview();
+}
+function loadProjectAccountDefaults() {
+    const account = projectAccounts.find(row => row.id === document.getElementById('f-account').value);
+    if (!account) return;
+    document.getElementById('f-production').value = account.default_production_mode || 'Not selected';
+    if (account.default_cat_system) document.getElementById('f-cat').value = account.default_cat_system;
+    if (account.instructions) document.getElementById('f-instructions').value = account.instructions;
+}
 async function openCreateModal() {
     document.getElementById('createModal').classList.remove('hidden');
-    // Load clients into dropdown
     if (!clientsList.length) {
-        const { data } = await _sb.from('clients').select('id,name').order('name');
+        const { data } = await _sb.from('clients').select('*').eq('restriction_status', 'Active').order('name');
         clientsList = data || [];
     }
-    const sel = document.getElementById('f-client');
-    sel.innerHTML = '<option value="">Select client…</option>' +
-        clientsList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    // Populate language dropdowns
-    ['f-src','f-tgt'].forEach(id => {
-        document.getElementById(id).innerHTML =
-            '<option value="">Select…</option>' +
-            LANGUAGES.map(l => `<option>${l}</option>`).join('');
-    });
+    document.getElementById('f-client').innerHTML = '<option value="">Select client…</option>' + clientsList.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    ['f-src','f-tgt'].forEach(id => document.getElementById(id).innerHTML = '<option value="">Select…</option>' + LANGUAGES.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join(''));
+    document.getElementById('f-src').value = 'English (UK)';
+    document.getElementById('f-date').value = localDateValue();
+    document.getElementById('f-missingpo').checked = true;
+    document.getElementById('f-account').innerHTML = '<option value="">Non-defined</option>';
+    document.getElementById('f-contact').innerHTML = '<option value="">Non-defined</option>';
+    document.getElementById('f-billing').innerHTML = '<option value="">Default billing entity</option>';
+    updateProjectNamePreview();
 }
-
 function closeCreateModal() {
     document.getElementById('createModal').classList.add('hidden');
     document.getElementById('createError').classList.add('hidden');
-    ['f-num','f-sub','f-pm','f-qa','f-ling','f-po','f-price','f-margin']
-        .forEach(id => document.getElementById(id).value = '');
-    ['f-upcoming','f-urgent','f-onhold','f-missingpo']
-        .forEach(id => document.getElementById(id).checked = false);
 }
-
 async function submitCreateProject() {
-    const btn = document.getElementById('createBtn');
-    const err = document.getElementById('createError');
+    const btn = document.getElementById('createBtn'), err = document.getElementById('createError');
     err.classList.add('hidden');
-    const num = document.getElementById('f-num').value.trim();
-    const clientId = document.getElementById('f-client').value;
-    if (!num) { err.textContent = 'Project Number is required.'; err.classList.remove('hidden'); return; }
-    if (!clientId) { err.textContent = 'Client is required.'; err.classList.remove('hidden'); return; }
+    const clientId = document.getElementById('f-client').value, target = document.getElementById('f-tgt').value;
+    if (!clientId || !target) { err.textContent = 'Client and target language are required.'; err.classList.remove('hidden'); return; }
+    const priceSource = document.getElementById('f-price-source').value;
+    if (['Manual','Fixed'].includes(priceSource) && !document.getElementById('f-price-reason').value.trim()) { err.textContent = 'Explain why a manual or fixed price is being used.'; err.classList.remove('hidden'); return; }
     btn.disabled = true; btn.textContent = 'Creating…';
-    const { error } = await _sb.from('projects').insert({
-        project_number:  num,
-        client_id:       clientId,
-        sub_client:      document.getElementById('f-sub').value.trim() || null,
-        status:          document.getElementById('f-status').value,
-        source_language: document.getElementById('f-src').value || null,
-        target_language: document.getElementById('f-tgt').value || null,
-        deadline:        document.getElementById('f-deadline').value || null,
-        job_deadline:    document.getElementById('f-jobdl').value || null,
-        project_manager: document.getElementById('f-pm').value.trim() || null,
-        qa_specialist:   document.getElementById('f-qa').value.trim() || null,
-        linguist:        document.getElementById('f-ling').value.trim() || null,
-        project_type:    document.getElementById('f-type').value || null,
-        price:           parseFloat(document.getElementById('f-price').value) || 0,
-        currency:        document.getElementById('f-currency').value,
-        scoop_margin:    parseFloat(document.getElementById('f-margin').value) || 0,
-        po_number:       document.getElementById('f-po').value.trim() || null,
-        upcoming:        document.getElementById('f-upcoming').checked,
-        urgent:          document.getElementById('f-urgent').checked,
-        on_hold:         document.getElementById('f-onhold').checked,
-        missing_po:      document.getElementById('f-missingpo').checked,
-    });
+    const payload = {
+        client_id: clientId, account_id: document.getElementById('f-account').value || null,
+        contact_id: document.getElementById('f-contact').value || null, billing_entity_id: document.getElementById('f-billing').value || null,
+        client_reference: document.getElementById('f-client-ref').value.trim() || null, email_reference: document.getElementById('f-email-ref').value.trim() || null,
+        project_date: document.getElementById('f-date').value, source_language: document.getElementById('f-src').value || null,
+        source_language_code: LANGUAGE_CODES[document.getElementById('f-src').value] || null,
+        target_language: target, target_language_code: LANGUAGE_CODES[target], deadline: document.getElementById('f-deadline').value || null,
+        project_manager: document.getElementById('f-pm').value.trim() || null, qa_specialist: document.getElementById('f-qa').value.trim() || null,
+        project_coordinator: document.getElementById('f-coordinator').value.trim() || null, status: 'Assign', project_type: document.getElementById('f-type').value,
+        production_mode: document.getElementById('f-production').value, cat_system: document.getElementById('f-cat').value.trim() || null,
+        client_instructions: document.getElementById('f-instructions').value.trim() || null, price: Number(document.getElementById('f-price').value || 0),
+        currency: document.getElementById('f-currency').value, price_source: priceSource || null,
+        price_override_reason: document.getElementById('f-price-reason').value.trim() || null, po_number: document.getElementById('f-po').value.trim() || null,
+        missing_po: document.getElementById('f-missingpo').checked, upcoming: document.getElementById('f-upcoming').checked,
+        urgent: document.getElementById('f-urgent').checked,
+    };
+    const { data, error } = await _sb.rpc('create_project', { p_payload: payload });
     btn.disabled = false; btn.textContent = 'Create Project';
     if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
-    closeCreateModal();
-    // Reload projects
-    const { data } = await _sb.from('projects').select('*, clients(name)').order('deadline', { ascending: true });
-    allProjects = data || [];
-    renderTabs(); renderTable();
+    if (data?.[0]?.created_project_id) location.href = `project.html?id=${data[0].created_project_id}`;
 }
 
 document.getElementById('createProjectBtn').addEventListener('click', openCreateModal);
-document.getElementById('changeStatusBtn').addEventListener('click', () => {
-    alert('Bulk status change — coming in a future phase');
+document.getElementById('f-client').addEventListener('change', loadProjectClientDefaults);
+document.getElementById('f-account').addEventListener('change', loadProjectAccountDefaults);
+['f-tgt','f-date','f-client-ref'].forEach(id => document.getElementById(id).addEventListener('input', updateProjectNamePreview));
+document.getElementById('f-po').addEventListener('input', event => {
+    if (event.target.value.trim()) document.getElementById('f-missingpo').checked = false;
 });
+function selectedProjectIds() {
+    return [...document.querySelectorAll('.row-check:checked')].map(input => input.dataset.id);
+}
+function openBulkStatus() {
+    const ids = selectedProjectIds();
+    if (!ids.length) { alert('Select at least one Project.'); return; }
+    document.getElementById('bulkStatusModal').classList.remove('hidden');
+}
+function closeBulkStatus() {
+    document.getElementById('bulkStatusModal').classList.add('hidden');
+    document.getElementById('bulkStatusError').classList.add('hidden');
+}
+async function applyBulkStatus() {
+    const ids = selectedProjectIds(), status = document.getElementById('bulk-status').value;
+    const reason = document.getElementById('bulk-wait-reason').value.trim();
+    const follow = document.getElementById('bulk-wait-follow').value;
+    const errorEl = document.getElementById('bulkStatusError');
+    if (status === 'Waiting' && (!reason || !follow)) {
+        errorEl.textContent = 'Waiting requires a reason and follow-up date.';
+        errorEl.classList.remove('hidden'); return;
+    }
+    const { error } = await _sb.from('projects').update({
+        status,
+        waiting_reason: status === 'Waiting' ? reason : null,
+        waiting_follow_up_at: status === 'Waiting' ? follow : null,
+    }).in('id', ids);
+    if (error) { errorEl.textContent = error.message; errorEl.classList.remove('hidden'); return; }
+    closeBulkStatus();
+    await reloadProjects();
+}
+document.getElementById('changeStatusBtn').addEventListener('click', openBulkStatus);
+
+async function reloadProjects() {
+    const { data, error } = await _sb.from('projects')
+        .select('*, clients(name), client_accounts(name)')
+        .order('deadline', { ascending: true });
+    if (error) {
+        document.getElementById('projectsTbody').innerHTML =
+            `<tr class="state-row"><td colspan="15">Error: ${escapeHtml(error.message)}</td></tr>`;
+        return;
+    }
+    allProjects = data || [];
+    renderTabs(); renderTable();
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (async () => {
     const user = await requireAuth();
     if (!user) return;
 
-    const { data, error } = await _sb
-        .from('projects')
-        .select('*, clients(name)')
-        .order('deadline', { ascending: true });
-
-    if (error) {
-        document.getElementById('projectsTbody').innerHTML =
-            `<tr class="state-row"><td colspan="16">Error: ${error.message}</td></tr>`;
-        return;
-    }
-
-    allProjects = data || [];
-    renderTabs();
-    renderTable();
+    await reloadProjects();
 })();

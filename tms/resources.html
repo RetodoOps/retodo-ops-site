@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>External Resources — RetodoOps TMS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">TMS</div></div>
+        <nav class="nav">
+            <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard</a>
+            <a class="nav-item" href="quotes.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Quotes</a>
+            <div class="nav-item active open" onclick="toggleSub('sub-res',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Resources<span class="nav-arrow">▾</span></div>
+            <div class="nav-sub open" id="sub-res"><a href="resources.html?type=internal">Internal Resource</a><a href="resources.html?type=external">External Resource</a></div>
+            <div class="nav-item" onclick="toggleSub('sub-cli',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/></svg>Clients<span class="nav-arrow">▾</span></div>
+            <div class="nav-sub" id="sub-cli"><a href="clients.html">Client List</a></div>
+            <hr class="nav-divider"><a class="nav-item" href="#" onclick="signOut();return false">Sign Out</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="module-header">
+            <div><h1 id="moduleTitle">External Resources</h1><p>Searchable linguist network, eligibility and operational history</p></div>
+            <button class="btn-primary" onclick="openCreateResource()">+ Add resource</button>
+        </div>
+        <div class="resource-filter-panel">
+            <div class="resource-filter-row">
+                <input type="search" class="search-box resource-search" id="resourceSearch" placeholder="Name, number, email or legacy ID…">
+                <select class="toolbar-select" id="sourceFilter"><option value="">All source languages</option></select>
+                <select class="toolbar-select" id="targetFilter"><option value="">All target languages</option></select>
+                <select class="toolbar-select" id="serviceFilter"><option value="">All services</option></select>
+                <select class="toolbar-select" id="specializationFilter"><option value="">All specializations</option></select>
+            </div>
+            <div class="resource-filter-row secondary">
+                <select class="toolbar-select" id="classificationFilter"><option value="">All classifications</option><option>A — Preferred</option><option>B — Proven / previously used</option><option>C — Approved / no recorded work</option><option>D — Not assessed</option><option>Hold — Inactive</option><option>Hold — Unavailable</option><option>Hold — Terms not accepted</option><option>Do not use</option></select>
+                <select class="toolbar-select" id="eligibilityFilter"><option value="">All eligibility states</option><option>Eligible</option><option>Review</option><option>Restricted</option><option>Hold</option><option>Do not use</option></select>
+                <select class="toolbar-select" id="availabilityFilter"><option value="">All availability</option><option>Available</option><option>Limited</option><option>Unavailable</option><option>Unknown</option></select>
+                <label class="checkbox-row approved-only"><input type="checkbox" id="approvedOnly"> Approved capabilities only</label>
+                <button class="btn-secondary" onclick="clearFilters()">Clear filters</button>
+                <div class="toolbar-right"><span class="record-count" id="resourceCount">Loading…</span></div>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="module-table resources-list-table">
+                <thead><tr><th>Internal №</th><th>Resource</th><th>Class / eligibility</th><th>Source → target</th><th>Services</th><th>Specializations</th><th>Country</th><th>Availability</th><th>Last work</th></tr></thead>
+                <tbody id="resourcesTbody"><tr class="state-row"><td colspan="9">Loading Resources…</td></tr></tbody>
+            </table>
+        </div>
+        <div class="pagination-bar"><button class="btn-secondary" id="previousPage" onclick="changePage(-1)">Previous</button><span id="pageStatus">Page 1</span><button class="btn-secondary" id="nextPage" onclick="changePage(1)">Next</button></div>
+    </main>
+</div>
+
+<div id="resourceModal" class="modal-overlay hidden">
+    <div class="modal modal-small">
+        <div class="modal-header"><h3>Add resource</h3><button class="modal-close" onclick="closeCreateResource()">×</button></div>
+        <div class="modal-body"><div class="form-grid">
+            <div class="field"><label>Type</label><select id="newResourceType"><option>Freelancer</option><option>Company</option><option>Internal</option></select></div>
+            <div class="field"><label>Initials</label><input id="newResourceInitials" maxlength="12"></div>
+            <div class="field field-full"><label>Legal / personal name</label><input id="newResourceName"></div>
+            <div class="field field-full"><label>Company name</label><input id="newResourceCompany"></div>
+            <div class="field"><label>Nationality</label><input id="newResourceNationality"></div>
+            <div class="field"><label>Country of residence</label><input id="newResourceCountry"></div>
+            <div class="field"><label>Email</label><input id="newResourceEmail" type="email"></div>
+            <div class="field"><label>Phone</label><input id="newResourcePhone"></div>
+            <div class="field field-full"><label>LinkedIn URL</label><input id="newResourceLinkedIn" type="url"></div>
+        </div><p id="resourceCreateError" class="error-msg hidden"></p></div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeCreateResource()">Cancel</button><button class="btn-primary" id="createResourceBtn" onclick="createResource()">Create and open</button></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js"></script><script src="resources.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client — RetodoOps TMS</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">TMS</div></div>
+        <nav class="nav">
+            <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard</a>
+            <a class="nav-item" href="quotes.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9z"/></svg>Quotes</a>
+            <div class="nav-item" onclick="toggleSub('sub-res',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Resources<span class="nav-arrow">▾</span></div>
+            <div class="nav-sub" id="sub-res"><a href="resources.html?type=internal">Internal Resource</a><a href="resources.html?type=external">External Resource</a></div>
+            <div class="nav-item active open" onclick="toggleSub('sub-cli',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2z"/></svg>Clients<span class="nav-arrow">▾</span></div>
+            <div class="nav-sub open" id="sub-cli"><a href="clients.html">Client List</a></div>
+            <div class="nav-item" onclick="toggleSub('sub-rep',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>Reports<span class="nav-arrow">▾</span></div>
+            <div class="nav-sub" id="sub-rep"><a href="reports.html?type=projects">Project Report</a><a href="reports.html?type=jobs">Jobs Report</a><a href="reports.html?type=margin">Margin Report</a><a href="reports.html?type=invoices">Invoice Report</a></div>
+            <hr class="nav-divider"><div class="sidebar-bottom">
+                <a class="nav-item" href="profile.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg>Profile</a>
+                <a class="nav-item" href="#" onclick="signOut();return false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5z"/></svg>Sign Out</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="module-header client-record-header">
+            <div><div class="breadcrumbs"><a href="clients.html">Clients</a><span>/</span><span id="clientBreadcrumb">Loading…</span></div><h1 id="clientTitle">Loading client…</h1><p id="clientSubtitle"></p></div>
+            <div class="header-actions"><span id="saveStatus" class="save-message"></span><button class="btn-primary" onclick="saveActiveTab()">Save changes</button></div>
+        </div>
+        <div class="record-tabs">
+            <button class="record-tab active" data-tab="basic">Basic information</button>
+            <button class="record-tab" data-tab="accounts">Accounts <span class="tab-badge" id="accountCount">0</span></button>
+            <button class="record-tab" data-tab="contacts">Contacts <span class="tab-badge" id="contactCount">0</span></button>
+            <button class="record-tab" data-tab="billing">Billing entities <span class="tab-badge" id="billingCount">0</span></button>
+            <button class="record-tab" data-tab="pricing">Price cards <span class="tab-badge" id="rateCardCount">0</span></button>
+        </div>
+        <div class="record-body">
+            <p id="recordError" class="error-msg hidden"></p>
+
+            <section class="record-pane active" id="pane-basic">
+                <div class="section-card"><div class="section-title">Organization</div><div class="form-grid form-grid-3">
+                    <div class="field field-span-2"><label>Display name *</label><input id="c-name"></div>
+                    <div class="field"><label>Project code *</label><input id="c-code" maxlength="12"></div>
+                    <div class="field field-span-2"><label>Legal name</label><input id="c-legal"></div>
+                    <div class="field"><label>Client type</label><select id="c-type"><option value="LSP">LSP / Agency</option><option value="Direct">Direct client</option></select></div>
+                    <div class="field"><label>Website</label><input id="c-website" type="url" placeholder="https://"></div>
+                    <div class="field"><label>Country code</label><input id="c-country" maxlength="2" placeholder="e.g. US"></div>
+                    <div class="field"><label>Default currency</label><select id="c-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div>
+                    <div class="field"><label>Default payment terms (days)</label><input id="c-payment" type="number" min="0"></div>
+                    <div class="field"><label>Default CAT system</label><input id="c-cat" placeholder="e.g. memoQ, Trados GroupShare"></div>
+                    <div class="field"><label>Operational status</label><select id="c-restriction"><option>Active</option><option>On Hold</option><option>Do not work with</option></select></div>
+                    <div class="field field-span-2"><label>Restriction reason</label><input id="c-restriction-reason"></div>
+                </div></div>
+                <div class="section-card"><div class="section-title">Instructions and confidentiality</div><div class="form-grid">
+                    <div class="field"><label>General instructions</label><textarea id="c-instructions" rows="7"></textarea></div>
+                    <div class="field"><label>Confidentiality notes</label><textarea id="c-confidentiality" rows="7"></textarea></div>
+                </div></div>
+            </section>
+
+            <section class="record-pane" id="pane-accounts">
+                <div class="pane-toolbar"><div><h2>Accounts</h2><p>End-client or programme defaults inherited by Quotes and Projects.</p></div><button class="btn-primary" onclick="openAccountModal()">+ Add account</button></div>
+                <div class="section-card table-card"><table class="module-table"><thead><tr><th>Code</th><th>Account</th><th>Specializations</th><th>Production</th><th>CAT</th><th>Blind-CV label</th><th>Status</th></tr></thead><tbody id="accountsTbody"></tbody></table></div>
+            </section>
+
+            <section class="record-pane" id="pane-contacts">
+                <div class="pane-toolbar"><div><h2>Contacts</h2><p>Client and account-level operational contacts.</p></div><button class="btn-primary" onclick="openContactModal()">+ Add contact</button></div>
+                <div class="section-card table-card"><table class="module-table"><thead><tr><th>Name</th><th>Account</th><th>Title</th><th>Email</th><th>Phone</th><th>Primary</th><th>Status</th></tr></thead><tbody id="contactsTbody"></tbody></table></div>
+            </section>
+
+            <section class="record-pane" id="pane-billing">
+                <div class="pane-toolbar"><div><h2>Billing entities</h2><p>Legal invoice recipients. The default is inherited, with a Project or invoice override when required.</p></div><button class="btn-primary" onclick="openBillingModal()">+ Add billing entity</button></div>
+                <div class="section-card table-card"><table class="module-table"><thead><tr><th>Entity</th><th>Legal name</th><th>Country</th><th>VAT / Registration</th><th>Billing email</th><th>Terms</th><th>Status</th></tr></thead><tbody id="billingTbody"></tbody></table></div>
+            </section>
+
+            <section class="record-pane" id="pane-pricing">
+                <div class="pane-toolbar"><div><h2>Client price cards</h2><p>Account rates take precedence over client-wide rates. Manual fixed prices remain possible on a Project.</p></div><button class="btn-primary" onclick="openRateCardModal()">+ Add price card</button></div>
+                <div class="price-card-layout">
+                    <div class="section-card"><div class="section-title">Price cards</div><div id="rateCardsList" class="rate-card-list"></div></div>
+                    <div class="section-card"><div class="price-lines-header"><div><div class="section-title">Rate items</div><div id="selectedRateCardLabel" class="muted">Select a price card</div></div><button class="btn-secondary" id="addRateItemBtn" onclick="openRateItemModal()" disabled>+ Add rate</button></div>
+                        <div class="table-scroll"><table class="module-table compact-table"><thead><tr><th>Languages</th><th>Service</th><th>Specialization</th><th>Unit / CAT band</th><th>Rate</th><th>Minimum</th></tr></thead><tbody id="rateItemsTbody"><tr class="state-row"><td colspan="6">Select a price card.</td></tr></tbody></table></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<div id="accountModal" class="modal-overlay hidden"><div class="modal">
+    <div class="modal-header"><h3 id="accountModalTitle">Add account</h3><button class="modal-close" onclick="closeModal('accountModal')">×</button></div>
+    <div class="modal-body"><input type="hidden" id="a-id"><div class="form-grid form-grid-3">
+        <div class="field field-span-2"><label>Account name *</label><input id="a-name"></div><div class="field"><label>Account code</label><input id="a-code" maxlength="12"></div>
+        <div class="field"><label>Default source language</label><input id="a-source" placeholder="e.g. English"></div><div class="field"><label>Default CAT system</label><input id="a-cat"></div>
+        <div class="field"><label>Production mode</label><select id="a-production"><option>Not selected</option><option>Client CAT</option><option>Retodo memoQ</option><option>File workflow</option></select></div>
+        <div class="field"><label>Blind-CV label</label><input id="a-blind" placeholder="e.g. Global technology account"></div>
+        <div class="field field-span-2"><label class="checkbox-row inline-check"><input type="checkbox" id="a-disclose"> Account name may appear in blind CV</label></div>
+        <div class="field field-full"><label>Default specializations</label><div id="a-specializations" class="checkbox-grid"></div></div>
+        <div class="field"><label>Client instructions</label><textarea id="a-instructions"></textarea></div><div class="field"><label>Terminology</label><textarea id="a-terminology"></textarea></div><div class="field"><label>Communication boundaries</label><textarea id="a-communication"></textarea></div>
+        <div class="field field-span-2"><label>Confidentiality notes</label><textarea id="a-confidentiality"></textarea></div><div class="field"><label>Status</label><select id="a-restriction"><option>Active</option><option>On Hold</option><option>Do not work with</option></select></div>
+        <div class="field field-full"><label>Restriction reason</label><input id="a-restriction-reason"></div>
+    </div><p id="accountError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('accountModal')">Cancel</button><button class="btn-primary" onclick="saveAccount()">Save account</button></div>
+</div></div>
+
+<div id="contactModal" class="modal-overlay hidden"><div class="modal modal-small">
+    <div class="modal-header"><h3 id="contactModalTitle">Add contact</h3><button class="modal-close" onclick="closeModal('contactModal')">×</button></div>
+    <div class="modal-body"><input type="hidden" id="ct-id"><div class="form-grid">
+        <div class="field field-full"><label>Full name *</label><input id="ct-name"></div><div class="field"><label>Account</label><select id="ct-account"></select></div><div class="field"><label>Job title</label><input id="ct-title"></div>
+        <div class="field"><label>Email</label><input id="ct-email" type="email"></div><div class="field"><label>Phone</label><input id="ct-phone"></div>
+        <div class="field"><label class="checkbox-row inline-check"><input id="ct-primary" type="checkbox"> Primary contact</label></div><div class="field"><label class="checkbox-row inline-check"><input id="ct-active" type="checkbox" checked> Active</label></div>
+        <div class="field field-full"><label>Notes</label><textarea id="ct-notes"></textarea></div>
+    </div><p id="contactError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('contactModal')">Cancel</button><button class="btn-primary" onclick="saveContact()">Save contact</button></div>
+</div></div>
+
+<div id="billingModal" class="modal-overlay hidden"><div class="modal">
+    <div class="modal-header"><h3 id="billingModalTitle">Add billing entity</h3><button class="modal-close" onclick="closeModal('billingModal')">×</button></div>
+    <div class="modal-body"><input type="hidden" id="be-id"><div class="form-grid form-grid-3">
+        <div class="field"><label>Internal label *</label><input id="be-name" placeholder="e.g. Welocalize US"></div><div class="field field-span-2"><label>Legal name *</label><input id="be-legal"></div>
+        <div class="field field-span-2"><label>Address line 1 *</label><input id="be-address1"></div><div class="field"><label>Address line 2</label><input id="be-address2"></div>
+        <div class="field"><label>City *</label><input id="be-city"></div><div class="field"><label>Postal code</label><input id="be-postal"></div><div class="field"><label>Region / State</label><input id="be-region"></div>
+        <div class="field"><label>Country code *</label><input id="be-country" maxlength="2" placeholder="e.g. US"></div><div class="field"><label>VAT number</label><input id="be-vat"></div><div class="field"><label>Registration number</label><input id="be-registration"></div>
+        <div class="field"><label>Billing email</label><input id="be-email" type="email"></div><div class="field"><label>Currency</label><select id="be-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div><div class="field"><label>Payment terms (days)</label><input id="be-terms" type="number" min="0"></div>
+        <div class="field field-full"><label>Invoice notes</label><textarea id="be-notes" placeholder="PO, portal or submission instructions"></textarea></div>
+        <div class="field"><label class="checkbox-row inline-check"><input id="be-default" type="checkbox"> Default billing entity</label></div><div class="field"><label class="checkbox-row inline-check"><input id="be-active" type="checkbox" checked> Active</label></div>
+    </div><p id="billingError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('billingModal')">Cancel</button><button class="btn-primary" onclick="saveBillingEntity()">Save billing entity</button></div>
+</div></div>
+
+<div id="rateCardModal" class="modal-overlay hidden"><div class="modal modal-small">
+    <div class="modal-header"><h3>Add price card</h3><button class="modal-close" onclick="closeModal('rateCardModal')">×</button></div>
+    <div class="modal-body"><div class="form-grid"><div class="field field-full"><label>Name *</label><input id="rc-name" placeholder="e.g. Standard Nordic rates 2026"></div><div class="field"><label>Account</label><select id="rc-account"></select></div><div class="field"><label>Currency</label><select id="rc-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div><div class="field"><label>Valid from</label><input id="rc-from" type="date"></div><div class="field"><label>Valid to</label><input id="rc-to" type="date"></div></div><p id="rateCardError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateCardModal')">Cancel</button><button class="btn-primary" onclick="saveRateCard()">Create price card</button></div>
+</div></div>
+
+<div id="rateItemModal" class="modal-overlay hidden"><div class="modal">
+    <div class="modal-header"><h3 id="rateItemModalTitle">Add rate</h3><button class="modal-close" onclick="closeModal('rateItemModal')">×</button></div>
+    <div class="modal-body"><input type="hidden" id="ri-id"><div class="form-grid form-grid-3">
+        <div class="field"><label>Source language</label><input id="ri-source"></div><div class="field"><label>Target language</label><input id="ri-target"></div><div class="field"><label>Service *</label><select id="ri-service"><option>Translation</option><option>MTPE</option><option>Proofreading</option><option>Independent Review</option><option>LQA</option><option>Terminology</option><option>DTP</option><option>Transcription</option><option>Project Management</option><option>Other</option></select></div>
+        <div class="field"><label>Specialization</label><select id="ri-specialization"></select></div><div class="field"><label>Unit *</label><select id="ri-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div><div class="field"><label>CAT band</label><input id="ri-band" placeholder="e.g. New words, 95–99%"></div>
+        <div class="field"><label>Rate *</label><input id="ri-rate" type="number" min="0" step="0.0001"></div><div class="field"><label>Minimum fee</label><input id="ri-minimum" type="number" min="0" step="0.01"></div><div class="field field-full"><label>Notes</label><textarea id="ri-notes"></textarea></div>
+    </div><p id="rateItemError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateItemModal')">Cancel</button><button class="btn-primary" onclick="saveRateItem()">Save rate</button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js"></script><script src="client.js"></script>
+</body></html>

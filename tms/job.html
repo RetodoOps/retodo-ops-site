@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Job — RetodoOps TMS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">TMS</div></div>
+    <nav class="nav">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard</a>
+      <a class="nav-item" href="quotes.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Quotes</a>
+      <a class="nav-item" href="resources.html?type=external"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Resources</a>
+      <a class="nav-item" href="clients.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6z"/></svg>Clients</a>
+      <hr class="nav-divider">
+      <a class="nav-item" href="#" onclick="signOut();return false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5z"/></svg>Sign Out</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="module-header">
+      <div>
+        <div class="breadcrumbs"><a id="projectLink" href="dashboard.html">Project</a><span>/</span><span id="jobBreadcrumb">Loading…</span></div>
+        <h1 id="jobTitle">Loading Job…</h1>
+        <p id="jobSubtitle"></p>
+      </div>
+      <div class="header-actions"><span id="saveStatus" class="save-message"></span><a id="openResourceLink" class="btn-secondary hidden">Open Resource</a><button class="btn-primary" onclick="saveJob()">Save Job</button></div>
+    </div>
+
+    <div class="record-tabs">
+      <button class="record-tab active" data-tab="overview">Overview</button>
+      <button class="record-tab" data-tab="offers">Job Offers <span class="tab-badge" id="offerCount">0</span></button>
+      <button class="record-tab" data-tab="po">Supplier PO <span class="tab-badge" id="poBadge">0</span></button>
+      <button class="record-tab" data-tab="delivery">Delivery & Issues</button>
+    </div>
+
+    <div class="record-body">
+      <p id="jobError" class="error-msg hidden"></p>
+      <section class="record-pane active" id="pane-overview">
+        <div class="job-summary" id="jobSummary"></div>
+        <div class="section-card">
+          <div class="section-title">Production task</div>
+          <div class="form-grid form-grid-3">
+            <div class="field"><label>Job number</label><input id="j-number" readonly></div>
+            <div class="field"><label>Status</label><select id="j-status"><option>Unassigned</option><option>In Progress</option><option>Delivered</option><option>Revision Required</option><option>Approved</option><option>Cancelled</option></select></div>
+            <div class="field"><label>Resource deadline</label><input id="j-deadline" type="datetime-local"></div>
+            <div class="field"><label>Service</label><select id="j-service"><option>Translation</option><option>MTPE</option><option>Proofreading</option><option>Independent Review</option><option>LQA</option><option>Terminology</option><option>DTP</option><option>Transcription</option><option>Project Management</option><option>Other</option></select></div>
+            <div class="field"><label>Source language</label><input id="j-source" readonly></div>
+            <div class="field"><label>Target language</label><input id="j-target" readonly></div>
+            <div class="field"><label>Specialization</label><select id="j-specialization"></select></div>
+            <div class="field"><label>Quantity</label><input id="j-quantity" type="number" min="0" step="0.001"></div>
+            <div class="field"><label>Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
+            <div class="field"><label>Supplier rate</label><input id="j-rate" readonly></div>
+            <div class="field"><label>Supplier amount</label><input id="j-amount" readonly></div>
+            <div class="field inline-check"><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
+            <div class="field field-full"><label>Internal instructions / notes</label><textarea id="j-notes"></textarea></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="record-pane" id="pane-offers">
+        <div class="pane-toolbar"><div><h2>Candidate offers</h2><p>One active candidate at a time. Previous declined, expired and withdrawn offers remain visible.</p></div><button id="newOfferBtn" class="btn-primary" onclick="openOfferModal()">+ New Offer</button></div>
+        <div class="section-card table-card"><table class="module-table"><thead><tr><th>#</th><th>Resource</th><th>Status</th><th>Response due</th><th>Terms</th><th>Client identity</th><th>Actions</th></tr></thead><tbody id="offersTbody"></tbody></table></div>
+      </section>
+
+      <section class="record-pane" id="pane-po">
+        <div id="poEmpty" class="section-card"><div class="empty-compact">A Draft Supplier PO will be created automatically when a Job Offer is accepted.</div></div>
+        <div id="poWorkspace" class="hidden">
+          <div class="pane-toolbar"><div><h2 id="poTitle">Supplier PO</h2><p id="poMeta"></p></div><div class="header-actions"><button class="btn-secondary" onclick="printPO()">Print / Save PDF</button><button id="savePoBtn" class="btn-secondary" onclick="savePO()">Save Draft</button><button id="issuePoBtn" class="btn-primary" onclick="issuePO()">Issue PO</button></div></div>
+          <div class="section-card table-card"><table class="module-table po-lines-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Adjustment</th><th>Amount</th><th></th></tr></thead><tbody id="poLinesTbody"></tbody></table><button class="add-line-btn" onclick="addPOLine()">+ Add line</button></div>
+          <div class="po-totals"><div><span>Subtotal</span><strong id="poSubtotal">0.00</strong></div><div><span>Adjustments</span><strong id="poAdjustments">0.00</strong></div><div><span>Total</span><strong id="poTotal">0.00</strong></div></div>
+          <div id="revisionReasonWrap" class="section-card hidden"><div class="field"><label>Administrator revision reason *</label><input id="poRevisionReason" placeholder="What changed and why?"></div></div>
+          <div class="section-card"><div class="section-title">Version history</div><div id="poVersions" class="version-list"></div></div>
+          <div id="poPrintArea" class="po-document"></div>
+        </div>
+      </section>
+
+      <section class="record-pane" id="pane-delivery">
+        <div class="section-card"><div class="section-title">Delivery control</div><p class="muted">Use <strong>Delivered</strong> when the Resource has delivered to Retodo Ops; use <strong>Approved</strong> after internal acceptance. Post-delivery problems are recorded separately and do not overwrite the Job history.</p></div>
+        <div class="section-card table-card"><table class="module-table"><thead><tr><th>Status</th><th>Severity</th><th>Description</th><th>Reported</th><th>Resolution</th></tr></thead><tbody id="issuesTbody"></tbody></table></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div id="offerModal" class="modal-overlay hidden"><div class="modal modal-wide">
+  <div class="modal-header"><h3>Create Job Offer</h3><button class="modal-close" onclick="closeModal('offerModal')">×</button></div>
+  <div class="modal-body">
+    <div class="candidate-search-row"><input id="candidateSearch" class="search-box resource-search" placeholder="Name, internal number or email…"><button class="btn-secondary" onclick="searchCandidates()">Search matching Resources</button></div>
+    <p class="field-help">Language pair, service and specialization are taken from this Job. Unapproved or restricted records remain visible but require an Administrator override.</p>
+    <div id="candidateResults" class="candidate-results"></div>
+    <div class="section-card offer-terms-card"><div class="section-title">Offer terms</div><div class="form-grid form-grid-3">
+      <div class="field"><label>Response deadline</label><input id="o-response-due" type="datetime-local"></div>
+      <div class="field"><label>Quantity</label><input id="o-quantity" type="number" min="0" step="0.001"></div>
+      <div class="field"><label>Unit</label><select id="o-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
+      <div class="field"><label>Supplier rate</label><input id="o-rate" type="number" min="0" step="0.0001" placeholder="Blank = approved Resource rate"></div>
+      <div class="field"><label>Currency</label><select id="o-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div>
+      <div class="field field-full"><label>Message / instructions</label><textarea id="o-message"></textarea></div>
+      <div class="field field-full"><label class="checkbox-row"><input id="o-disclose" type="checkbox"> Disclose Client/Account identity to the Resource (Administrator only)</label></div>
+      <div class="field field-full"><label class="checkbox-row"><input id="o-override" type="checkbox"> Administrator eligibility/compliance override</label></div>
+      <div class="field field-full"><label>Override reason</label><input id="o-override-reason"></div>
+    </div></div>
+    <p id="offerError" class="error-msg hidden"></p>
+  </div>
+  <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('offerModal')">Cancel</button><button class="btn-primary" onclick="createOffer()">Create Draft Offer</button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="auth.js"></script><script src="job.js"></script>
+</body>
+</html>
