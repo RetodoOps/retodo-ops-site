@@ -220,6 +220,7 @@ const LANGUAGE_CODES = {
     'Ukrainian':'UK','Greek':'EL','Hebrew':'HE','Thai':'TH','Vietnamese':'VI',
 };
 let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [], internalResources = [];
+let projectSpecializationCatalog = [], projectAccountSpecializationIds = [];
 
 function projectOptions(rows, label, selected = '', empty = 'Non-defined') {
     return `<option value="">${empty}</option>` + rows.map(row =>
@@ -242,6 +243,12 @@ function internalResourceOptions(selected='',empty='Non-defined') {
     return `<option value="">${empty}</option>`+internalResources.map(resource=>
         `<option value="${resource.id}" ${resource.id===selected?'selected':''}>${escapeHtml(internalResourceName(resource))}</option>`
     ).join('');
+}
+function renderCreateSpecializations(){
+    const accountId=document.getElementById('f-account').value;
+    const allowed=accountId?projectSpecializationCatalog.filter(spec=>projectAccountSpecializationIds.includes(spec.id)):projectSpecializationCatalog;
+    document.getElementById('f-specializations').innerHTML=allowed.map(spec=>`<label class="checkbox-row"><input type="checkbox" value="${spec.id}" ${accountId?'checked disabled':''}>${escapeHtml(spec.name)}</label>`).join('')||'<span class="muted">No specializations configured.</span>';
+    document.getElementById('f-specializations-help').textContent=accountId?'Inherited from the selected Account. Edit the Account to change this list.':'No Account selected: choose at least one specialization.';
 }
 function installLanguageShortcut(select) {
     const singleKey={s:'Swedish',d:'Danish',n:'Norwegian (Bokmål)',b:'Bulgarian',g:'German',e:'English (UK)',p:'Polish',r:'Russian',t:'Turkish'};
@@ -286,14 +293,21 @@ async function loadProjectClientDefaults() {
     document.getElementById('f-account').innerHTML = projectOptions(projectAccounts, 'name');
     document.getElementById('f-contact').innerHTML = projectOptions(projectContacts, 'full_name');
     document.getElementById('f-billing').innerHTML = projectOptions(projectBillingEntities, 'name', projectBillingEntities.find(row => row.is_default)?.id || '', 'Default billing entity');
+    projectAccountSpecializationIds=[];
+    renderCreateSpecializations();
     updateProjectNamePreview();
 }
-function loadProjectAccountDefaults() {
+async function loadProjectAccountDefaults() {
     const account = projectAccounts.find(row => row.id === document.getElementById('f-account').value);
-    if (!account) return;
-    document.getElementById('f-production').value = account.default_production_mode || 'Not selected';
-    if (account.default_cat_system) document.getElementById('f-cat').value = account.default_cat_system;
-    if (account.instructions) document.getElementById('f-instructions').value = account.instructions;
+    projectAccountSpecializationIds=[];
+    if (account) {
+        document.getElementById('f-production').value = account.default_production_mode || 'Not selected';
+        if (account.default_cat_system) document.getElementById('f-cat').value = account.default_cat_system;
+        if (account.instructions) document.getElementById('f-instructions').value = account.instructions;
+        const {data}=await _sb.from('client_account_specializations').select('specialization_id').eq('account_id',account.id);
+        projectAccountSpecializationIds=(data||[]).map(row=>row.specialization_id);
+    }
+    renderCreateSpecializations();
 }
 async function openCreateModal() {
     document.getElementById('createModal').classList.remove('hidden');
@@ -304,6 +318,10 @@ async function openCreateModal() {
     if (!internalResources.length) {
         const {data}=await _sb.from('resources').select('id,internal_number,legal_name,company_name,lifecycle_status').eq('resource_type','Internal').eq('assignment_approved',true).eq('lifecycle_status','Active').order('legal_name');
         internalResources=data||[];
+    }
+    if (!projectSpecializationCatalog.length) {
+        const {data}=await _sb.from('specializations').select('id,name').eq('active',true).order('name');
+        projectSpecializationCatalog=data||[];
     }
     document.getElementById('f-client').innerHTML = '<option value="">Select client…</option>' + clientsList.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
     ['f-src','f-tgt'].forEach(id => document.getElementById(id).innerHTML = '<option value="">Select…</option>' + LANGUAGES.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join(''));
@@ -318,6 +336,8 @@ async function openCreateModal() {
     document.getElementById('f-account').innerHTML = '<option value="">Non-defined</option>';
     document.getElementById('f-contact').innerHTML = '<option value="">Non-defined</option>';
     document.getElementById('f-billing').innerHTML = '<option value="">Default billing entity</option>';
+    projectAccountSpecializationIds=[];
+    renderCreateSpecializations();
     updateProjectNamePreview();
 }
 function currentUserResourceId(){return internalResources[0]?.id||''}
@@ -331,6 +351,8 @@ async function submitCreateProject() {
     const clientId = document.getElementById('f-client').value, target = document.getElementById('f-tgt').value;
     if (!clientId || !target) { err.textContent = 'Client and target language are required.'; err.classList.remove('hidden'); return; }
     const priceSource = document.getElementById('f-price-source').value;
+    const specializationIds=[...document.querySelectorAll('#f-specializations input:checked')].map(input=>input.value);
+    if(!specializationIds.length){err.textContent='Select at least one Project specialization.';err.classList.remove('hidden');return}
     if (['Manual','Fixed'].includes(priceSource) && !document.getElementById('f-price-reason').value.trim()) { err.textContent = 'Explain why a manual or fixed price is being used.'; err.classList.remove('hidden'); return; }
     btn.disabled = true; btn.textContent = 'Creating…';
     const payload = {
@@ -349,8 +371,9 @@ async function submitCreateProject() {
         price_override_reason: document.getElementById('f-price-reason').value.trim() || null, po_number: document.getElementById('f-po').value.trim() || null,
         missing_po: document.getElementById('f-missingpo').checked, upcoming: document.getElementById('f-upcoming').checked,
         urgent: document.getElementById('f-urgent').checked,
+        specialization_ids: specializationIds,
     };
-    const { data, error } = await _sb.rpc('create_project', { p_payload: payload });
+    const { data, error } = await _sb.rpc('create_project_with_specializations', { p_payload: payload });
     btn.disabled = false; btn.textContent = 'Create Project';
     if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
     if (data?.[0]?.created_project_id) {

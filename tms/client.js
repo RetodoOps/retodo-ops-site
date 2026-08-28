@@ -183,6 +183,8 @@ async function saveAccount() {
     const accountId = value('a-id');
     const name = value('a-name');
     if (!name) return setModalError('accountError', 'Account name is required.');
+    const selected = [...document.querySelectorAll('#a-specializations input:checked')].map(input => input.value);
+    if (!selected.length) return setModalError('accountError', 'Select at least one Account specialization.');
     const payload = {
         client_id: clientId,
         name,
@@ -205,7 +207,6 @@ async function saveAccount() {
     if (result.error) return setModalError('accountError', result.error.message);
 
     const savedId = result.data.id;
-    const selected = [...document.querySelectorAll('#a-specializations input:checked')].map(input => input.value);
     const deletion = await _sb.from('client_account_specializations').delete().eq('account_id', savedId);
     if (deletion.error) return setModalError('accountError', `Account saved, but defaults could not be updated: ${deletion.error.message}`);
     if (selected.length) {

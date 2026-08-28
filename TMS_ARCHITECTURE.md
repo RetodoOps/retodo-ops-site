@@ -96,8 +96,13 @@ the underlying Client-reference field.
 - Issued invoices retain an immutable billing-details snapshot so later changes
   to a legal name, address, registration or VAT number do not rewrite history.
 - Account is optional; projects may use `Non-defined`.
-- Account selection supplies default specializations, instructions, CAT tool,
-  confidentiality settings and Account-specific pricing.
+- Every Account defines at least one specialization. Account selection supplies
+  and locks those Project specializations, together with instructions, CAT
+  tool, confidentiality settings and Account-specific pricing. When Account is
+  `Non-defined`, at least one Project specialization is selected manually.
+- Every Job has exactly one required specialization selected from its Project's
+  specializations. Existing Job or commercial-line use prevents that
+  specialization from being removed from the Project.
 - Pricing precedence: Account rate → Client rate → manual/fixed project price.
 - Account names have a separate blind-CV label and disclosure permission.
 - Do-not-work-with Clients remain in financial and audit records.
@@ -183,8 +188,13 @@ amounts roll up automatically to Project expense and margin.
 Supported pricing units: source words, target words, hours, pages, minutes and
 fixed fee. CAT bands include repetitions and fuzzy-match bands.
 
-Client rates load from Client/Account rate cards. Supplier expenses load from
-Resource rates. Fixed/manual pricing remains available with an override reason.
+Client rates load from Client/Account rate cards. Supplier expenses load only
+from a current approved Resource price-list row matching the Job's language
+pair, service, unit and specialization. The selected rate-row ID remains linked
+to the Offer and Job for provenance, while the agreed rate, currency, quantity
+and amount are retained as immutable commercial snapshots. Fixed/manual Client
+pricing remains available with an override reason; a Job Offer cannot use a
+free-text supplier rate.
 
 Supplier POs are sent through portal and email. Work may begin before portal
 acknowledgement. Draft POs are editable; issued revisions are versioned.

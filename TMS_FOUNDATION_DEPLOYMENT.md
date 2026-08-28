@@ -30,7 +30,8 @@ during the module review.
 7. Run `tms/migrations/004_jobs_and_supplier_pos.sql` once.
 8. Run `tms/migrations/005_project_financial_backfill.sql` once.
 9. Run `tms/migrations/006_internal_staff_assignments.sql` once.
-10. Commit/push the updated repository files so Netlify deploys them.
+10. Run `tms/migrations/007_specializations_and_resource_rates.sql` once.
+11. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -86,7 +87,20 @@ during the module review.
 20. In Project creation, focus a language selector and press `S`; confirm
     Swedish is selected. Enter deadline date and time directly from the
     keyboard and confirm the saved deadline is correct.
-19. Add an Administrator-only private note and confirm it cannot be read by a
+21. Create or edit an Account and confirm at least one specialization is
+    required. Create a Project for that Account and confirm those
+    specializations are inherited and locked. Create a Project with Account
+    `Non-defined` and confirm its specializations can be selected freely.
+22. Create a Job and confirm its specialization list contains only the
+    specializations selected on the Project. Confirm the Job cannot be saved
+    without a specialization or moved to In Progress before a Resource accepts
+    an Offer.
+23. In Job Overview, select an eligible matching Resource. Confirm Supplier
+    rate is a dropdown containing only current approved matching rows from the
+    Resource profile. Create the Draft Offer, mark it Sent and Accepted, and
+    confirm the exact rate row is linked while its amount/currency snapshot is
+    retained on the Job and Supplier PO.
+24. Add an Administrator-only private note and confirm it cannot be read by a
     non-Administrator. Generate the blind CV and confirm that both DOCX and PDF
     exclude the Resource's name, email, phone, LinkedIn URL and rates.
 

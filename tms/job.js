@@ -1,6 +1,7 @@
 let jobId, job, project, assignedResource, offers = [], offerResources = new Map();
-let specializations = [], issues = [], purchaseOrder, poLines = [], poVersions = [];
+let specializations = [], projectSpecializations = [], issues = [], purchaseOrder, poLines = [], poVersions = [];
 let candidateRows = [], selectedCandidateId = null, currentUser, currentRole = 'user';
+let overviewCandidates = [], resourceRates = [];
 
 const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const val = id => document.getElementById(id).value.trim();
@@ -18,6 +19,11 @@ function showError(message,id='jobError'){const el=document.getElementById(id);e
 function clearError(id='jobError'){const el=document.getElementById(id);el.textContent='';el.classList.add('hidden')}
 function setStatus(message){const el=document.getElementById('saveStatus');el.textContent=message;clearTimeout(setStatus.timer);setStatus.timer=setTimeout(()=>el.textContent='',4000)}
 function specName(id){return specializations.find(row=>row.id===id)?.name || 'Non-defined'}
+function eligibleResource(resource){return resource.assignment_approved&&resource.eligibility_status==='Eligible'&&resource.lifecycle_status!=='Inactive'&&!String(resource.classification).startsWith('Hold')&&resource.classification!=='Do not use'}
+function rateLabel(rate){const specificity=rate.specialization_id?specName(rate.specialization_id):'All specializations',band=rate.cat_band?` · ${rate.cat_band}`:'';return `${Number(rate.rate).toFixed(4).replace(/0+$/,'').replace(/\.$/,'')} ${rate.currency} / ${rate.unit} · ${specificity}${band}`}
+function matchingRate(rate,resourceId){const today=new Date().toISOString().slice(0,10),languageMatch=(rateValue,jobValue)=>!rateValue||rateValue===jobValue||String(jobValue||'').startsWith(`${rateValue} (`);return rate.resource_id===resourceId&&rate.status==='Approved'&&rate.service_type===job.service_type&&rate.unit===job.unit&&languageMatch(rate.source_language,job.source_language)&&languageMatch(rate.target_language,job.target_language)&&(!rate.specialization_id||rate.specialization_id===job.specialization_id)&&(!rate.valid_from||rate.valid_from<=today)&&(!rate.valid_to||rate.valid_to>=today)}
+async function fillRateSelect(selectId,resourceId){const select=document.getElementById(selectId);if(!resourceId){select.innerHTML='<option value="">Select Resource first…</option>';select.disabled=true;return}select.innerHTML='<option value="">Loading approved rates…</option>';select.disabled=true;const {data,error}=await _sb.from('resource_rates').select('*').eq('resource_id',resourceId).eq('status','Approved');if(error){select.innerHTML='<option value="">Rate lookup failed</option>';return}resourceRates=data||[];const matches=resourceRates.filter(rate=>matchingRate(rate,resourceId)).sort((a,b)=>Number(!!b.specialization_id)-Number(!!a.specialization_id));select.innerHTML=matches.length?'<option value="">Select approved rate…</option>'+matches.map(rate=>`<option value="${rate.id}">${esc(rateLabel(rate))}</option>`).join(''):'<option value="">No matching approved rate</option>';select.disabled=!matches.length;if(selectId==='o-rate')updateOfferCurrency()}
+function updateOfferCurrency(){const rate=resourceRates.find(item=>item.id===val('o-rate'));document.getElementById('o-currency').value=rate?.currency||''}
 function statusClass(status){return status==='Accepted'||status==='Approved'?'pill-green':status==='Declined'||status==='Withdrawn'||status==='Cancelled'?'pill-red':status==='Sent'||status==='Viewed'||status==='In Progress'?'pill-blue':status==='Expired'||status==='Revision Required'?'pill-amber':''}
 
 function populateHeader(){
@@ -33,19 +39,34 @@ function populateHeader(){
 function populateOverview(){
   const fields={'j-number':job.job_number,'j-status':job.status,'j-deadline-date':datePart(job.deadline),'j-deadline-time':timePart(job.deadline),'j-service':job.service_type,'j-source':job.source_language,'j-target':job.target_language,'j-quantity':job.quantity,'j-unit':job.unit,'j-rate':job.supplier_rate,'j-amount':job.resource_id?money(job.supplier_amount,job.supplier_currency):'','j-notes':job.notes};
   Object.entries(fields).forEach(([id,value])=>document.getElementById(id).value=value??'');
-  document.getElementById('j-specialization').innerHTML='<option value="">Non-defined</option>'+specializations.map(spec=>`<option value="${spec.id}" ${spec.id===job.specialization_id?'selected':''}>${esc(spec.name)}</option>`).join('');
+  document.getElementById('j-specialization').innerHTML=projectSpecializations.map(link=>{const spec=specializations.find(item=>item.id===link.specialization_id);return spec?`<option value="${spec.id}" ${spec.id===job.specialization_id?'selected':''}>${esc(spec.name)}</option>`:''}).join('');
   document.getElementById('j-po-required').checked=!!job.po_required;
-  const locked=!!job.resource_id;
+  const locked=!!job.resource_id||offers.some(offer=>['Draft','Sent','Viewed'].includes(offer.status));
   ['j-service','j-specialization','j-quantity','j-unit'].forEach(id=>document.getElementById(id).disabled=locked);
   const resourceLabel=assignedResource?`${assignedResource.internal_number} · ${resourceName(assignedResource)}`:'No Resource assigned';
   document.getElementById('jobSummary').innerHTML=`<div><span>Assigned Resource</span><strong>${esc(resourceLabel)}</strong></div><div><span>Job status</span><strong><span class="pill ${statusClass(job.status)}">${esc(job.status)}</span></strong></div><div><span>Supplier value</span><strong>${job.resource_id?money(job.supplier_amount,job.supplier_currency):'—'}</strong></div><div><span>Supplier PO</span><strong>${purchaseOrder?esc(purchaseOrder.po_number):job.po_required?'Pending assignment':'Not required'}</strong></div>`;
 }
 
+async function loadOverviewCandidates(){
+  const candidateSelect=document.getElementById('j-candidate'),rateSelect=document.getElementById('j-rate-select');
+  const activeOffer=offers.find(offer=>['Draft','Sent','Viewed'].includes(offer.status));
+  if(job.resource_id){candidateSelect.innerHTML=`<option>${esc(resourceName(assignedResource))}</option>`;candidateSelect.disabled=true;rateSelect.innerHTML='<option>Assigned rate is locked</option>';rateSelect.disabled=true;document.getElementById('j-create-offer').disabled=true;return}
+  if(activeOffer){const candidate=offerResources.get(activeOffer.resource_id);candidateSelect.innerHTML=`<option>${esc(resourceName(candidate))} · ${esc(activeOffer.status)} Offer</option>`;candidateSelect.disabled=true;rateSelect.innerHTML=`<option>${activeOffer.supplier_rate??'Rate pending'} ${esc(activeOffer.currency||'')}</option>`;rateSelect.disabled=true;document.getElementById('j-create-offer').disabled=true;return}
+  const {data,error}=await _sb.rpc('search_resources',{p_search:null,p_source_language:job.source_language||null,p_target_language:job.target_language||null,p_service_type:job.service_type||null,p_specialization_id:job.specialization_id,p_classification:null,p_eligibility:null,p_availability:null,p_only_approved_capabilities:true,p_resource_type:'external',p_limit:100,p_offset:0});
+  if(error){candidateSelect.innerHTML='<option>Resource search failed</option>';candidateSelect.disabled=true;return}
+  overviewCandidates=(data||[]).filter(eligibleResource);candidateSelect.innerHTML='<option value="">Select matching Resource…</option>'+overviewCandidates.map(resource=>`<option value="${resource.id}">${esc(resource.internal_number)} · ${esc(resourceName(resource))}</option>`).join('');candidateSelect.disabled=!overviewCandidates.length;rateSelect.innerHTML='<option value="">Select Resource first…</option>';rateSelect.disabled=true;document.getElementById('j-create-offer').disabled=!overviewCandidates.length;if(!overviewCandidates.length)candidateSelect.innerHTML='<option value="">No eligible matching Resources</option>';
+}
+
+async function createOverviewOffer(){clearError();const resourceId=val('j-candidate'),rateId=val('j-rate-select');if(!resourceId)return showError('Select a matching Resource.');if(!rateId)return showError('Select an approved matching rate from the Resource profile.');const {error}=await _sb.rpc('create_job_offer_from_rate',{p_job_id:jobId,p_resource_id:resourceId,p_resource_rate_id:rateId,p_response_due_at:fourHoursFromNow(),p_quantity:val('j-quantity')===''?null:Number(val('j-quantity')),p_message:null,p_client_identity_disclosed:false,p_override:false,p_override_reason:null});if(error)return showError(error.message);await loadJob();setStatus('Draft Offer created from the selected Resource rate ✓')}
+
 async function saveJob(){
   clearError();
+  if(!val('j-specialization'))return showError('Job specialization is required.');
   if(job.resource_id && val('j-status')==='Unassigned')return showError('An assigned Job cannot return to Unassigned. Cancel it or create a new Job.');
+  if(!job.resource_id&&['In Progress','Delivered','Revision Required','Approved'].includes(val('j-status')))return showError('Assign a Resource through an accepted Job Offer before moving this Job into production.');
   const payload={status:val('j-status'),deadline:combineDateTime('j-deadline-date','j-deadline-time'),po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes')};
-  if(!job.resource_id){Object.assign(payload,{service_type:val('j-service'),specialization_id:nullable('j-specialization'),quantity:val('j-quantity')===''?null:Number(val('j-quantity')),unit:val('j-unit')})}
+  const activeOffer=offers.some(offer=>['Draft','Sent','Viewed'].includes(offer.status));
+  if(!job.resource_id&&!activeOffer){Object.assign(payload,{service_type:val('j-service'),specialization_id:nullable('j-specialization'),quantity:val('j-quantity')===''?null:Number(val('j-quantity')),unit:val('j-unit')})}
   const {error}=await _sb.from('project_jobs').update(payload).eq('id',jobId);if(error)return showError(error.message);
   await loadJob();setStatus('Job saved ✓');
 }
@@ -68,7 +89,7 @@ function renderOffers(){
 function openOfferModal(){
   clearError('offerError');selectedCandidateId=null;candidateRows=[];
   document.getElementById('candidateSearch').value='';document.getElementById('candidateResults').innerHTML='<div class="empty-compact">Search matching Resources.</div>';
-  const responseDue=fourHoursFromNow();document.getElementById('o-response-date').value=datePart(responseDue);document.getElementById('o-response-time').value=timePart(responseDue);document.getElementById('o-quantity').value=job.quantity??'';document.getElementById('o-unit').value=job.unit||'Source words';document.getElementById('o-rate').value='';document.getElementById('o-currency').value=job.supplier_currency||project.currency||'EUR';document.getElementById('o-message').value='';document.getElementById('o-disclose').checked=false;document.getElementById('o-override').checked=false;document.getElementById('o-override-reason').value='';document.getElementById('o-disclose').disabled=currentRole!=='admin';document.getElementById('o-override').disabled=currentRole!=='admin';document.getElementById('offerModal').classList.remove('hidden');searchCandidates();
+  const responseDue=fourHoursFromNow();document.getElementById('o-response-date').value=datePart(responseDue);document.getElementById('o-response-time').value=timePart(responseDue);document.getElementById('o-quantity').value=job.quantity??'';document.getElementById('o-unit').value=job.unit||'Source words';document.getElementById('o-rate').innerHTML='<option value="">Select Resource first…</option>';document.getElementById('o-rate').disabled=true;document.getElementById('o-currency').value='';document.getElementById('o-message').value='';document.getElementById('o-disclose').checked=false;document.getElementById('o-override').checked=false;document.getElementById('o-override-reason').value='';document.getElementById('o-disclose').disabled=currentRole!=='admin';document.getElementById('o-override').disabled=currentRole!=='admin';document.getElementById('offerModal').classList.remove('hidden');searchCandidates();
 }
 
 async function searchCandidates(){
@@ -78,14 +99,14 @@ async function searchCandidates(){
   candidateRows=data||[];selectedCandidateId=null;
   if(!candidateRows.length){wrap.innerHTML='<div class="empty-compact">No matching Resources found. Adjust the Job data or search by name/internal number.</div>';return}
   wrap.innerHTML=candidateRows.map(resource=>{const eligible=resource.assignment_approved&&resource.eligibility_status==='Eligible'&&!String(resource.classification).startsWith('Hold')&&resource.classification!=='Do not use';return `<label class="candidate-row ${eligible?'':'candidate-warning'}"><input type="radio" name="candidate" value="${resource.id}"><span><strong>${esc(resource.internal_number)} · ${esc(resourceName(resource))}</strong><small>${esc((resource.source_languages||[]).join(', '))} → ${esc((resource.target_languages||[]).join(', '))} · ${esc((resource.services||[]).join(', '))}</small><small>${esc(resource.classification)} · ${esc(resource.eligibility_status)} · ${esc(resource.availability_status||'Unknown availability')}</small></span><span class="pill ${eligible?'pill-green':'pill-amber'}">${eligible?'Eligible':'Admin review'}</span></label>`}).join('');
-  wrap.querySelectorAll('input[name="candidate"]').forEach(input=>input.addEventListener('change',()=>selectedCandidateId=input.value));
+  wrap.querySelectorAll('input[name="candidate"]').forEach(input=>input.addEventListener('change',()=>{selectedCandidateId=input.value;fillRateSelect('o-rate',selectedCandidateId)}));
 }
 
 async function createOffer(){
-  clearError('offerError');if(!selectedCandidateId)return showError('Select a Resource.','offerError');
+  clearError('offerError');if(!selectedCandidateId)return showError('Select a Resource.','offerError');if(!val('o-rate'))return showError('Select an approved matching rate from the Resource profile.','offerError');
   if(document.getElementById('o-override').checked&&!val('o-override-reason'))return showError('An Administrator override requires a reason.','offerError');
-  const args={p_job_id:jobId,p_resource_id:selectedCandidateId,p_response_due_at:combineDateTime('o-response-date','o-response-time'),p_unit:val('o-unit')||null,p_quantity:val('o-quantity')===''?null:Number(val('o-quantity')),p_supplier_rate:val('o-rate')===''?null:Number(val('o-rate')),p_currency:val('o-currency'),p_message:nullable('o-message'),p_client_identity_disclosed:document.getElementById('o-disclose').checked,p_override:document.getElementById('o-override').checked,p_override_reason:nullable('o-override-reason')};
-  const {error}=await _sb.rpc('create_job_offer',args);if(error)return showError(error.message,'offerError');closeModal('offerModal');await loadJob();setStatus('Draft offer created ✓');
+  const args={p_job_id:jobId,p_resource_id:selectedCandidateId,p_resource_rate_id:val('o-rate'),p_response_due_at:combineDateTime('o-response-date','o-response-time'),p_quantity:val('o-quantity')===''?null:Number(val('o-quantity')),p_message:nullable('o-message'),p_client_identity_disclosed:document.getElementById('o-disclose').checked,p_override:document.getElementById('o-override').checked,p_override_reason:nullable('o-override-reason')};
+  const {error}=await _sb.rpc('create_job_offer_from_rate',args);if(error)return showError(error.message,'offerError');closeModal('offerModal');await loadJob();setStatus('Draft offer created from Resource rate ✓');
 }
 
 async function sendOffer(id){if(!confirm('Confirm that you are sending this offer manually. The TMS will mark it Sent and create an email task for ops@retodo-ops.com.'))return;const {error}=await _sb.rpc('send_job_offer',{p_offer_id:id});if(error)return showError(error.message);await loadJob();setStatus('Offer marked Sent; email task created ✓')}
@@ -121,14 +142,16 @@ function renderIssues(){const body=document.getElementById('issuesTbody');if(!is
 
 async function loadJob(){
   clearError();const jobResult=await _sb.from('project_jobs').select('*').eq('id',jobId).single();if(jobResult.error)return showError(jobResult.error.message);job=jobResult.data;
-  const [projectResult,specResult,offerResult,poResult,issueResult]=await Promise.all([_sb.from('projects').select('*').eq('id',job.project_id).single(),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('job_offers').select('*').eq('job_id',jobId).order('sequence_number'),_sb.from('supplier_purchase_orders').select('*').eq('job_id',jobId).maybeSingle(),_sb.from('job_issues').select('*').eq('job_id',jobId).order('reported_at',{ascending:false})]);
-  if(projectResult.error)return showError(projectResult.error.message);project=projectResult.data;specializations=specResult.data||[];offers=offerResult.data||[];purchaseOrder=poResult.data||null;issues=issueResult.data||[];
+  const [projectResult,specResult,projectSpecResult,offerResult,poResult,issueResult]=await Promise.all([_sb.from('projects').select('*').eq('id',job.project_id).single(),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('project_specializations').select('*').eq('project_id',job.project_id).order('created_at'),_sb.from('job_offers').select('*').eq('job_id',jobId).order('sequence_number'),_sb.from('supplier_purchase_orders').select('*').eq('job_id',jobId).maybeSingle(),_sb.from('job_issues').select('*').eq('job_id',jobId).order('reported_at',{ascending:false})]);
+  if(projectResult.error)return showError(projectResult.error.message);project=projectResult.data;specializations=specResult.data||[];projectSpecializations=projectSpecResult.data||[];offers=offerResult.data||[];purchaseOrder=poResult.data||null;issues=issueResult.data||[];resourceRates=[];
   const resourceIds=[...new Set([job.resource_id,...offers.map(x=>x.resource_id)].filter(Boolean))];offerResources=new Map();if(resourceIds.length){const {data}=await _sb.from('resources').select('*').in('id',resourceIds);(data||[]).forEach(resource=>offerResources.set(resource.id,resource))}assignedResource=job.resource_id?offerResources.get(job.resource_id):null;
   if(purchaseOrder){const [lineResult,versionResult]=await Promise.all([_sb.from('supplier_po_lines').select('*').eq('purchase_order_id',purchaseOrder.id).order('sort_order'),_sb.from('supplier_po_versions').select('*').eq('purchase_order_id',purchaseOrder.id).order('version_number',{ascending:false})]);poLines=lineResult.data||[];poVersions=versionResult.data||[]}else{poLines=[];poVersions=[]}
-  populateHeader();populateOverview();renderOffers();renderPO();renderIssues();
+  populateHeader();populateOverview();renderOffers();renderPO();renderIssues();await loadOverviewCandidates();
 }
 
 document.querySelectorAll('.record-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t===tab));document.querySelectorAll('.record-pane').forEach(pane=>pane.classList.toggle('active',pane.id===`pane-${tab.dataset.tab}`))}));
 document.getElementById('candidateSearch').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchCandidates()}});
+document.getElementById('j-candidate').addEventListener('change',event=>fillRateSelect('j-rate-select',event.target.value));
+document.getElementById('o-rate').addEventListener('change',updateOfferCurrency);
 
 (async()=>{currentUser=await requireAuth();if(!currentUser)return;const {data:profile}=await _sb.from('profiles').select('role').eq('id',currentUser.id).maybeSingle();currentRole=profile?.role||'user';jobId=new URLSearchParams(location.search).get('id');if(!jobId){location.href='dashboard.html';return}await loadJob()})();
