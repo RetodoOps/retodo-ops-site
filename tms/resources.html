@@ -61,8 +61,8 @@
             <div class="field"><label>Initials</label><input id="newResourceInitials" maxlength="12"></div>
             <div class="field field-full"><label>Legal / personal name</label><input id="newResourceName"></div>
             <div class="field field-full"><label>Company name</label><input id="newResourceCompany"></div>
-            <div class="field"><label>Nationality</label><input id="newResourceNationality"></div>
-            <div class="field"><label>Country of residence</label><input id="newResourceCountry"></div>
+            <div class="field"><label>Nationality</label><input id="newResourceNationality" list="tms-nationality-options" autocomplete="off"></div>
+            <div class="field"><label>Country of residence</label><input id="newResourceCountry" list="tms-country-options" autocomplete="off"></div>
             <div class="field"><label>Email</label><input id="newResourceEmail" type="email"></div>
             <div class="field"><label>Phone</label><input id="newResourcePhone"></div>
             <div class="field field-full"><label>LinkedIn URL</label><input id="newResourceLinkedIn" type="url"></div>
@@ -71,6 +71,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js"></script><script src="resources.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js"></script><script src="reference-data.js"></script><script src="resources.js"></script>
 </body>
 </html>

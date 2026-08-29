@@ -186,15 +186,21 @@ amounts roll up automatically to Project expense and margin.
 ## Rates, CAT analysis and POs
 
 Supported pricing units: source words, target words, hours, pages, minutes and
-fixed fee. CAT bands include repetitions and fuzzy-match bands.
+fixed fee. Each supplier rate card contains one base price. Optional CAT rows
+store a discount percentage against that base; the TMS calculates and retains
+the derived repetition, context-match, exact-match and fuzzy-match prices.
+Validity dates are not used in the operational interface: approval status and
+commercial version history control whether a rate may be selected.
 
 Client rates load from Client/Account rate cards. Supplier expenses load only
-from a current approved Resource price-list row matching the Job's language
+from an approved base Resource price-list row matching the Job's language
 pair, service, unit and specialization. The selected rate-row ID remains linked
 to the Offer and Job for provenance, while the agreed rate, currency, quantity
 and amount are retained as immutable commercial snapshots. Fixed/manual Client
 pricing remains available with an override reason; a Job Offer cannot use a
-free-text supplier rate.
+free-text supplier rate. Supplier PO production lines retain the Resource-rate
+reference and CAT band/discount provenance; manual and adjustment lines remain
+explicitly distinguishable.
 
 Supplier POs are sent through portal and email. Work may begin before portal
 acknowledgement. Draft POs are editable; issued revisions are versioned.

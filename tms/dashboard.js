@@ -203,22 +203,8 @@ document.getElementById('searchBox').addEventListener('input', e => {
 });
 
 // ── Languages and Project creation ─────────────────────────────────────────
-const LANGUAGES = [
-    'English (US)','English (UK)','Bulgarian','Swedish','Danish','Finnish',
-    'Norwegian (Bokmål)','Icelandic','German','French','Spanish','Italian','Dutch',
-    'Polish','Portuguese','Russian','Chinese (Simplified)','Chinese (Traditional)',
-    'Japanese','Korean','Arabic','Turkish','Czech','Hungarian','Romanian',
-    'Slovak','Ukrainian','Greek','Hebrew','Thai','Vietnamese',
-];
-const LANGUAGE_CODES = {
-    'English (US)':'EN-US','English (UK)':'EN-GB','Bulgarian':'BG','Swedish':'SV',
-    'Danish':'DA','Finnish':'FI','Norwegian (Bokmål)':'NB','Icelandic':'IS',
-    'German':'DE','French':'FR','Spanish':'ES','Italian':'IT','Dutch':'NL',
-    'Polish':'PL','Portuguese':'PT','Russian':'RU','Chinese (Simplified)':'ZH-CN',
-    'Chinese (Traditional)':'ZH-TW','Japanese':'JA','Korean':'KO','Arabic':'AR',
-    'Turkish':'TR','Czech':'CS','Hungarian':'HU','Romanian':'RO','Slovak':'SK',
-    'Ukrainian':'UK','Greek':'EL','Hebrew':'HE','Thai':'TH','Vietnamese':'VI',
-};
+const LANGUAGES = TMS_REF.languages;
+const LANGUAGE_CODES = TMS_REF.languageCodes;
 let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [], internalResources = [];
 let projectSpecializationCatalog = [], projectAccountSpecializationIds = [];
 

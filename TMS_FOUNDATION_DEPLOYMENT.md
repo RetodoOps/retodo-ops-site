@@ -31,7 +31,8 @@ during the module review.
 8. Run `tms/migrations/005_project_financial_backfill.sql` once.
 9. Run `tms/migrations/006_internal_staff_assignments.sql` once.
 10. Run `tms/migrations/007_specializations_and_resource_rates.sql` once.
-11. Commit/push the updated repository files so Netlify deploys them.
+11. Run `tms/migrations/008_resource_reference_data_and_cat_rates.sql` once.
+12. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -103,6 +104,20 @@ during the module review.
 24. Add an Administrator-only private note and confirm it cannot be read by a
     non-Administrator. Generate the blind CV and confirm that both DOCX and PDF
     exclude the Resource's name, email, phone, LinkedIn URL and rates.
+25. Create a Resource and enter its Legal / personal name. Confirm Initials are
+    filled automatically. Confirm Nationality and Country of residence provide
+    searchable shared lists.
+26. Add a Resource language pair and confirm both Source and Target use the
+    same canonical language list as Projects and Quotes. Create a Job with that
+    pair and confirm the Resource can be found by Suggest appropriate Resource.
+27. Add a Resource rate card. Confirm Source and Target are restricted to that
+    Resource's recorded language pairs, enter one base price and CAT discount
+    percentages, and confirm the calculated CAT-band rates are shown beneath
+    the base row after saving. Confirm Valid from / Valid to are not requested.
+28. Select the approved base rate in Job Overview, accept the Offer and open
+    the Supplier PO. Confirm its production line shows `Resource base rate` as
+    the rate source, while additional manual or adjustment lines are labelled
+    separately.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial

@@ -640,6 +640,16 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .po-doc-total strong { font-size: 17px; color: var(--brand-dark); }
 .po-doc-note { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 11px; line-height: 1.5; }
 
+/* === RESOURCE RATE CARDS === */
+.compact-rate-table { margin-top: 8px; }
+.compact-rate-table input { width: 120px; padding: 7px 8px; border: 1px solid var(--border); border-radius: 6px; }
+.compact-rate-table .cat-calculated { font-weight: 600; color: var(--brand-dark); }
+.rate-base-row { background: #faf8ff; }
+.rate-base-row td { border-top: 2px solid #ddd6fe; }
+.rate-band-row td { color: #4b5563; }
+.rate-band-row td:nth-child(3) { padding-left: 28px; }
+.rate-source-label { display: inline-block; max-width: 170px; color: #5b6472; font-size: 12px; line-height: 1.25; }
+
 @media (max-width: 1050px) { .job-summary { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 760px) { .job-summary { grid-template-columns: 1fr; } .candidate-search-row { align-items: stretch; flex-direction: column; } }
 

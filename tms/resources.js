@@ -5,6 +5,7 @@ let resourceType = 'external';
 let searchTimer;
 
 const escapeHtml = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+const initialsFromName = name => String(name||'').trim().split(/[\s-]+/).filter(Boolean).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase().slice(0,12);
 function toggleSub(id,item){document.getElementById(id).classList.toggle('open');item.classList.toggle('open')}
 function formatDate(value){return value?new Intl.DateTimeFormat('en-GB',{month:'short',year:'numeric'}).format(new Date(`${value}T00:00:00`)):'—'}
 function chips(items,limit=3){const values=(items||[]).filter(Boolean);if(!values.length)return '<span class="muted">—</span>';const shown=values.slice(0,limit).map(item=>`<span class="mini-chip">${escapeHtml(item)}</span>`).join('');return `${shown}${values.length>limit?`<span class="mini-chip more-chip">+${values.length-limit}</span>`:''}`}
@@ -49,4 +50,5 @@ async function createResource(){const errorEl=document.getElementById('resourceC
 
 ['sourceFilter','targetFilter','serviceFilter','specializationFilter','classificationFilter','eligibilityFilter','availabilityFilter','approvedOnly'].forEach(id=>document.getElementById(id).addEventListener('change',resetAndLoad));
 document.getElementById('resourceSearch').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(resetAndLoad,250)});
-(async()=>{const user=await requireAuth();if(!user)return;resourceType=new URLSearchParams(location.search).get('type')==='internal'?'internal':'external';document.getElementById('moduleTitle').textContent=resourceType==='internal'?'Internal Resources':'External Resources';await loadFilterOptions();await loadResources()})();
+document.getElementById('newResourceName').addEventListener('input',event=>{document.getElementById('newResourceInitials').value=initialsFromName(event.target.value)});
+(async()=>{const user=await requireAuth();if(!user)return;TMS_REF.installDatalists();resourceType=new URLSearchParams(location.search).get('type')==='internal'?'internal':'external';document.getElementById('moduleTitle').textContent=resourceType==='internal'?'Internal Resources':'External Resources';await loadFilterOptions();await loadResources()})();

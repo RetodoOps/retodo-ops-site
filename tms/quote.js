@@ -1,9 +1,4 @@
-const LANGUAGE_CODES = {
-    'English': 'EN', 'English (US)': 'EN-US', 'English (UK)': 'EN-GB',
-    'Swedish': 'SV', 'Danish': 'DA', 'Norwegian': 'NO', 'Norwegian (Bokmål)': 'NB',
-    'Finnish': 'FI', 'Icelandic': 'IS', 'Dutch': 'NL', 'Bulgarian': 'BG',
-    'German': 'DE', 'French': 'FR', 'Spanish': 'ES', 'Italian': 'IT',
-};
+const LANGUAGE_CODES = TMS_REF.languageCodes;
 let quoteId, quote, items = [], accounts = [], contacts = [], billingEntities = [];
 let specializations = [], rateCards = [], rateItems = [], projects = [];
 let accountSpecializations = [];
