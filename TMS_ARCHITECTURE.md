@@ -71,6 +71,18 @@ Not Ready → Ready to Invoice → Invoiced → Partially Paid → Paid
 
 Additional states: Overdue, Disputed, Cancelled, Credited.
 
+The Project tab is named **Financials**. A Project may use either a single
+manual/fixed Client price or detailed financial lines. Once financial lines
+exist, their sum is authoritative and the total Client price is calculated
+automatically.
+
+For CAT work, the operator may load an eligible Account/Client price list or a
+blank zero-price grid. The grid always starts with all standard rows — New
+words, 50–74%, 75–84%, 85–94%, 95–99%, 100% and Repetitions — and quantity 0.
+Individual rows may be removed when they do not apply. A price-list line keeps
+the exact Client rate-item link plus a Project snapshot, so a later price-list
+change does not rewrite historical Project pricing.
+
 ### Post-delivery issue
 
 Issue Reported → Investigating → Correction Requested → Corrected → Resolved
@@ -104,6 +116,9 @@ the underlying Client-reference field.
   specializations. Existing Job or commercial-line use prevents that
   specialization from being removed from the Project.
 - Pricing precedence: Account rate → Client rate → manual/fixed project price.
+- Project contacts are limited to Client-wide contacts and contacts belonging
+  to the selected Account. Place of delivery is captured from Project creation
+  and may contain a portal, email address, folder or delivery link.
 - Account names have a separate blind-CV label and disclosure permission.
 - Do-not-work-with Clients remain in financial and audit records.
 

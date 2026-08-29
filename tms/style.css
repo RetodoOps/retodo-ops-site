@@ -63,6 +63,12 @@ a { text-decoration: none; color: inherit; }
     transition: background .15s;
 }
 .btn-secondary:hover { background: #f9fafb; }
+.btn-danger {
+    background: #fff; color: #b91c1c; border: 1px solid #fecaca;
+    padding: 7px 14px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 500;
+    margin-right: auto;
+}
+.btn-danger:hover { background: #fef2f2; }
 .btn-icon {
     background: white; border: 1px solid var(--border); border-radius: 7px;
     padding: 7px 9px; cursor: pointer; color: var(--text-muted);

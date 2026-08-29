@@ -429,6 +429,8 @@ async function saveRateItem() {
     const itemId = value('ri-id');
     const rate = Number(value('ri-rate'));
     if (value('ri-rate') === '' || Number.isNaN(rate) || rate < 0) return setModalError('rateItemError', 'A valid non-negative rate is required.');
+    if (value('ri-source') && !TMS_REF.languages.includes(value('ri-source'))) return setModalError('rateItemError', 'Select a Source language from the shared language list.');
+    if (value('ri-target') && !TMS_REF.languages.includes(value('ri-target'))) return setModalError('rateItemError', 'Select a Target language from the shared language list.');
     const payload = {
         rate_card_id: selectedRateCardId, source_language: nullable('ri-source'),
         target_language: nullable('ri-target'), service_type: value('ri-service'),
@@ -518,6 +520,7 @@ document.getElementById('a-code').addEventListener('input', event => { event.tar
 (async () => {
     const user = await requireAuth();
     if (!user) return;
+    TMS_REF.installDatalists();
     clientId = new URLSearchParams(location.search).get('id');
     if (!clientId) { location.href = 'clients.html'; return; }
     await loadClient();

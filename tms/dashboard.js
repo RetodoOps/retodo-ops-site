@@ -213,6 +213,15 @@ function projectOptions(rows, label, selected = '', empty = 'Non-defined') {
         `<option value="${row.id}" ${row.id === selected ? 'selected' : ''}>${escapeHtml(row[label])}</option>`
     ).join('');
 }
+function eligibleProjectContacts() {
+    const accountId = document.getElementById('f-account').value;
+    return projectContacts.filter(contact => !contact.account_id || contact.account_id === accountId);
+}
+function renderProjectContacts(selected = '') {
+    const eligible = eligibleProjectContacts();
+    const selectedId = eligible.some(contact => contact.id === selected) ? selected : '';
+    document.getElementById('f-contact').innerHTML = projectOptions(eligible, 'full_name', selectedId);
+}
 function localDateValue(date = new Date()) {
     const pad = n => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
@@ -277,7 +286,7 @@ async function loadProjectClientDefaults() {
         document.getElementById('f-instructions').value = client?.instructions || '';
     }
     document.getElementById('f-account').innerHTML = projectOptions(projectAccounts, 'name');
-    document.getElementById('f-contact').innerHTML = projectOptions(projectContacts, 'full_name');
+    renderProjectContacts();
     document.getElementById('f-billing').innerHTML = projectOptions(projectBillingEntities, 'name', projectBillingEntities.find(row => row.is_default)?.id || '', 'Default billing entity');
     projectAccountSpecializationIds=[];
     renderCreateSpecializations();
@@ -293,6 +302,7 @@ async function loadProjectAccountDefaults() {
         const {data}=await _sb.from('client_account_specializations').select('specialization_id').eq('account_id',account.id);
         projectAccountSpecializationIds=(data||[]).map(row=>row.specialization_id);
     }
+    renderProjectContacts(document.getElementById('f-contact').value);
     renderCreateSpecializations();
 }
 async function openCreateModal() {
@@ -315,6 +325,7 @@ async function openCreateModal() {
     document.getElementById('f-date').value = localDateValue();
     document.getElementById('f-deadline-date').value = '';
     document.getElementById('f-deadline-time').value = '';
+    document.getElementById('f-place-delivery').value = '';
     document.getElementById('f-pm').innerHTML = internalResourceOptions(currentUserResourceId(),'Select Project Manager…');
     document.getElementById('f-qa').innerHTML = internalResourceOptions();
     document.getElementById('f-coordinator').innerHTML = internalResourceOptions();
@@ -357,13 +368,14 @@ async function submitCreateProject() {
         price_override_reason: document.getElementById('f-price-reason').value.trim() || null, po_number: document.getElementById('f-po').value.trim() || null,
         missing_po: document.getElementById('f-missingpo').checked, upcoming: document.getElementById('f-upcoming').checked,
         urgent: document.getElementById('f-urgent').checked,
+        place_of_delivery: document.getElementById('f-place-delivery').value.trim() || null,
         specialization_ids: specializationIds,
     };
     const { data, error } = await _sb.rpc('create_project_with_specializations', { p_payload: payload });
     btn.disabled = false; btn.textContent = 'Create Project';
     if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
     if (data?.[0]?.created_project_id) {
-        const staff={project_manager_resource_id:document.getElementById('f-pm').value||null,qa_specialist_resource_id:document.getElementById('f-qa').value||null,project_coordinator_resource_id:document.getElementById('f-coordinator').value||null};
+        const staff={project_manager_resource_id:document.getElementById('f-pm').value||null,qa_specialist_resource_id:document.getElementById('f-qa').value||null,project_coordinator_resource_id:document.getElementById('f-coordinator').value||null,place_of_delivery:document.getElementById('f-place-delivery').value.trim()||null};
         const staffUpdate=await _sb.from('projects').update(staff).eq('id',data[0].created_project_id);
         if(staffUpdate.error){err.textContent=`Project created, but staff assignment failed: ${staffUpdate.error.message}`;err.classList.remove('hidden');return}
         location.href = `project.html?id=${data[0].created_project_id}`;

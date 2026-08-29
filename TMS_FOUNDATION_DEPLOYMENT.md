@@ -32,7 +32,8 @@ during the module review.
 9. Run `tms/migrations/006_internal_staff_assignments.sql` once.
 10. Run `tms/migrations/007_specializations_and_resource_rates.sql` once.
 11. Run `tms/migrations/008_resource_reference_data_and_cat_rates.sql` once.
-12. Commit/push the updated repository files so Netlify deploys them.
+12. Run `tms/migrations/009_project_financials_and_cat_grid.sql` once.
+13. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -118,6 +119,17 @@ during the module review.
     the Supplier PO. Confirm its production line shows `Resource base rate` as
     the rate source, while additional manual or adjustment lines are labelled
     separately.
+29. Open a Project and confirm the former Commercial tab is named Financials.
+    Load a Client price list and confirm all seven standard CAT rows appear with
+    quantity 0. Enter quantities and confirm line amounts, Client price and
+    margin recalculate. Delete one unused CAT row and confirm the total remains
+    correct.
+30. Load a blank CAT grid and confirm the same seven rows appear with quantity
+    0 and unit price 0. Confirm a linked price-list row keeps its rate source and
+    cannot have its snapshot price silently edited.
+31. Create a Project and confirm Client contact is filtered to Client-wide or
+    selected-Account contacts. Enter Place of delivery during creation and
+    confirm it is present in Project General after saving.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
