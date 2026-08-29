@@ -76,11 +76,14 @@ manual/fixed Client price or detailed financial lines. Once financial lines
 exist, their sum is authoritative and the total Client price is calculated
 automatically.
 
-For CAT work, the operator may load an eligible Account/Client price list or a
+For CAT work, the operator may load an eligible Account/Client rate card or a
 blank zero-price grid. The grid always starts with all standard rows — New
 words, 50–74%, 75–84%, 85–94%, 95–99%, 100% and Repetitions — and quantity 0.
-Individual rows may be removed when they do not apply. A price-list line keeps
-the exact Client rate-item link plus a Project snapshot, so a later price-list
+Each Client rate-card group stores one base price; its CAT rows store discount
+percentages and are recalculated automatically. The Project grid inherits its
+Service and Specialization from the Project rather than asking for them again.
+Individual rows may be removed when they do not apply. A rate-card line keeps
+the exact Client rate-item link plus a Project snapshot, so a later rate-card
 change does not rewrite historical Project pricing.
 
 ### Post-delivery issue
@@ -147,7 +150,7 @@ represented by one user-facing Resource status:
 - Assignable — passed the General test and may receive production work
 - Proven — completed approved work successfully
 - Preferred
-- Restricted — visible to operations but requires an Administrator override
+- Restricted — retained in the Resource list but unavailable for new offers
 - Do not use — blocks all new offers and assignments
 
 Lifecycle remains independent: Active / On leave / Inactive. It controls current
@@ -155,8 +158,8 @@ availability without rewriting historical Project or Job relationships.
 
 Language pairs and Services are declared capabilities without separate approval
 checkboxes. Domain and Account qualification use Not tested / Test assigned /
-Approved / Not approved. Not tested is a warning and does not block assignment;
-Not approved blocks only the exact specialization or Account. A failed General
+Approved / Not approved. These values provide operational evidence and warnings;
+the unified Resource status remains the only approval gate. A failed General
 test changes the Resource status to Do not use. A Resource moves from Assignable
 to Proven after its first approved Job; Preferred remains an explicit management
 decision.
@@ -223,7 +226,7 @@ Validity dates are not used in the operational interface: approval status and
 commercial version history control whether a rate may be selected.
 
 Client rates load from Client/Account rate cards. Supplier expenses load only
-from an approved base Resource price-list row matching the Job's language
+from an approved base Supplier rate-card row matching the Job's language
 pair, service, unit and specialization. The selected rate-row ID remains linked
 to the Offer and Job for provenance, while the agreed rate, currency, quantity
 and amount are retained as immutable commercial snapshots. Fixed/manual Client
@@ -231,6 +234,19 @@ pricing remains available with an override reason; a Job Offer cannot use a
 free-text supplier rate. Supplier PO production lines retain the Resource-rate
 reference and CAT band/discount provenance; manual and adjustment lines remain
 explicitly distinguishable.
+
+Candidate Resource selection uses the unified Resource status as its single
+approval control. An External Resource is selectable when lifecycle is Active
+and Resource status is Assignable, Proven or Preferred. Language pairs,
+Services, domain/Account qualifications, compliance and availability remain
+visible context; the approved matching Supplier rate card separately controls
+which commercial terms can be offered.
+
+Resource capabilities and qualifications are maintained data, not immutable
+intake facts: language pairs and Services may be removed, Specialization
+qualification may be revised after new evidence, and Supplier rate cards may be
+edited. Removing a capability retires affected current rate cards without
+rewriting historical Offer, Job or Supplier PO snapshots.
 
 Supplier POs are sent through portal and email. Work may begin before portal
 acknowledgement. Draft POs are editable; issued revisions are versioned.

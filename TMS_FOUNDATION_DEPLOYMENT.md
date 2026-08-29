@@ -47,7 +47,7 @@ during the module review.
    `integration_links`, and `integration_events` exist. Do not insert API keys
    or passwords into any of these tables.
 6. Open **Clients**, create a test Client, then add an Account, Contact, Billing
-   Entity and price-card item. Refresh each tab and confirm that the data
+   Entity and Client rate-card item. Refresh each tab and confirm that the data
    persists. Confirm only one Billing Entity can be marked as default.
 7. Confirm the Dashboard uses the new production statuses and that an existing
    Project can still be opened and saved.
@@ -99,7 +99,8 @@ during the module review.
     specializations selected on the Project. Confirm the Job cannot be saved
     without a specialization or moved to In Progress before a Resource accepts
     an Offer.
-23. In Job Overview, select a production-ready matching Resource. Confirm Supplier
+23. In Job Overview, select an Active Assignable, Proven or Preferred Resource.
+    Confirm capability and qualification warnings do not disable selection. Confirm Supplier
     rate is a dropdown containing only current approved matching rows from the
     Resource profile. Create the Draft Offer, mark it Sent and Accepted, and
     confirm the exact rate row is linked while its amount/currency snapshot is
@@ -121,17 +122,29 @@ during the module review.
     the Supplier PO. Confirm its production line shows `Resource base rate` as
     the rate source, while additional manual or adjustment lines are labelled
     separately.
-29. Open a Project and confirm the former Commercial tab is named Financials.
-    Load a Client price list and confirm all seven standard CAT rows appear with
+29. In a Client profile, add one base rate and CAT discount percentages. Confirm
+    the calculated CAT rates appear beneath the base row and no validity dates
+    are requested. Open a Project and confirm the former Commercial tab is named
+    Financials. Confirm Service and Specialization are inherited rather than
+    repeated in the CAT grid. Load a Client rate card and confirm all seven
+    standard CAT rows appear with
     quantity 0. Enter quantities and confirm line amounts, Client price and
     margin recalculate. Delete one unused CAT row and confirm the total remains
     correct.
 30. Load a blank CAT grid and confirm the same seven rows appear with quantity
-    0 and unit price 0. Confirm a linked price-list row keeps its rate source and
+    0 and unit price 0. Confirm a linked rate-card row keeps its rate source and
     cannot have its snapshot price silently edited.
 31. Create a Project and confirm Client contact is filtered to Client-wide or
     selected-Account contacts. Enter Place of delivery during creation and
     confirm it is present in Project General after saving.
+32. Set an External Resource to Active + Assignable, Proven or Preferred and
+    confirm it becomes selectable in Job Overview regardless of its capability,
+    qualification or compliance warnings. Confirm an approved matching Supplier
+    rate card is still required to create the Draft Offer.
+33. Edit a Resource Specialization qualification and a Supplier rate card, then
+    refresh and confirm both changes persist. Remove a language pair and a
+    Service and confirm their affected current rate cards disappear while old
+    Job, Offer and Supplier PO snapshots remain unchanged.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
