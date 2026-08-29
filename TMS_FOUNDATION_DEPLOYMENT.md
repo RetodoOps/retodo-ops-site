@@ -64,13 +64,13 @@ during the module review.
     rejected. Add both values and confirm it saves.
 12. Create an unassigned Job. Confirm it opens in the separate Job workspace
     and does not require a Resource at creation.
-13. Create a Draft Job Offer to an approved Resource, mark it sent and record
+13. Create a Draft Job Offer to an Assignable Resource, mark it sent and record
     acceptance. Confirm the Resource is assigned, the Job moves to In Progress,
     the supplier amount rolls into Project expense/margin and a Draft Supplier
     PO with a `PO-YYYY-NNNN` number is created.
 14. Confirm a second active offer is blocked. Decline or withdraw the first
     offer and confirm a new candidate may then be selected. Confirm an
-    ineligible Resource cannot receive an offer without an Administrator
+    Restricted Resource cannot receive an offer without an Administrator
     override and mandatory reason.
 15. Edit the Draft PO, including a discount or surcharge, and confirm totals
     recalculate. Issue it as Administrator, confirm version 1 is locked, then
@@ -79,9 +79,11 @@ during the module review.
     Confirm only the Administrator may enable disclosure.
 17. Open **External Resources**, combine source, target and specialization
     filters, and confirm pagination reports the full result count.
-18. Open a Resource, add an approved language pair, service, specialization,
-    rate, education and availability period. Confirm a non-approved Resource
-    still cannot be assigned.
+18. Open a Resource and add a language pair, service, specialization, rate,
+    education and availability period. Assign and pass a General test; confirm
+    the Resource becomes Assignable. Record a failed Domain test and confirm
+    only that specialization becomes Not approved. Record a failed General test
+    and confirm the Resource becomes Do not use.
 19. Confirm Aleksandra appears as an Internal Resource in the Project Manager,
     QA Specialist and Project Coordinator selectors. Change an Internal
     Resource to `Inactive`; confirm existing Project links remain visible and
@@ -97,7 +99,7 @@ during the module review.
     specializations selected on the Project. Confirm the Job cannot be saved
     without a specialization or moved to In Progress before a Resource accepts
     an Offer.
-23. In Job Overview, select an eligible matching Resource. Confirm Supplier
+23. In Job Overview, select a production-ready matching Resource. Confirm Supplier
     rate is a dropdown containing only current approved matching rows from the
     Resource profile. Create the Draft Offer, mark it Sent and Accepted, and
     confirm the exact rate row is linked while its amount/currency snapshot is

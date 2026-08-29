@@ -23,7 +23,7 @@
 
     <main class="main">
         <div class="module-header">
-            <div><h1 id="moduleTitle">External Resources</h1><p>Searchable linguist network, eligibility and operational history</p></div>
+            <div><h1 id="moduleTitle">External Resources</h1><p>Searchable linguist network, Resource status and operational history</p></div>
             <button class="btn-primary" onclick="openCreateResource()">+ Add resource</button>
         </div>
         <div class="resource-filter-panel">
@@ -35,17 +35,15 @@
                 <select class="toolbar-select" id="specializationFilter"><option value="">All specializations</option></select>
             </div>
             <div class="resource-filter-row secondary">
-                <select class="toolbar-select" id="classificationFilter"><option value="">All classifications</option><option>A — Preferred</option><option>B — Proven / previously used</option><option>C — Approved / no recorded work</option><option>D — Not assessed</option><option>Hold — Inactive</option><option>Hold — Unavailable</option><option>Hold — Terms not accepted</option><option>Do not use</option></select>
-                <select class="toolbar-select" id="eligibilityFilter"><option value="">All eligibility states</option><option>Eligible</option><option>Review</option><option>Restricted</option><option>Hold</option><option>Do not use</option></select>
+                <select class="toolbar-select" id="resourceStatusFilter"><option value="">All Resource statuses</option><option>New contact</option><option>Onboarding</option><option>Test assigned</option><option>Assignable</option><option>Proven</option><option>Preferred</option><option>Restricted</option><option>Do not use</option></select>
                 <select class="toolbar-select" id="availabilityFilter"><option value="">All availability</option><option>Available</option><option>Limited</option><option>Unavailable</option><option>Unknown</option></select>
-                <label class="checkbox-row approved-only"><input type="checkbox" id="approvedOnly"> Approved capabilities only</label>
                 <button class="btn-secondary" onclick="clearFilters()">Clear filters</button>
                 <div class="toolbar-right"><span class="record-count" id="resourceCount">Loading…</span></div>
             </div>
         </div>
         <div class="table-wrap">
             <table class="module-table resources-list-table">
-                <thead><tr><th>Internal №</th><th>Resource</th><th>Class / eligibility</th><th>Source → target</th><th>Services</th><th>Specializations</th><th>Country</th><th>Availability</th><th>Last work</th></tr></thead>
+                <thead><tr><th>Internal №</th><th>Resource</th><th>Resource status</th><th>Source → target</th><th>Services</th><th>Specializations</th><th>Country</th><th>Availability</th><th>Last work</th></tr></thead>
                 <tbody id="resourcesTbody"><tr class="state-row"><td colspan="9">Loading Resources…</td></tr></tbody>
             </table>
         </div>

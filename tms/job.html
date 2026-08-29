@@ -53,7 +53,7 @@
             <div class="field"><label>Specialization *</label><select id="j-specialization"></select></div>
             <div class="field"><label>Quantity</label><input id="j-quantity" type="number" min="0" step="0.001"></div>
             <div class="field"><label>Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
-            <div class="field"><label>Candidate Resource</label><select id="j-candidate"></select><small class="field-help">Only eligible Resources matching the Job are listed. <a href="resources.html?type=external">Add or complete an External Resource</a>.</small></div>
+            <div class="field"><label>Candidate Resource</label><select id="j-candidate"></select><small class="field-help">Production-ready Resources matching the language pair and service are listed. Untested domain or Account status is shown as a warning; Not approved is blocked. <a href="resources.html?type=external">Add or complete an External Resource</a>.</small></div>
             <div class="field"><label>Approved supplier rate</label><select id="j-rate-select"></select></div>
             <div class="field"><label>Offer preparation</label><button id="j-create-offer" class="btn-secondary" type="button" onclick="createOverviewOffer()">Create Draft Offer</button><small class="field-help">Assignment occurs only after the Offer is accepted.</small></div>
             <div class="field"><label>Accepted supplier rate</label><input id="j-rate" readonly></div>
@@ -104,7 +104,7 @@
       <div class="field"><label>Currency</label><input id="o-currency" readonly></div>
       <div class="field field-full"><label>Message / instructions</label><textarea id="o-message"></textarea></div>
       <div class="field field-full"><label class="checkbox-row"><input id="o-disclose" type="checkbox"> Disclose Client/Account identity to the Resource (Administrator only)</label></div>
-      <div class="field field-full"><label class="checkbox-row"><input id="o-override" type="checkbox"> Administrator eligibility/compliance override</label></div>
+      <div class="field field-full"><label class="checkbox-row"><input id="o-override" type="checkbox"> Administrator Resource status/compliance override</label></div>
       <div class="field field-full"><label>Override reason</label><input id="o-override-reason"></div>
     </div></div>
     <p id="offerError" class="error-msg hidden"></p>

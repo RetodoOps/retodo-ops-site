@@ -137,26 +137,39 @@ Internal Resources, with a name snapshot retained for readable history. An
 Inactive Internal Resource remains visible on the Project and can be replaced
 with an Active Internal Resource.
 
-Classification:
+Relationship, classification, eligibility, assignment approval and priority are
+represented by one user-facing Resource status:
 
-- A — Preferred
-- B — Proven / previously used
-- C — Approved / no recorded work
-- D — Not assessed
-- Hold — Inactive
-- Hold — Unavailable
-- Hold — Terms not accepted
-- Do not use
+- New contact
+- Onboarding — includes discussion, profile completion, documents and rate
+  negotiation
+- Test assigned
+- Assignable — passed the General test and may receive production work
+- Proven — completed approved work successfully
+- Preferred
+- Restricted — visible to operations but requires an Administrator override
+- Do not use — blocks all new offers and assignments
+
+Lifecycle remains independent: Active / On leave / Inactive. It controls current
+availability without rewriting historical Project or Job relationships.
+
+Language pairs and Services are declared capabilities without separate approval
+checkboxes. Domain and Account qualification use Not tested / Test assigned /
+Approved / Not approved. Not tested is a warning and does not block assignment;
+Not approved blocks only the exact specialization or Account. A failed General
+test changes the Resource status to Do not use. A Resource moves from Assignable
+to Proven after its first approved Job; Preferred remains an explicit management
+decision.
 
 Resource profile sections include identity/contact, language pairs, services,
 specializations, rates and CAT bands, education/CV, tools, availability,
 quality/restrictions, compliance, project history, LinkedIn/outreach, invoicing
 details and audit history.
 
-The original database is imported in full. Imported Resources remain
-unapproved for assignment until reviewed. Source and target language filters
-are independent and may be combined with service, specialization,
-classification, eligibility and availability. Raw legacy notes are preserved
+The original database is imported in full. Imported Resources begin at the
+mapped Resource status and remain subject to review. Source and target language
+filters are independent and may be combined with service, specialization,
+Resource status and availability. Raw legacy notes are preserved
 in an Administrator-only archive; operational users see only a concise current
 restriction/assignment instruction.
 
@@ -166,7 +179,7 @@ Quality uses an internal 1–5 rating plus written evidence.
 
 - Invitation-only, single-use link valid for 14 days.
 - Portal account activates automatically after registration.
-- Assignment eligibility requires manual approval.
+- Assignment readiness follows the unified Resource status and test results.
 - Rate changes remain pending until approved.
 - Initial release includes profile management, availability, job offers,
   accept/decline, project files, delivery, PO acknowledgement, revisions,
@@ -193,9 +206,11 @@ Approved Jobs feed Resource Project History automatically. The CV generator
 groups work by period, Account/blind label, language pair, service and
 specialization.
 
-Creating or changing a Job assignment checks Resource approval,
-classification and compliance. Only the Administrator may acknowledge and
-override a failed eligibility check, with a mandatory reason. Active Job
+Creating or changing a Job assignment checks Resource status, lifecycle,
+compliance and the exact domain/Account qualification. Only the Administrator
+may override a Restricted or incomplete-compliance Resource, with a mandatory
+reason. An explicit Not approved qualification and Do not use status remain
+blocking. Active Job
 amounts roll up automatically to Project expense and margin.
 
 ## Rates, CAT analysis and POs
