@@ -33,13 +33,13 @@
   function install(){
     if(document.getElementById('quickNav'))return;
     const host=document.querySelector('.main')||document.body;
-    host.insertAdjacentHTML('afterbegin',`<div id="quickNav" class="quick-nav"><div class="quick-nav-shell"><span class="quick-nav-icon" aria-hidden="true">⌕</span><input id="quickNavInput" type="search" autocomplete="off" placeholder="Search Projects and Jobs…" aria-label="Quick search Projects and Jobs"><kbd>Ctrl K</kbd></div><div id="quickNavResults" class="quick-nav-results hidden"></div></div>`);
+    host.insertAdjacentHTML('afterbegin',`<div id="quickNav" class="quick-nav"><div class="quick-nav-shell"><span class="quick-nav-icon" aria-hidden="true">⌕</span><input id="quickNavInput" type="search" autocomplete="off" placeholder="Search Projects and Jobs…" aria-label="Quick search Projects and Jobs"><kbd>/</kbd></div><div id="quickNavResults" class="quick-nav-results hidden"></div></div>`);
     const input=document.getElementById('quickNavInput'),results=document.getElementById('quickNavResults');let timer;
     input.addEventListener('focus',async()=>{await loadIndex();render()});
     input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(render,120)});
     input.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();move(1)}else if(event.key==='ArrowUp'){event.preventDefault();move(-1)}else if(event.key==='Enter'&&activeIndex>=0){event.preventDefault();document.querySelectorAll('.quick-nav-result')[activeIndex]?.click()}else if(event.key==='Escape'){results.classList.add('hidden');input.blur()}});
     document.addEventListener('click',event=>{if(!event.target.closest('#quickNav'))results.classList.add('hidden')});
-    document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();input.focus();input.select()}else if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();input.focus()}});
+    document.addEventListener('keydown',event=>{if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();input.focus()}});
   }
   window.TMS_QUICK_NAV={recordVisit};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();

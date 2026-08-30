@@ -38,7 +38,8 @@ during the module review.
 15. Run `tms/migrations/012_resource_selection_and_editable_capabilities.sql` once.
 16. Run `tms/migrations/013_multilanguage_rates_editable_work_and_po_versions.sql` once.
 17. Run `tms/migrations/014_cat_quantities_assignment_and_quick_navigation.sql` once.
-18. Commit/push the updated repository files so Netlify deploys them.
+18. Run `tms/migrations/015_direct_po_assignment_and_financial_grid_fix.sql` once.
+19. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -69,19 +70,19 @@ during the module review.
     rejected. Add both values and confirm it saves.
 12. Create an unassigned Job. Confirm it opens in the separate Job workspace
     and does not require a Resource at creation.
-13. Create a Draft Job Offer to an Assignable Resource, mark it sent and record
-    acceptance. Confirm the Resource is assigned, the Job moves to Assigned,
-    the Project moves from Assign to Ongoing, the supplier amount rolls into
-    Project expense/margin and Supplier PO version 1 is immediately Issued with
-    a `PO-YYYY-NNNN` number. Confirm an outbound email queue record is created.
-14. Confirm a second active offer is blocked. Decline or withdraw the first
-    offer and confirm a new candidate may then be selected. Confirm an
-    Restricted Resource cannot receive an offer without an Administrator
-    override and mandatory reason.
+13. Select an Assignable Resource, an Approved matching Supplier rate card and
+    CAT quantities, then choose **Assign Resource & Issue PO**. Confirm the Job
+    moves to Assigned, the Project moves from Assign to Ongoing, the supplier
+    amount rolls into Project expense/margin and Supplier PO version 1 is
+    immediately Issued with a `PO-YYYY-NNNN` number. Confirm an outbound email
+    queue record is created; no Resource acceptance step should appear.
+14. Select another Resource and confirm a reassignment reason is required. On
+    confirmation, verify the old PO becomes Cancelled with its history intact,
+    the new Resource is assigned and receives a newly numbered Issued PO.
 15. Open the issued PO, create an Administrator revision with a mandatory
     reason, including a discount or surcharge, and confirm version 1 remains
     locked while version 2 and its recalculated totals are retained.
-16. Confirm Client/Account identity is absent from the PO and offer by default.
+16. Confirm Client/Account identity is absent from the PO and assignment snapshot by default.
     Confirm only the Administrator may enable disclosure.
 17. Open **External Resources**, combine source, target and specialization
     filters, and confirm pagination reports the full result count.
@@ -103,14 +104,14 @@ during the module review.
     `Non-defined` and confirm its specializations can be selected freely.
 22. Create a Job and confirm its specialization list contains only the
     specializations selected on the Project. Confirm the Job cannot be saved
-    without a specialization or moved to In Progress before a Resource accepts
-    an Offer.
+    without a specialization or moved to In Progress before a Resource and PO
+    are assigned.
 23. In Job Overview, select an Active Assignable, Proven or Preferred Resource.
     Confirm capability and qualification warnings do not disable selection. Confirm Supplier
     rate is a dropdown containing only current approved matching rows from the
-    Resource profile. Create the Draft Offer, mark it Sent and Accepted, and
-    confirm the exact rate row is linked while its amount/currency snapshot is
-    retained on the Job and Supplier PO.
+    Resource profile. Assign the Resource and issue its PO, then confirm the
+    exact rate row is linked while its amount/currency snapshot is retained on
+    the Job and Supplier PO.
 24. Add an Administrator-only private note and confirm it cannot be read by a
     non-Administrator. Generate the blind CV and confirm that both DOCX and PDF
     exclude the Resource's name, email, phone, LinkedIn URL and rates.
@@ -126,9 +127,8 @@ during the module review.
     the base row after saving. Confirm Valid from / Valid to are not requested.
 28. Select the approved base rate in Job Overview and confirm all Supplier CAT
     bands appear underneath. Enter a separate quantity in each used band and
-    confirm its amount and the bold Supplier total recalculate. Accept the Offer
-    and confirm these bands become the issued Supplier PO lines with their rate
-    provenance retained.
+    confirm its amount and the bold Supplier total recalculate. Assign and issue
+    the PO and confirm these bands become its lines with rate provenance retained.
 29. In a Client profile, add one base rate and CAT discount percentages. Confirm
     the calculated CAT rates appear beneath the base row and no validity dates
     are requested. Open a Project and confirm the former Commercial tab is named
@@ -147,11 +147,11 @@ during the module review.
 32. Set an External Resource to Active + Assignable, Proven or Preferred and
     confirm it becomes selectable in Job Overview regardless of its capability,
     qualification or compliance warnings. Confirm an approved matching Supplier
-    rate card is still required to create the Draft Offer.
+    rate card is still required to assign the Resource and issue the PO.
 33. Edit a Resource Specialization qualification and a Supplier rate card, then
     refresh and confirm both changes persist. Remove a language pair and a
     Service and confirm their affected current rate cards disappear while old
-    Job, Offer and Supplier PO snapshots remain unchanged.
+    Job, assignment and Supplier PO snapshots remain unchanged.
 34. Add English (UK) → Swedish and English (US) → Swedish to one Resource.
     Create one Approved Supplier rate card with both Source languages and
     Swedish as Target. Confirm both corresponding Jobs find the same card.
@@ -164,8 +164,13 @@ during the module review.
     every changed quantity.
 36. Use the top quick search to open a Project and a Job. Focus it again and
     confirm both appear under Recently visited; search by number/name and test
-    `/` and `Ctrl/Cmd+K`. Confirm labels, fields, focus outlines, tables and
+    `/`. Confirm labels, fields, focus outlines, tables and
     totals remain clearly readable on desktop and narrow screens.
+37. Edit a Project CAT quantity and Save. Confirm no `record "new" has no field
+    "updated_at"` error appears, the line Amount, bottom CAT total and top Client
+    price update, and the value persists after refresh. Select a non-matching
+    Client rate card and confirm the mismatch is reported instead of silently
+    creating zero-price rows.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial

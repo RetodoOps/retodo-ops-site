@@ -51,21 +51,22 @@ Delivered to Client → Approved
 - Waiting requires a reason and follow-up date.
 - Approved means ready to invoice.
 
-### Job and Job Offer
-
-The production Job and the invitation to a candidate are separate records.
+### Job, assignment and Supplier PO
 
 - Job: Unassigned → Assigned → In Progress → Delivered → Revision Required → Approved
 - Job outcome: Cancelled
-- Job Offer: Draft → Sent → Viewed → Accepted
-- Job Offer outcomes: Declined, Expired, Withdrawn
 
-Only one active candidate offer (Draft, Sent or Viewed) may exist for a Job at
-a time. Accepting a sent offer assigns the Resource, moves the Job to Assigned,
-moves an Assign Project to Ongoing, copies the agreed commercial snapshot to
-the Job and immediately issues Supplier PO version 1. The outbound PO email is
-placed in the durable email queue for the configured mail worker. Declined,
-expired and withdrawn offers remain in the Job history.
+Resource agreement happens operationally before the PO is issued; the Resource
+does not accept or decline an offer inside the TMS. The operator selects the
+Resource, Approved Supplier rate card and CAT quantities, then issues the PO.
+That single action creates an internal commercial snapshot, assigns the Job,
+moves an Assign Project to Ongoing and issues Supplier PO version 1. The PO
+email is placed in the durable outbound queue for the configured mail worker.
+
+If the Resource later withdraws, the PO is Cancelled without deleting its
+number, lines or versions, and the Job returns to Unassigned. Selecting a new
+Resource requires a reason, cancels the current PO and issues a new PO while
+preserving both assignment histories.
 
 ### Financial
 
@@ -154,8 +155,8 @@ represented by one user-facing Resource status:
 - Assignable — passed the General test and may receive production work
 - Proven — completed approved work successfully
 - Preferred
-- Restricted — retained in the Resource list but unavailable for new offers
-- Do not use — blocks all new offers and assignments
+- Restricted — retained in the Resource list but unavailable for new assignments
+- Do not use — blocks all new assignments
 
 Lifecycle remains independent: Active / On leave / Inactive. It controls current
 availability without rewriting historical Project or Job relationships.
@@ -188,8 +189,8 @@ Quality uses an internal 1–5 rating plus written evidence.
 - Portal account activates automatically after registration.
 - Assignment readiness follows the unified Resource status and test results.
 - Rate changes remain pending until approved.
-- Initial release includes profile management, availability, job offers,
-  accept/decline, project files, delivery, PO acknowledgement, revisions,
+- Initial release includes profile management, availability, assigned Jobs,
+  project files, delivery, PO acknowledgement, revisions,
   invoice submission and payment tracking.
 
 Portal, assignment and financial statuses remain independent. A Do-not-use
@@ -232,9 +233,9 @@ commercial version history control whether a rate may be selected.
 Client rates load from Client/Account rate cards. Supplier expenses load only
 from an approved base Supplier rate-card row matching the Job's language
 pair, service, unit and specialization. The selected rate-row ID remains linked
-to the Offer and Job for provenance, while the agreed rate, currency, quantity
+to the assignment snapshot and Job for provenance, while the agreed rate, currency, quantity
 and amount are retained as immutable commercial snapshots. Fixed/manual Client
-pricing remains available with an override reason; a Job Offer cannot use a
+pricing remains available with an override reason; an assignment cannot use a
 free-text supplier rate. Supplier PO production lines retain the Resource-rate
 reference and CAT band/discount provenance; manual and adjustment lines remain
 explicitly distinguishable.
@@ -244,16 +245,16 @@ approval control. An External Resource is selectable when lifecycle is Active
 and Resource status is Assignable, Proven or Preferred. Language pairs,
 Services, domain/Account qualifications, compliance and availability remain
 visible context; the approved matching Supplier rate card separately controls
-which commercial terms can be offered.
+which commercial terms can be assigned.
 
 Resource capabilities and qualifications are maintained data, not immutable
 intake facts: language pairs and Services may be removed, Specialization
 qualification may be revised after new evidence, and Supplier rate cards may be
 edited. Removing a capability retires affected current rate cards without
-rewriting historical Offer, Job or Supplier PO snapshots.
+rewriting historical assignment, Job or Supplier PO snapshots.
 
-Supplier POs are sent through portal and email. Work may begin before portal
-acknowledgement. There is no intermediate Draft PO after offer acceptance:
+Supplier POs are sent through portal and email. Work may begin as soon as the
+PO is issued. There is no intermediate Draft or Resource-acceptance step:
 version 1 is issued immediately and any later correction creates a new
 immutable version.
 Discounts, credits, surcharges and minimum-fee adjustments are supported.
@@ -342,7 +343,7 @@ show original currency and converted EUR values.
 - Only Administrator may issue/annul official invoices, approve supplier
   invoices/payments/rates, override compliance, apply Do not use or manage
   users/security.
-- Freelancer: own profile, offers, assigned Jobs, files, POs, invoices and
+- Freelancer: own profile, assigned Jobs, files, POs, invoices and
   payments only.
 
 ## Editable work records and Supplier PO versions
@@ -353,11 +354,10 @@ show original currency and converted EUR values.
 - A Supplier rate card stores sets of Source and Target languages and covers
   their configured cross-product. Existing one-pair cards are migrated as
   one-element sets.
-- Changing unaccepted Job terms withdraws the active Draft/Sent Offer without
-  deleting its history. A newly matching Approved Supplier rate is required
-  before an assigned Job can save changed commercial terms.
-- Offer preparation records per-band Supplier CAT quantities and amounts from
-  the selected approved rate card. These rows become the issued PO lines.
+- A newly matching Approved Supplier rate is required before an assigned Job
+  can save changed commercial terms.
+- Assignment records per-band Supplier CAT quantities and amounts from the
+  selected approved rate card. These rows become the issued PO lines.
 - PO-facing Job changes create the next immutable PO version and snapshot both
   the Job facts and all price lines.
 
@@ -366,7 +366,7 @@ show original currency and converted EUR values.
 Authenticated operational screens share a top Project/Job quick search. Empty
 search shows the eight most recently visited records; text search covers names,
 numbers, references, workflow status, service and language direction. Keyboard
-shortcuts `/` and `Ctrl/Cmd+K` focus it. Forms and data tables use higher-
+shortcut `/` focuses it. Forms and data tables use higher-
 contrast labels, larger controls, clearer focus states and stronger totals.
 
 MFA and sensitive-action reauthentication are deferred. Sessions must persist

@@ -86,7 +86,11 @@ function updateInlineScopeTotal(){
   const quantities=new Map([...document.querySelectorAll('.scope-inline-quantity')].map(input=>[input.dataset.id,Number(input.value||0)]));
   let total=0;
   scopeLines.forEach(line=>{const amount=scopeAmount(line,quantities.has(line.id)?quantities.get(line.id):Number(line.quantity||0));total+=amount;const cell=document.querySelector(`[data-scope-amount="${line.id}"]`);if(cell)cell.textContent=money(amount)});
-  const totalCell=document.getElementById('scopeInlineTotal');if(totalCell)totalCell.textContent=money(total);
+  const currency=val('c-currency')||project?.currency||'EUR',totalCell=document.getElementById('scopeInlineTotal');
+  if(totalCell)totalCell.textContent=money(total,currency);
+  document.getElementById('c-price').value=total.toFixed(2);
+  document.getElementById('sum-price').textContent=money(total,currency);
+  const margin=total-Number(project?.expense||0);document.getElementById('sum-margin').textContent=money(margin,currency);document.getElementById('sum-margin-pct').textContent=`${total?((margin/total)*100).toFixed(2):'0.00'}%`;
 }
 async function saveInlineScopeQuantities(){
   const changed=[...document.querySelectorAll('.scope-inline-quantity')].filter(input=>Number(input.value||0)!==Number(scopeLines.find(line=>line.id===input.dataset.id)?.quantity||0));
@@ -96,7 +100,7 @@ async function saveInlineScopeQuantities(){
 function renderScope(){
   const body=document.getElementById('scopeTbody');
   if(!scopeLines.length){body.innerHTML='<tr class="state-row"><td colspan="6">No financial lines. Enter a fixed Project price or load a CAT grid.</td></tr>';return}
-  body.innerHTML=scopeLines.map(line=>`<tr data-id="${line.id}"><td><button type="button" class="table-link scope-edit-link" data-id="${line.id}" title="Edit this financial line">${esc(line.cat_band||line.service_type||'—')}</button></td><td class="number-cell"><input class="scope-inline-quantity inline-number" data-id="${line.id}" type="number" min="0" step="0.001" value="${Number(line.quantity||0)}" aria-label="Quantity for ${esc(line.cat_band||line.service_type||'financial line')}"></td><td>${esc(line.price_unit||'—')}</td><td class="number-cell">${money(line.unit_price)}</td><td class="number-cell scope-line-amount" data-scope-amount="${line.id}">${money(scopeAmount(line))}</td><td>${esc(line.rate_source||'—')}${line.client_rate_item_id?'<div class="customer-sub">Linked rate-card row</div>':''}</td></tr>`).join('')+`<tr class="scope-total-row"><td colspan="4">Project CAT total</td><td id="scopeInlineTotal" class="number-cell">${money(scopeLines.reduce((sum,line)=>sum+scopeAmount(line),0))}</td><td><span class="muted">Saved with Project</span></td></tr>`;
+  body.innerHTML=scopeLines.map(line=>`<tr data-id="${line.id}"><td><button type="button" class="table-link scope-edit-link" data-id="${line.id}" title="Edit this financial line">${esc(line.cat_band||line.service_type||'—')}</button></td><td class="number-cell"><input class="scope-inline-quantity inline-number" data-id="${line.id}" type="number" min="0" step="0.001" value="${Number(line.quantity||0)}" aria-label="Quantity for ${esc(line.cat_band||line.service_type||'financial line')}"></td><td>${esc(line.price_unit||'—')}</td><td class="number-cell">${money(line.unit_price)}</td><td class="number-cell scope-line-amount" data-scope-amount="${line.id}">${money(scopeAmount(line))}</td><td>${esc(line.rate_source||'—')}${line.client_rate_item_id?'<div class="customer-sub">Linked rate-card row</div>':line.override_reason?`<div class="warning-text">${esc(line.override_reason)}</div>`:''}</td></tr>`).join('')+`<tr class="scope-total-row"><td colspan="4">Project CAT total</td><td id="scopeInlineTotal" class="number-cell">${money(scopeLines.reduce((sum,line)=>sum+scopeAmount(line),0))}</td><td><span class="muted">Saved with Project</span></td></tr>`;
   body.querySelectorAll('.scope-inline-quantity').forEach(input=>input.addEventListener('input',updateInlineScopeTotal));
   body.querySelectorAll('.scope-edit-link').forEach(button=>button.addEventListener('click',()=>openScopeModal(button.dataset.id)));
 }
