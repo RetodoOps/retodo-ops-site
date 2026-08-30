@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=018">
+  <link rel="stylesheet" href="style.css?v=019">
 </head>
 <body>
 <div class="app">
@@ -55,7 +55,7 @@
             <div class="field"><label>Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
             <div class="field"><label>Resource</label><select id="j-candidate"></select><small class="field-help">The selection remains editable. Replacing an assigned Resource cancels its current PO but preserves its complete history. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
             <div class="field"><label>Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
-            <div class="field"><label>Assignment and PO</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Issue PO</button><small class="field-help">Issuing the PO means the Job is assigned and work may begin. No separate Resource acceptance is required.</small></div>
+            <div class="field"><label>Assignment and PO</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Issue PO</button></div>
             <div class="field"><label>Current supplier rate</label><input id="j-rate" readonly></div>
             <div class="field"><label>Supplier amount</label><input id="j-amount" readonly></div>
             <div class="field inline-check"><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
@@ -64,8 +64,8 @@
         </div>
         <div id="j-cat-card" class="section-card table-card hidden">
           <div class="section-title">Supplier CAT analysis</div>
-          <p class="muted">Enter the quantity for each CAT band. Prices come from the selected Approved Supplier rate card.</p>
-          <table class="module-table cat-entry-table"><thead><tr><th>CAT band</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody id="j-cat-rows"></tbody></table>
+          <p class="muted">Quantities are copied from the matching Project CAT rows and remain editable. Prices come from the selected Approved Supplier rate card.</p>
+          <table class="module-table cat-entry-table"><thead><tr><th>CAT band</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody id="j-cat-rows"></tbody></table>
           <div class="cat-grid-total"><span>Supplier total</span><strong id="j-cat-total">0.00</strong></div>
         </div>
       </section>
@@ -97,6 +97,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=018"></script><script src="auth.js?v=018"></script><script src="reference-data.js?v=018"></script><script src="quick-nav.js?v=018"></script><script src="job.js?v=018"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=019"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=019"></script>
 </body>
 </html>

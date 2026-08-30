@@ -364,6 +364,12 @@ show original currency and converted EUR values.
   selected approved rate card. These rows become the issued PO lines.
 - PO-facing Job changes create the next immutable PO version and snapshot both
   the Job facts and all price lines.
+- A Resource cannot use `Assignable`, `Proven` or `Preferred` without an email
+  address. This is enforced when the Resource profile is saved and again by the
+  database; PO issue is only a final defensive check.
+- A new Job Supplier CAT grid inherits quantities from matching Project CAT
+  bands. Job quantities remain editable, and individual Supplier rows may be
+  removed without changing the Project financial analysis.
 
 ## Navigation and readability
 

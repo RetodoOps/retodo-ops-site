@@ -41,6 +41,7 @@ during the module review.
 18. Run `tms/migrations/015_direct_po_assignment_and_financial_grid_fix.sql` once.
 19. Run `tms/migrations/016_multilanguage_client_rate_cards.sql` once.
 20. Run `tms/migrations/017_repair_client_rate_card_base_structure.sql` once.
+21. Run `tms/migrations/018_job_assignment_validation_messages.sql` once.
 19. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
@@ -182,6 +183,13 @@ during the module review.
     word rates display four. For a rate of 0.0850, verify each line Amount is
     rounded to cents first and the Project total equals the sum of those visible
     line amounts without a one-cent discrepancy.
+40. In a Resource profile, confirm `Assignable`, `Proven` and `Preferred` cannot
+    be saved without an email address and that email cannot be removed while one
+    of these statuses is active. In a Job, select a Supplier rate and confirm CAT
+    quantities are inherited by band from the Project, remain editable, and each
+    row has a delete action. Issue the PO without an informational confirmation
+    dialog; if another readiness rule blocks assignment, confirm the error names
+    the exact failing field.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
