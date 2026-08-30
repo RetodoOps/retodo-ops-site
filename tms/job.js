@@ -1,5 +1,5 @@
 let jobId, job, project, assignedResource, offers = [], offerResources = new Map();
-let specializations = [], projectSpecializations = [], issues = [], purchaseOrders = [], purchaseOrder, poLines = [], poVersions = [];
+let specializations = [], projectSpecializations = [], issues = [], purchaseOrders = [], purchaseOrder, poLines = [], poVersions = [], poEmails = [];
 let currentUser, currentRole = 'user';
 let overviewCandidates = [], resourceRates = [];
 let projectScopeLines = [];
@@ -96,7 +96,12 @@ async function loadOverviewCandidates(){
   updateAssignmentAction();
 }
 
-function updateAssignmentAction(){const button=document.getElementById('j-create-offer'),resourceId=val('j-candidate');if(!resourceId){button.textContent='Assign Resource & Issue PO';button.disabled=true;return}const replacing=!!job.resource_id&&resourceId!==job.resource_id;button.textContent=replacing?'Reassign & Issue New PO':'Assign Resource & Issue PO';button.disabled=!!job.resource_id&&!replacing}
+function updateAssignmentAction(){const button=document.getElementById('j-create-offer'),resourceId=val('j-candidate');if(!resourceId){button.textContent='Assign Resource & Send PO';button.disabled=true;return}const replacing=!!job.resource_id&&resourceId!==job.resource_id;button.textContent=replacing?'Reassign & Send New PO':'Assign Resource & Send PO';button.disabled=!!job.resource_id&&!replacing}
+async function sendSupplierPOEmail(poId){
+  const {data:{session}}=await _sb.auth.getSession();if(!session?.access_token)throw new Error('Your session expired. Sign in again.');
+  const response=await fetch('/.netlify/functions/send-supplier-po',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({purchase_order_id:poId})});
+  const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||'PO email could not be sent');return result;
+}
 async function assignResourceAndIssuePO(){
   clearError();const resourceId=val('j-candidate'),rateId=val('j-rate-select');
   if(!resourceId)return showError('Select a Resource.');
@@ -104,9 +109,12 @@ async function assignResourceAndIssuePO(){
   if(!rateId)return showError('Select an Approved matching Supplier rate card.');
   const catRows=collectSupplierCatRows('j');if(!catRows.some(row=>row.quantity>0))return showError('Enter a quantity in at least one Supplier CAT row.');
   const replacing=!!job.resource_id;let reason=null;if(replacing){reason=prompt('Reason for replacing the assigned Resource and cancelling the current PO:');if(!reason)return}
-  if(replacing&&!confirm('The current PO will be cancelled and a new PO will be issued to the selected Resource.'))return;
-  const {error}=await _sb.rpc('assign_job_and_issue_po',{p_job_id:jobId,p_resource_id:resourceId,p_resource_rate_id:rateId,p_cat_rows:catRows,p_reassignment_reason:reason});
-  if(error)return showError(error.message);await loadJob();setStatus(replacing?'Resource reassigned · old PO cancelled · new PO issued ✓':'Resource assigned · PO issued ✓');
+  if(replacing&&!confirm('The current PO will be cancelled and a new PO will be issued and emailed to the selected Resource.'))return;
+  const action=document.getElementById('j-create-offer');action.disabled=true;action.textContent='Creating and sending…';
+  const {data:poId,error}=await _sb.rpc('assign_job_and_issue_po',{p_job_id:jobId,p_resource_id:resourceId,p_resource_rate_id:rateId,p_cat_rows:catRows,p_reassignment_reason:reason});
+  if(error){updateAssignmentAction();return showError(error.message)}
+  try{await sendSupplierPOEmail(poId)}catch(mailError){await loadJob();showError(`Resource assigned and PO created, but the email was not sent: ${mailError.message}. Open Supplier PO and use Retry sending.`);return}
+  await loadJob();setStatus(replacing?'Resource reassigned · new PO sent ✓':'Resource assigned · PO sent ✓');
 }
 
 async function saveJob(){
@@ -146,12 +154,30 @@ function wirePOLine(row){row.querySelectorAll('input,select').forEach(el=>el.add
 function collectPOLines(){return [...document.querySelectorAll('#poLinesTbody tr')].map((row,index)=>({description:row.querySelector('.po-description').value.trim(),quantity:row.querySelector('.po-quantity').value,unit:row.querySelector('.po-unit').value,unit_price:row.querySelector('.po-unit-price').value,adjustment_type:row.querySelector('.po-adjustment').value,amount:row.querySelector('.po-amount').value,sort_order:(index+1)*10}))}
 function calculatePOTotals(){const lines=collectPOLines(),subtotal=lines.filter(x=>!x.adjustment_type).reduce((sum,x)=>sum+Number(x.amount||0),0),adjustments=lines.filter(x=>x.adjustment_type).reduce((sum,x)=>sum+Number(x.amount||0),0);document.getElementById('poSubtotal').textContent=money(subtotal);document.getElementById('poAdjustments').textContent=money(adjustments);document.getElementById('poTotal').textContent=money(subtotal+adjustments);renderPOPrint(lines,subtotal,adjustments)}
 
+function currentPOEmail(){return purchaseOrder?poEmails.find(record=>record.purchase_order_id===purchaseOrder.id):null}
+function renderPOEmail(){
+  const status=document.getElementById('poEmailStatus'),button=document.getElementById('sendPoBtn');if(!purchaseOrder){status.classList.add('hidden');button.classList.add('hidden');return}
+  const email=currentPOEmail(),recipient=purchaseOrder.supplier_snapshot?.email||assignedResource?.email||'Resource email';status.classList.remove('hidden');button.classList.remove('hidden');button.disabled=false;
+  if(email?.status==='Sent'){
+    status.className='po-email-status email-sent';status.innerHTML=`<div><strong>PO email sent</strong><span>To ${esc(email.to_addresses?.[0]||recipient)} · ${new Date(email.sent_at).toLocaleString('en-GB')}</span></div>${email.external_url?`<a class="btn-secondary" href="${esc(email.external_url)}" target="_blank" rel="noopener">Open in Gmail</a>`:''}`;button.textContent='Send again';
+  }else if(email?.status==='Failed'){
+    status.className='po-email-status email-failed';status.innerHTML=`<div><strong>PO email failed</strong><span>${esc(email.failure_reason||'Unknown delivery error')}</span></div>`;button.textContent='Retry sending';
+  }else{
+    status.className='po-email-status email-pending';status.innerHTML=`<div><strong>PO email not sent</strong><span>Recipient: ${esc(recipient)}</span></div>`;button.textContent='Send PO email';
+  }
+}
+async function sendCurrentPOEmail(){
+  if(!purchaseOrder)return;if(currentPOEmail()?.status==='Sent'&&!confirm(`Send ${purchaseOrder.po_number} again to the Resource?`))return;
+  const button=document.getElementById('sendPoBtn');button.disabled=true;button.textContent='Sending…';clearError();
+  try{await sendSupplierPOEmail(purchaseOrder.id);await loadJob();setStatus(`PO sent to ${purchaseOrder?.supplier_snapshot?.email||'Resource'} ✓`)}catch(error){await loadJob();showError(`PO email was not sent: ${error.message}`)}
+}
+
 function renderPO(){
   const hasPO=!!purchaseOrder;document.getElementById('poBadge').textContent=purchaseOrders.length;document.getElementById('poEmpty').classList.toggle('hidden',hasPO);document.getElementById('poWorkspace').classList.toggle('hidden',!hasPO);renderPOHistory();if(!hasPO)return;
   document.getElementById('poTitle').textContent=purchaseOrder.po_number;document.getElementById('poMeta').textContent=`${purchaseOrder.status} · Version ${purchaseOrder.current_version} · ${resourceName(assignedResource)} · Work may begin before acknowledgement`;
   const body=document.getElementById('poLinesTbody');body.innerHTML='';poLines.forEach(addPOLine);if(!poLines.length)addPOLine();
   const draft=purchaseOrder.status==='Draft',admin=currentRole==='admin';document.getElementById('savePoBtn').textContent=draft?'Save Draft':'Create Revision';document.getElementById('savePoBtn').disabled=!draft&&!admin;document.getElementById('issuePoBtn').classList.toggle('hidden',!draft);document.getElementById('issuePoBtn').disabled=!admin;document.getElementById('revisionReasonWrap').classList.toggle('hidden',draft);
-  document.getElementById('cancelPoBtn').classList.toggle('hidden',!['Draft','Issued','Acknowledged'].includes(purchaseOrder.status));
+  document.getElementById('cancelPoBtn').classList.toggle('hidden',!['Draft','Issued','Acknowledged'].includes(purchaseOrder.status));renderPOEmail();
   document.querySelectorAll('#poLinesTbody input,#poLinesTbody select,.add-line-btn').forEach(el=>el.disabled=!draft&&!admin);
   document.getElementById('poVersions').innerHTML=poVersions.length?poVersions.map(version=>`<div class="version-row"><strong>Version ${version.version_number}</strong><span>${esc(version.document_status)} · ${new Date(version.created_at).toLocaleString('en-GB')}</span><span>${esc(version.change_reason||'Initial issue')}</span></div>`).join(''):'<span class="muted">No issued versions yet.</span>';
   calculatePOTotals();
@@ -161,7 +187,7 @@ function renderPOHistory(){const card=document.getElementById('poHistoryCard'),l
 async function cancelCurrentPO(){const reason=prompt('Reason for cancelling this PO and unassigning the Resource:');if(!reason)return;if(!confirm('Cancel the current PO and return the Job to Unassigned? The PO history will be preserved.'))return;const {error}=await _sb.rpc('cancel_job_supplier_po',{p_job_id:jobId,p_reason:reason});if(error)return showError(error.message);await loadJob();setStatus('PO cancelled · Job returned to Unassigned ✓')}
 
 async function savePO(){const lines=collectPOLines();if(!lines.length)return showError('At least one PO line is required.');let result;if(purchaseOrder.status==='Draft')result=await _sb.rpc('save_supplier_po_draft',{p_po_id:purchaseOrder.id,p_lines:lines});else{const reason=val('poRevisionReason');if(!reason)return showError('An Administrator revision reason is required.');result=await _sb.rpc('revise_supplier_po',{p_po_id:purchaseOrder.id,p_lines:lines,p_reason:reason})}if(result.error)return showError(result.error.message);await loadJob();setStatus(purchaseOrder.status==='Draft'?'Draft PO saved ✓':'New PO version created ✓')}
-async function issuePO(){if(currentRole!=='admin')return showError('Only the Administrator can issue a Supplier PO.');if(!confirm(`Issue ${purchaseOrder.po_number}? Issued facts will be locked and later changes will create a new version.`))return;const save=await _sb.rpc('save_supplier_po_draft',{p_po_id:purchaseOrder.id,p_lines:collectPOLines()});if(save.error)return showError(save.error.message);const {error}=await _sb.rpc('issue_supplier_po',{p_po_id:purchaseOrder.id});if(error)return showError(error.message);await loadJob();setStatus('Supplier PO issued; email task created ✓')}
+async function issuePO(){if(currentRole!=='admin')return showError('Only the Administrator can issue a Supplier PO.');if(!confirm(`Issue and email ${purchaseOrder.po_number}? Issued facts will be locked and later changes will create a new version.`))return;const save=await _sb.rpc('save_supplier_po_draft',{p_po_id:purchaseOrder.id,p_lines:collectPOLines()});if(save.error)return showError(save.error.message);const poId=purchaseOrder.id,{error}=await _sb.rpc('issue_supplier_po',{p_po_id:poId});if(error)return showError(error.message);try{await sendSupplierPOEmail(poId)}catch(mailError){await loadJob();return showError(`PO issued, but the email was not sent: ${mailError.message}. Use Retry sending.`)}await loadJob();setStatus('Supplier PO issued and sent ✓')}
 
 function renderPOPrint(lines=collectPOLines(),subtotal=Number(purchaseOrder?.subtotal||0),adjustments=Number(purchaseOrder?.adjustment_amount||0)){
   if(!purchaseOrder)return;const supplier=purchaseOrder.supplier_snapshot||{};const lineHtml=lines.map(line=>`<tr><td>${esc(line.description)}</td><td>${esc(line.quantity||'')}</td><td>${esc(line.unit||'')}</td><td>${esc(line.unit_price||'')}</td><td>${money(line.amount,purchaseOrder.currency)}</td></tr>`).join('');
@@ -173,8 +199,8 @@ function renderIssues(){const body=document.getElementById('issuesTbody');if(!is
 
 async function loadJob(){
   clearError();const jobResult=await _sb.from('project_jobs').select('*').eq('id',jobId).single();if(jobResult.error)return showError(jobResult.error.message);job=jobResult.data;
-  const [projectResult,specResult,projectSpecResult,offerResult,poResult,issueResult,scopeResult]=await Promise.all([_sb.from('projects').select('*').eq('id',job.project_id).single(),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('project_specializations').select('*').eq('project_id',job.project_id).order('created_at'),_sb.from('job_offers').select('*').eq('job_id',jobId).order('sequence_number'),_sb.from('supplier_purchase_orders').select('*').eq('job_id',jobId).order('created_at',{ascending:false}),_sb.from('job_issues').select('*').eq('job_id',jobId).order('reported_at',{ascending:false}),_sb.from('scope_items').select('service_type,specialization_id,price_unit,cat_band,quantity,unit_price,price').eq('project_id',job.project_id)]);
-  if(projectResult.error)return showError(projectResult.error.message);if(scopeResult.error)return showError(scopeResult.error.message);project=projectResult.data;specializations=specResult.data||[];projectSpecializations=projectSpecResult.data||[];offers=offerResult.data||[];purchaseOrders=poResult.data||[];purchaseOrder=purchaseOrders.find(po=>!['Cancelled','Superseded'].includes(po.status))||null;issues=issueResult.data||[];projectScopeLines=scopeResult.data||[];resourceRates=[];
+  const [projectResult,specResult,projectSpecResult,offerResult,poResult,issueResult,scopeResult,emailResult]=await Promise.all([_sb.from('projects').select('*').eq('id',job.project_id).single(),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('project_specializations').select('*').eq('project_id',job.project_id).order('created_at'),_sb.from('job_offers').select('*').eq('job_id',jobId).order('sequence_number'),_sb.from('supplier_purchase_orders').select('*').eq('job_id',jobId).order('created_at',{ascending:false}),_sb.from('job_issues').select('*').eq('job_id',jobId).order('reported_at',{ascending:false}),_sb.from('scope_items').select('service_type,specialization_id,price_unit,cat_band,quantity,unit_price,price').eq('project_id',job.project_id),_sb.from('email_records').select('*').eq('job_id',jobId).eq('direction','Outgoing').order('created_at',{ascending:false})]);
+  if(projectResult.error)return showError(projectResult.error.message);if(scopeResult.error)return showError(scopeResult.error.message);if(emailResult.error)return showError(emailResult.error.message);project=projectResult.data;specializations=specResult.data||[];projectSpecializations=projectSpecResult.data||[];offers=offerResult.data||[];purchaseOrders=poResult.data||[];purchaseOrder=purchaseOrders.find(po=>!['Cancelled','Superseded'].includes(po.status))||null;issues=issueResult.data||[];projectScopeLines=scopeResult.data||[];poEmails=emailResult.data||[];resourceRates=[];
   const resourceIds=[...new Set([job.resource_id,...offers.map(x=>x.resource_id)].filter(Boolean))];offerResources=new Map();if(resourceIds.length){const {data}=await _sb.from('resources').select('*').in('id',resourceIds);(data||[]).forEach(resource=>offerResources.set(resource.id,resource))}assignedResource=job.resource_id?offerResources.get(job.resource_id):null;
   if(purchaseOrder){const [lineResult,versionResult]=await Promise.all([_sb.from('supplier_po_lines').select('*').eq('purchase_order_id',purchaseOrder.id).order('sort_order'),_sb.from('supplier_po_versions').select('*').eq('purchase_order_id',purchaseOrder.id).order('version_number',{ascending:false})]);poLines=lineResult.data||[];poVersions=versionResult.data||[]}else{poLines=[];poVersions=[]}
   populateHeader();populateOverview();renderOffers();renderPO();renderIssues();window.TMS_QUICK_NAV?.recordVisit('Job',job.id,job.job_number,[project.display_name,job.service_type,job.status].filter(Boolean).join(' · '));await loadOverviewCandidates();

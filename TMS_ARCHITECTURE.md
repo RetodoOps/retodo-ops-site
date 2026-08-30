@@ -316,9 +316,12 @@ Implementation boundary:
 
 ## Email and reminders
 
-Gmail remains the mailbox for `ops@retodo-ops.com`. The TMS creates reviewable
-Gmail drafts initially; only invitations and routine reminders may later send
-automatically. Incoming emails are linked manually at first.
+Gmail remains the mailbox for `ops@retodo-ops.com`. Supplier POs are sent by an
+authenticated Netlify server function using the narrow `gmail.send` scope;
+OAuth credentials and the refresh token exist only as protected Netlify
+environment variables. Delivery attempts are recorded as Sent or Failed with
+recipient, timestamp and Gmail message/thread IDs. Incoming emails are linked
+manually at first.
 
 Operational reminders appear in the dashboard and selected reminders also use
 email. No email reminder is sent for Quote expiring, Missing PO, Ready to

@@ -711,6 +711,16 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .cat-grid-total { display: flex; justify-content: flex-end; align-items: baseline; gap: 14px; padding: 15px 16px; border-top: 3px solid #6d28d9; background: #f5f3ff; color: #2e1065; font-weight: 800; }
 .cat-grid-total strong { font-size: 18px; }
 .financial-summary strong { font-size: 17px; color: #172033; }
+.po-email-status { margin-bottom: 14px; padding: 12px 15px; border: 1px solid var(--border); border-radius: 9px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: white; }
+.po-email-status > div { display: flex; flex-direction: column; gap: 4px; }
+.po-email-status strong { font-size: 13px; }
+.po-email-status span { font-size: 12px; color: var(--text-muted); }
+.po-email-status.email-sent { border-color: #86efac; background: #f0fdf4; }
+.po-email-status.email-sent strong { color: #166534; }
+.po-email-status.email-failed { border-color: #fecaca; background: #fef2f2; }
+.po-email-status.email-failed strong { color: #b91c1c; }
+.po-email-status.email-pending { border-color: #fde68a; background: #fffbeb; }
+.po-email-status.email-pending strong { color: #92400e; }
 
 @media (max-width: 760px) {
     .quick-nav { padding: 8px 12px; }

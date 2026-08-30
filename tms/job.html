@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=019">
+  <link rel="stylesheet" href="style.css?v=021">
 </head>
 <body>
 <div class="app">
@@ -61,7 +61,7 @@
             <div class="field"><label>Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
             <div class="field"><label>Resource</label><select id="j-candidate"></select><small class="field-help">The selection remains editable. Replacing an assigned Resource cancels its current PO but preserves its complete history. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
             <div class="field"><label>Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
-            <div class="field"><label>Assignment and PO</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Issue PO</button></div>
+            <div class="field"><label>Assignment and PO</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Send PO</button></div>
             <div class="field"><label>Current supplier rate</label><input id="j-rate" readonly></div>
             <div class="field"><label>Supplier amount</label><input id="j-amount" readonly></div>
             <div class="field inline-check"><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
@@ -82,9 +82,10 @@
       </section>
 
       <section class="record-pane" id="pane-po">
-        <div id="poEmpty" class="section-card"><div class="empty-compact">Select a Resource and Approved supplier rate in Overview, enter CAT quantities and issue the PO to assign the Job.</div></div>
+        <div id="poEmpty" class="section-card"><div class="empty-compact">Select a Resource and Approved supplier rate in Overview, enter CAT quantities and send the PO to assign the Job.</div></div>
         <div id="poWorkspace" class="hidden">
-          <div class="pane-toolbar"><div><h2 id="poTitle">Supplier PO</h2><p id="poMeta"></p></div><div class="header-actions"><button class="btn-secondary" onclick="printPO()">Print / Save PDF</button><button id="savePoBtn" class="btn-secondary" onclick="savePO()">Create Revision</button><button id="issuePoBtn" class="btn-primary" onclick="issuePO()">Issue legacy Draft</button><button id="cancelPoBtn" class="btn-danger" onclick="cancelCurrentPO()">Cancel PO</button></div></div>
+          <div class="pane-toolbar"><div><h2 id="poTitle">Supplier PO</h2><p id="poMeta"></p></div><div class="header-actions"><button id="sendPoBtn" class="btn-primary" onclick="sendCurrentPOEmail()">Send PO email</button><button class="btn-secondary" onclick="printPO()">Print / Save PDF</button><button id="savePoBtn" class="btn-secondary" onclick="savePO()">Create Revision</button><button id="issuePoBtn" class="btn-primary" onclick="issuePO()">Issue legacy Draft</button><button id="cancelPoBtn" class="btn-danger" onclick="cancelCurrentPO()">Cancel PO</button></div></div>
+          <div id="poEmailStatus" class="po-email-status email-pending"></div>
           <div class="section-card table-card"><table class="module-table po-lines-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Rate source</th><th>Adjustment</th><th>Amount</th><th></th></tr></thead><tbody id="poLinesTbody"></tbody></table><button class="add-line-btn" onclick="addPOLine()">+ Add line</button></div>
           <div class="po-totals"><div><span>Subtotal</span><strong id="poSubtotal">0.00</strong></div><div><span>Adjustments</span><strong id="poAdjustments">0.00</strong></div><div><span>Total</span><strong id="poTotal">0.00</strong></div></div>
           <div id="revisionReasonWrap" class="section-card hidden"><div class="field"><label>Administrator revision reason *</label><input id="poRevisionReason" placeholder="What changed and why?"></div></div>
@@ -103,6 +104,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=019"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=020"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=019"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=021"></script>
 </body>
 </html>

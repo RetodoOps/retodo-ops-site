@@ -1,6 +1,9 @@
 [build]
   publish = "tms"
 
+[functions]
+  directory = "netlify/functions"
+
 [[headers]]
   for = "/*"
   [headers.values]

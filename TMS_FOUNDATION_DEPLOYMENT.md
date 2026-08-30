@@ -1,5 +1,22 @@
 # RetodoOps TMS — Operational Foundation Deployment
 
+## Supplier PO email delivery
+
+Supplier POs are sent from the Job screen through the Netlify function in
+`netlify/functions/send-supplier-po.js`. Configure these variables in Netlify
+for the Functions runtime, mark the credential values as secrets, and redeploy:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REFRESH_TOKEN`
+- `GMAIL_FROM_EMAIL` (`ops@retodo-ops.com`)
+- `GMAIL_FROM_NAME` (`Retodo Ops`)
+
+The Google refresh token must include the narrow
+`https://www.googleapis.com/auth/gmail.send` scope. Migration
+`020_supplier_po_gmail_delivery.sql` adds the auditable delivery state and the
+protected RPCs used by the function.
+
 This checkpoint fixes the existing project editor schema, adds commercial
 scope lines, introduces restrictive role-based database access, adds a
 password-recovery flow, and installs the normalized operational core approved
@@ -74,7 +91,7 @@ during the module review.
 12. Create an unassigned Job. Confirm it opens in the separate Job workspace
     and does not require a Resource at creation.
 13. Select an Assignable Resource, an Approved matching Supplier rate card and
-    CAT quantities, then choose **Assign Resource & Issue PO**. Confirm the Job
+    CAT quantities, then choose **Assign Resource & Send PO**. Confirm the Job
     moves to Assigned, the Project moves from Assign to Ongoing, the supplier
     amount rolls into Project expense/margin and Supplier PO version 1 is
     immediately Issued with a `PO-YYYY-NNNN` number. Confirm an outbound email
