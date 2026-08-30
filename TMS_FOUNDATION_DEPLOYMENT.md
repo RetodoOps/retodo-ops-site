@@ -40,6 +40,7 @@ during the module review.
 17. Run `tms/migrations/014_cat_quantities_assignment_and_quick_navigation.sql` once.
 18. Run `tms/migrations/015_direct_po_assignment_and_financial_grid_fix.sql` once.
 19. Run `tms/migrations/016_multilanguage_client_rate_cards.sql` once.
+20. Run `tms/migrations/017_repair_client_rate_card_base_structure.sql` once.
 19. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
@@ -177,6 +178,10 @@ during the module review.
     language combination. Leave a language side empty and confirm it behaves as
     Any language. Existing Project price snapshots must remain unchanged until
     their CAT grid is explicitly reloaded.
+39. Confirm Client and Project totals always display two decimal places, while
+    word rates display four. For a rate of 0.0850, verify each line Amount is
+    rounded to cents first and the Project total equals the sum of those visible
+    line amounts without a one-cent discrepancy.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
