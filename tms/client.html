@@ -34,7 +34,7 @@
             <button class="record-tab" data-tab="accounts">Accounts <span class="tab-badge" id="accountCount">0</span></button>
             <button class="record-tab" data-tab="contacts">Contacts <span class="tab-badge" id="contactCount">0</span></button>
             <button class="record-tab" data-tab="billing">Billing entities <span class="tab-badge" id="billingCount">0</span></button>
-            <button class="record-tab" data-tab="pricing">Price cards <span class="tab-badge" id="rateCardCount">0</span></button>
+            <button class="record-tab" data-tab="pricing">Rate cards <span class="tab-badge" id="rateCardCount">0</span></button>
         </div>
         <div class="record-body">
             <p id="recordError" class="error-msg hidden"></p>
@@ -75,11 +75,11 @@
             </section>
 
             <section class="record-pane" id="pane-pricing">
-                <div class="pane-toolbar"><div><h2>Client price cards</h2><p>Account rates take precedence over client-wide rates. Manual fixed prices remain possible on a Project.</p></div><button class="btn-primary" onclick="openRateCardModal()">+ Add price card</button></div>
+                <div class="pane-toolbar"><div><h2>Client rate cards</h2><p>Each base price may include automatically calculated CAT discounts. Account rates take precedence over client-wide rates.</p></div><button class="btn-primary" onclick="openRateCardModal()">+ Add rate card</button></div>
                 <div class="price-card-layout">
-                    <div class="section-card"><div class="section-title">Price cards</div><div id="rateCardsList" class="rate-card-list"></div></div>
-                    <div class="section-card"><div class="price-lines-header"><div><div class="section-title">Rate items</div><div id="selectedRateCardLabel" class="muted">Select a price card</div></div><button class="btn-secondary" id="addRateItemBtn" onclick="openRateItemModal()" disabled>+ Add rate</button></div>
-                        <div class="table-scroll"><table class="module-table compact-table"><thead><tr><th>Languages</th><th>Service</th><th>Specialization</th><th>Unit / CAT band</th><th>Rate</th><th>Minimum</th></tr></thead><tbody id="rateItemsTbody"><tr class="state-row"><td colspan="6">Select a price card.</td></tr></tbody></table></div>
+                    <div class="section-card"><div class="section-title">Rate cards</div><div id="rateCardsList" class="rate-card-list"></div></div>
+                    <div class="section-card"><div class="price-lines-header"><div><div class="section-title">Base rates and CAT discounts</div><div id="selectedRateCardLabel" class="muted">Select a rate card</div></div><button class="btn-secondary" id="addRateItemBtn" onclick="openRateItemModal()" disabled>+ Add base rate</button></div>
+                        <div class="table-scroll"><table class="module-table compact-table"><thead><tr><th>Languages</th><th>Service / specialization</th><th>Unit / CAT band</th><th>Discount</th><th>Rate</th><th>Minimum</th></tr></thead><tbody id="rateItemsTbody"><tr class="state-row"><td colspan="6">Select a rate card.</td></tr></tbody></table></div>
                     </div>
                 </div>
             </section>
@@ -129,19 +129,18 @@
 </div></div>
 
 <div id="rateCardModal" class="modal-overlay hidden"><div class="modal modal-small">
-    <div class="modal-header"><h3>Add price card</h3><button class="modal-close" onclick="closeModal('rateCardModal')">×</button></div>
-    <div class="modal-body"><div class="form-grid"><div class="field field-full"><label>Name *</label><input id="rc-name" placeholder="e.g. Standard Nordic rates 2026"></div><div class="field"><label>Account</label><select id="rc-account"></select></div><div class="field"><label>Currency</label><select id="rc-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div><div class="field"><label>Valid from</label><input id="rc-from" type="date"></div><div class="field"><label>Valid to</label><input id="rc-to" type="date"></div></div><p id="rateCardError" class="error-msg hidden"></p></div>
-    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateCardModal')">Cancel</button><button class="btn-primary" onclick="saveRateCard()">Create price card</button></div>
+    <div class="modal-header"><h3>Add rate card</h3><button class="modal-close" onclick="closeModal('rateCardModal')">×</button></div>
+    <div class="modal-body"><div class="form-grid"><div class="field field-full"><label>Name *</label><input id="rc-name" placeholder="e.g. Standard Nordic rates 2026"></div><div class="field"><label>Account</label><select id="rc-account"></select></div><div class="field"><label>Currency</label><select id="rc-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div></div><p id="rateCardError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateCardModal')">Cancel</button><button class="btn-primary" onclick="saveRateCard()">Create rate card</button></div>
 </div></div>
 
 <div id="rateItemModal" class="modal-overlay hidden"><div class="modal">
-    <div class="modal-header"><h3 id="rateItemModalTitle">Add rate</h3><button class="modal-close" onclick="closeModal('rateItemModal')">×</button></div>
+    <div class="modal-header"><h3 id="rateItemModalTitle">Add base rate</h3><button class="modal-close" onclick="closeModal('rateItemModal')">×</button></div>
     <div class="modal-body"><input type="hidden" id="ri-id"><div class="form-grid form-grid-3">
         <div class="field"><label>Source language</label><input id="ri-source" list="tms-language-options"></div><div class="field"><label>Target language</label><input id="ri-target" list="tms-language-options"></div><div class="field"><label>Service *</label><select id="ri-service"><option>Translation</option><option>MTPE</option><option>Proofreading</option><option>Independent Review</option><option>LQA</option><option>Terminology</option><option>DTP</option><option>Transcription</option><option>Project Management</option><option>Other</option></select></div>
-        <div class="field"><label>Specialization</label><select id="ri-specialization"></select></div><div class="field"><label>Unit *</label><select id="ri-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div><div class="field"><label>CAT band</label><select id="ri-band"><option value="">Not applicable / base rate</option><option>New words</option><option>50–74%</option><option>75–84%</option><option>85–94%</option><option>95–99%</option><option>100%</option><option>Repetitions</option></select></div>
-        <div class="field"><label>Rate *</label><input id="ri-rate" type="number" min="0" step="0.0001"></div><div class="field"><label>Minimum fee</label><input id="ri-minimum" type="number" min="0" step="0.01"></div><div class="field field-full"><label>Notes</label><textarea id="ri-notes"></textarea></div>
-    </div><p id="rateItemError" class="error-msg hidden"></p></div>
-    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateItemModal')">Cancel</button><button class="btn-primary" onclick="saveRateItem()">Save rate</button></div>
+        <div class="field"><label>Specialization</label><select id="ri-specialization"></select></div><div class="field"><label>Unit *</label><select id="ri-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div><div class="field"><label>Base price *</label><input id="ri-rate" type="number" min="0" step="0.0001"></div><div class="field"><label>Minimum fee</label><input id="ri-minimum" type="number" min="0" step="0.01"></div><div class="field field-span-2"><label>Notes</label><textarea id="ri-notes"></textarea></div>
+    </div><div id="clientCatDiscountSection" class="field field-full"><div class="section-title">CAT discounts from the base price</div><table class="module-table compact-rate-table"><thead><tr><th>CAT band</th><th>Discount %</th><th>Calculated rate</th></tr></thead><tbody id="clientCatDiscountRows"></tbody></table><small class="field-help">Leave a percentage empty when the Client has no agreed price for that band.</small></div><p id="rateItemError" class="error-msg hidden"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateItemModal')">Cancel</button><button class="btn-primary" onclick="saveRateItem()">Save base rate</button></div>
 </div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js"></script><script src="reference-data.js"></script><script src="client.js"></script>

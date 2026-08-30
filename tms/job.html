@@ -53,8 +53,8 @@
             <div class="field"><label>Specialization *</label><select id="j-specialization"></select></div>
             <div class="field"><label>Quantity</label><input id="j-quantity" type="number" min="0" step="0.001"></div>
             <div class="field"><label>Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
-            <div class="field"><label>Candidate Resource</label><select id="j-candidate"></select><small class="field-help">Production-ready Resources matching the language pair and service are listed. Untested domain or Account status is shown as a warning; Not approved is blocked. <a href="resources.html?type=external">Add or complete an External Resource</a>.</small></div>
-            <div class="field"><label>Approved supplier rate</label><select id="j-rate-select"></select></div>
+            <div class="field"><label>Candidate Resource</label><select id="j-candidate"></select><small class="field-help">All Active Resources with status Assignable, Proven or Preferred are selectable. Language, Service and qualification data remain visible for operational judgment but do not disable this field. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
+            <div class="field"><label>Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
             <div class="field"><label>Offer preparation</label><button id="j-create-offer" class="btn-secondary" type="button" onclick="createOverviewOffer()">Create Draft Offer</button><small class="field-help">Assignment occurs only after the Offer is accepted.</small></div>
             <div class="field"><label>Accepted supplier rate</label><input id="j-rate" readonly></div>
             <div class="field"><label>Supplier amount</label><input id="j-amount" readonly></div>
@@ -92,20 +92,18 @@
 <div id="offerModal" class="modal-overlay hidden"><div class="modal modal-wide">
   <div class="modal-header"><h3>Create Job Offer</h3><button class="modal-close" onclick="closeModal('offerModal')">×</button></div>
   <div class="modal-body">
-    <div class="candidate-search-row"><input id="candidateSearch" class="search-box resource-search" placeholder="Name, internal number or email…"><button class="btn-secondary" onclick="searchCandidates()">Search matching Resources</button></div>
-    <p class="field-help">Language pair, service and specialization are taken from this Job. Unapproved or restricted records remain visible but require an Administrator override.</p>
+    <div class="candidate-search-row"><input id="candidateSearch" class="search-box resource-search" placeholder="Name, internal number or email…"><button class="btn-secondary" onclick="searchCandidates()">Search assignable Resources</button></div>
+    <p class="field-help">Selection depends only on Active lifecycle and Resource status Assignable, Proven or Preferred. A matching approved Supplier rate card is still required for the Offer price.</p>
     <div id="candidateResults" class="candidate-results"></div>
     <div class="section-card offer-terms-card"><div class="section-title">Offer terms</div><div class="form-grid form-grid-3">
       <div class="field"><label>Response deadline date</label><input id="o-response-date" type="date"></div>
       <div class="field"><label>Response deadline time</label><input id="o-response-time" type="time" step="60"></div>
       <div class="field"><label>Quantity</label><input id="o-quantity" type="number" min="0" step="0.001"></div>
       <div class="field"><label>Unit</label><input id="o-unit" readonly></div>
-      <div class="field"><label>Approved supplier rate *</label><select id="o-rate"></select></div>
+      <div class="field"><label>Approved supplier rate *</label><select id="o-rate"></select><small id="o-rate-help" class="field-help"></small></div>
       <div class="field"><label>Currency</label><input id="o-currency" readonly></div>
       <div class="field field-full"><label>Message / instructions</label><textarea id="o-message"></textarea></div>
       <div class="field field-full"><label class="checkbox-row"><input id="o-disclose" type="checkbox"> Disclose Client/Account identity to the Resource (Administrator only)</label></div>
-      <div class="field field-full"><label class="checkbox-row"><input id="o-override" type="checkbox"> Administrator Resource status/compliance override</label></div>
-      <div class="field field-full"><label>Override reason</label><input id="o-override-reason"></div>
     </div></div>
     <p id="offerError" class="error-msg hidden"></p>
   </div>
@@ -113,6 +111,6 @@
 </div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script><script src="auth.js"></script><script src="job.js"></script>
+<script src="config.js?v=013"></script><script src="auth.js?v=013"></script><script src="job.js?v=013"></script>
 </body>
 </html>

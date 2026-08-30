@@ -9,6 +9,7 @@ let rateCards = [];
 let rateItems = [];
 let selectedRateCardId = null;
 let activePane = 'basic';
+const CLIENT_CAT_BANDS = ['50–74%', '75–84%', '85–94%', '95–99%', '100%', 'Repetitions'];
 
 const escapeHtml = value => String(value ?? '')
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -342,7 +343,7 @@ function renderRateCards() {
     document.getElementById('rateCardCount').textContent = rateCards.length;
     const list = document.getElementById('rateCardsList');
     if (!rateCards.length) {
-        list.innerHTML = '<div class="empty-compact">No price cards yet.</div>';
+        list.innerHTML = '<div class="empty-compact">No rate cards yet.</div>';
         return;
     }
     if (!selectedRateCardId || !rateCards.some(card => card.id === selectedRateCardId)) selectedRateCardId = rateCards[0].id;
@@ -356,27 +357,41 @@ function renderRateCards() {
         await loadRateItems();
     }));
     const selected = rateCards.find(card => card.id === selectedRateCardId);
-    document.getElementById('selectedRateCardLabel').textContent = selected ? `${selected.name} · ${selected.currency}` : 'Select a price card';
+    document.getElementById('selectedRateCardLabel').textContent = selected ? `${selected.name} · ${selected.currency}` : 'Select a rate card';
     document.getElementById('addRateItemBtn').disabled = !selected;
 }
 
 function renderRateItems() {
     const body = document.getElementById('rateItemsTbody');
     if (!selectedRateCardId) {
-        body.innerHTML = '<tr class="state-row"><td colspan="6">Select a price card.</td></tr>';
+        body.innerHTML = '<tr class="state-row"><td colspan="6">Select a rate card.</td></tr>';
         return;
     }
-    if (!rateItems.length) {
-        body.innerHTML = '<tr class="state-row"><td colspan="6">No rate items in this card.</td></tr>';
+    const activeItems = rateItems.filter(item => item.active !== false);
+    const bases = activeItems.filter(item => !item.base_rate_id);
+    if (!bases.length) {
+        body.innerHTML = '<tr class="state-row"><td colspan="6">No base rates in this card.</td></tr>';
         return;
     }
     const currency = rateCards.find(card => card.id === selectedRateCardId)?.currency || 'EUR';
-    body.innerHTML = rateItems.map(item => `<tr class="clickable-row" data-id="${item.id}">
-        <td>${escapeHtml(item.source_language || 'Any')} → ${escapeHtml(item.target_language || 'Any')}</td>
-        <td>${escapeHtml(item.service_type)}</td><td>${escapeHtml(specializationById(item.specialization_id)?.name || 'Any')}</td>
-        <td>${escapeHtml(item.unit)}${item.cat_band ? `<div class="customer-sub">${escapeHtml(item.cat_band)}</div>` : ''}</td>
-        <td class="number-cell">${Number(item.rate).toFixed(4)} ${escapeHtml(currency)}</td><td class="number-cell">${item.minimum_fee == null ? '—' : `${Number(item.minimum_fee).toFixed(2)} ${escapeHtml(currency)}`}</td>
-    </tr>`).join('');
+    const children = new Map();
+    activeItems.filter(item => item.base_rate_id).forEach(item => {
+        if (!children.has(item.base_rate_id)) children.set(item.base_rate_id, []);
+        children.get(item.base_rate_id).push(item);
+    });
+    body.innerHTML = bases.map(base => {
+        const baseRow = `<tr class="clickable-row rate-base-row" data-id="${base.id}">
+            <td>${escapeHtml(base.source_language || 'Any')} → ${escapeHtml(base.target_language || 'Any')}</td>
+            <td>${escapeHtml(base.service_type)}<div class="customer-sub">${escapeHtml(specializationById(base.specialization_id)?.name || 'Any specialization')}</div></td>
+            <td>${escapeHtml(base.unit)}<div class="customer-sub">Base price / New words</div></td><td>—</td>
+            <td class="number-cell"><strong>${Number(base.rate).toFixed(4)} ${escapeHtml(currency)}</strong></td><td class="number-cell">${base.minimum_fee == null ? '—' : `${Number(base.minimum_fee).toFixed(2)} ${escapeHtml(currency)}`}</td>
+        </tr>`;
+        const childRows = (children.get(base.id) || []).sort((a, b) => CLIENT_CAT_BANDS.indexOf(a.cat_band) - CLIENT_CAT_BANDS.indexOf(b.cat_band)).map(item => `<tr class="rate-band-row">
+            <td></td><td></td><td>${escapeHtml(item.cat_band)}</td><td>${Number(item.discount_percent).toFixed(2).replace(/\.00$/, '')}%</td>
+            <td class="number-cell">${Number(item.rate).toFixed(4)} ${escapeHtml(currency)}</td><td></td>
+        </tr>`).join('');
+        return baseRow + childRows;
+    }).join('');
     body.querySelectorAll('.clickable-row').forEach(row => row.addEventListener('click', () => openRateItemModal(row.dataset.id)));
 }
 
@@ -384,22 +399,20 @@ function openRateCardModal() {
     document.getElementById('rc-name').value = '';
     document.getElementById('rc-account').innerHTML = accountOptions();
     document.getElementById('rc-currency').value = client.default_currency || 'EUR';
-    document.getElementById('rc-from').value = '';
-    document.getElementById('rc-to').value = '';
     document.getElementById('rateCardModal').classList.remove('hidden');
 }
 
 async function saveRateCard() {
-    if (!value('rc-name')) return setModalError('rateCardError', 'Price-card name is required.');
+    if (!value('rc-name')) return setModalError('rateCardError', 'Rate-card name is required.');
     const { data, error } = await _sb.from('client_rate_cards').insert({
         client_id: clientId, account_id: nullable('rc-account'), name: value('rc-name'),
-        currency: value('rc-currency'), valid_from: nullable('rc-from'), valid_to: nullable('rc-to'),
+        currency: value('rc-currency'),
     }).select('*').single();
     if (error) return setModalError('rateCardError', error.message);
     selectedRateCardId = data.id;
     closeModal('rateCardModal');
     await loadRateCardData();
-    setSaveStatus('Price card created ✓');
+    setSaveStatus('Rate card created ✓');
 }
 
 function specializationOptions(selected = '') {
@@ -410,19 +423,47 @@ function specializationOptions(selected = '') {
 
 function openRateItemModal(itemId = null) {
     if (!selectedRateCardId) return;
-    const item = rateItems.find(row => row.id === itemId);
-    document.getElementById('rateItemModalTitle').textContent = item ? 'Edit rate' : 'Add rate';
+    const item = rateItems.find(row => row.id === itemId && !row.base_rate_id);
+    document.getElementById('rateItemModalTitle').textContent = item ? 'Edit base rate' : 'Add base rate';
     document.getElementById('ri-id').value = item?.id || '';
     document.getElementById('ri-source').value = item?.source_language || '';
     document.getElementById('ri-target').value = item?.target_language || '';
     document.getElementById('ri-service').value = item?.service_type || 'Translation';
     document.getElementById('ri-specialization').innerHTML = specializationOptions(item?.specialization_id || '');
     document.getElementById('ri-unit').value = item?.unit || 'Source words';
-    document.getElementById('ri-band').value = item?.cat_band || '';
     document.getElementById('ri-rate').value = item?.rate ?? '';
     document.getElementById('ri-minimum').value = item?.minimum_fee ?? '';
     document.getElementById('ri-notes').value = item?.notes || '';
+    renderClientCatDiscountRows(item?.id || null);
+    toggleClientCatDiscounts();
     document.getElementById('rateItemModal').classList.remove('hidden');
+}
+
+function renderClientCatDiscountRows(baseId = null) {
+    const children = rateItems.filter(item => item.base_rate_id === baseId && item.active !== false);
+    document.getElementById('clientCatDiscountRows').innerHTML = CLIENT_CAT_BANDS.map(band => {
+        const child = children.find(item => item.cat_band === band);
+        return `<tr><td>${escapeHtml(band)}</td><td><input class="client-cat-discount" data-band="${escapeHtml(band)}" type="number" min="0" max="100" step="0.01" placeholder="%" value="${child?.discount_percent ?? ''}"></td><td class="client-cat-calculated">—</td></tr>`;
+    }).join('');
+    document.querySelectorAll('#clientCatDiscountRows .client-cat-discount').forEach(input => input.addEventListener('input', calculateClientCatRates));
+    calculateClientCatRates();
+}
+
+function calculateClientCatRates() {
+    const rawBase = value('ri-rate');
+    const base = Number(rawBase);
+    const currency = rateCards.find(card => card.id === selectedRateCardId)?.currency || 'EUR';
+    document.querySelectorAll('#clientCatDiscountRows tr').forEach(row => {
+        const raw = row.querySelector('.client-cat-discount').value;
+        const output = row.querySelector('.client-cat-calculated');
+        output.textContent = raw === '' || rawBase === '' || !Number.isFinite(base)
+            ? '—' : `${(base * (1 - Number(raw) / 100)).toFixed(4)} ${escapeHtml(currency)}`;
+    });
+}
+
+function toggleClientCatDiscounts() {
+    const enabled = ['Source words', 'Target words'].includes(value('ri-unit'));
+    document.getElementById('clientCatDiscountSection').classList.toggle('hidden', !enabled);
 }
 
 async function saveRateItem() {
@@ -431,21 +472,25 @@ async function saveRateItem() {
     if (value('ri-rate') === '' || Number.isNaN(rate) || rate < 0) return setModalError('rateItemError', 'A valid non-negative rate is required.');
     if (value('ri-source') && !TMS_REF.languages.includes(value('ri-source'))) return setModalError('rateItemError', 'Select a Source language from the shared language list.');
     if (value('ri-target') && !TMS_REF.languages.includes(value('ri-target'))) return setModalError('rateItemError', 'Select a Target language from the shared language list.');
+    const discounts = [...document.querySelectorAll('#clientCatDiscountRows .client-cat-discount')]
+        .filter(input => input.value !== '')
+        .map(input => ({ cat_band: input.dataset.band, discount_percent: Number(input.value) }));
+    if (discounts.some(item => item.discount_percent < 0 || item.discount_percent > 100)) return setModalError('rateItemError', 'CAT discounts must be between 0% and 100%.');
     const payload = {
+        base_rate_id: itemId || null,
         rate_card_id: selectedRateCardId, source_language: nullable('ri-source'),
         target_language: nullable('ri-target'), service_type: value('ri-service'),
         specialization_id: nullable('ri-specialization'), unit: value('ri-unit'),
-        cat_band: nullable('ri-band'), rate,
+        base_rate: rate,
         minimum_fee: value('ri-minimum') === '' ? null : Number(value('ri-minimum')),
         notes: nullable('ri-notes'),
+        cat_discounts: ['Source words', 'Target words'].includes(value('ri-unit')) ? discounts : [],
     };
-    const { error } = itemId
-        ? await _sb.from('client_rate_items').update(payload).eq('id', itemId)
-        : await _sb.from('client_rate_items').insert(payload);
+    const { error } = await _sb.rpc('save_client_rate_card_item', { p_payload: payload });
     if (error) return setModalError('rateItemError', error.message);
     closeModal('rateItemModal');
     await loadRateItems();
-    setSaveStatus('Rate saved ✓');
+    setSaveStatus('Base rate saved ✓');
 }
 
 async function loadAccountData() {
@@ -491,7 +536,7 @@ async function loadRateItems() {
         renderRateItems();
         return;
     }
-    const { data, error } = await _sb.from('client_rate_items').select('*').eq('rate_card_id', selectedRateCardId).order('service_type');
+    const { data, error } = await _sb.from('client_rate_items').select('*').eq('rate_card_id', selectedRateCardId).order('service_type').order('created_at');
     if (error) return showError(error.message);
     rateItems = data || [];
     renderRateItems();
@@ -516,6 +561,8 @@ async function loadClient() {
 document.querySelectorAll('.record-tab').forEach(tab => tab.addEventListener('click', () => switchPane(tab.dataset.tab)));
 document.getElementById('c-code').addEventListener('input', event => { event.target.value = normalizedCode(event.target.value); });
 document.getElementById('a-code').addEventListener('input', event => { event.target.value = normalizedCode(event.target.value); });
+document.getElementById('ri-unit').addEventListener('change', toggleClientCatDiscounts);
+document.getElementById('ri-rate').addEventListener('input', calculateClientCatRates);
 
 (async () => {
     const user = await requireAuth();
