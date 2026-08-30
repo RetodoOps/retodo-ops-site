@@ -367,9 +367,17 @@ show original currency and converted EUR values.
 - A Resource cannot use `Assignable`, `Proven` or `Preferred` without an email
   address. This is enforced when the Resource profile is saved and again by the
   database; PO issue is only a final defensive check.
+- Direct Job assignment uses only the unified readiness definition: lifecycle
+  `Active`, Resource status `Assignable` / `Proven` / `Preferred`, and a saved
+  email address. Legacy eligibility, classification, assignment approval and
+  compliance fields do not trigger an Administrator override.
 - A new Job Supplier CAT grid inherits quantities from matching Project CAT
   bands. Job quantities remain editable, and individual Supplier rows may be
   removed without changing the Project financial analysis.
+- The Job financial summary calculates Client value from the matching Project
+  CAT price rows and the Job's editable quantities, then shows Supplier cost,
+  Profit and Profit margin. A margin is not shown when the Client and Supplier
+  currencies differ until a currency-conversion model is configured.
 
 ## Navigation and readability
 
