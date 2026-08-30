@@ -339,6 +339,21 @@ show original currency and converted EUR values.
 - Freelancer: own profile, offers, assigned Jobs, files, POs, invoices and
   payments only.
 
+## Editable work records and Supplier PO versions
+
+- `project_number` and `job_number` are permanent technical references. The
+  Project display name and every operational Project/Job field are edited
+  directly in their Overview forms and committed with **Save**.
+- A Supplier rate card stores sets of Source and Target languages and covers
+  their configured cross-product. Existing one-pair cards are migrated as
+  one-element sets.
+- Changing unaccepted Job terms withdraws the active Draft/Sent Offer without
+  deleting its history. A newly matching Approved Supplier rate is required
+  before an assigned Job can save changed commercial terms.
+- PO-facing Job changes update an unissued Draft PO. If the PO is already
+  Issued or Acknowledged, the system creates the next immutable PO version and
+  snapshots both the Job facts and all price lines.
+
 MFA and sensitive-action reauthentication are deferred. Sessions must persist
 reliably. Backups run daily. Direct AI integration is deferred until the
 operational modules are tested and working.

@@ -33,7 +33,11 @@ during the module review.
 10. Run `tms/migrations/007_specializations_and_resource_rates.sql` once.
 11. Run `tms/migrations/008_resource_reference_data_and_cat_rates.sql` once.
 12. Run `tms/migrations/009_project_financials_and_cat_grid.sql` once.
-13. Commit/push the updated repository files so Netlify deploys them.
+13. Run `tms/migrations/010_unified_resource_status_and_tests.sql` once.
+14. Run `tms/migrations/011_client_rate_cards_and_simplified_project_grid.sql` once.
+15. Run `tms/migrations/012_resource_selection_and_editable_capabilities.sql` once.
+16. Run `tms/migrations/013_multilanguage_rates_editable_work_and_po_versions.sql` once.
+17. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -145,6 +149,13 @@ during the module review.
     refresh and confirm both changes persist. Remove a language pair and a
     Service and confirm their affected current rate cards disappear while old
     Job, Offer and Supplier PO snapshots remain unchanged.
+34. Add English (UK) → Swedish and English (US) → Swedish to one Resource.
+    Create one Approved Supplier rate card with both Source languages and
+    Swedish as Target. Confirm both corresponding Jobs find the same card.
+    Edit Project and Job operational fields directly and save them. With a
+    Draft PO, confirm its production line refreshes. Issue the PO, change a
+    PO-facing Job field, save, and confirm the next PO version appears with the
+    earlier version retained.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
