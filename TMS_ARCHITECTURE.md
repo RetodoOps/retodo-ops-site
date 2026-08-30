@@ -55,15 +55,17 @@ Delivered to Client → Approved
 
 The production Job and the invitation to a candidate are separate records.
 
-- Job: Unassigned → In Progress → Delivered → Revision Required → Approved
+- Job: Unassigned → Assigned → In Progress → Delivered → Revision Required → Approved
 - Job outcome: Cancelled
 - Job Offer: Draft → Sent → Viewed → Accepted
 - Job Offer outcomes: Declined, Expired, Withdrawn
 
 Only one active candidate offer (Draft, Sent or Viewed) may exist for a Job at
-a time. Accepting an offer assigns the Resource, moves the Job to In Progress,
-copies the agreed commercial snapshot to the Job and creates a Draft Supplier
-PO. Declined, expired and withdrawn offers remain in the Job history.
+a time. Accepting a sent offer assigns the Resource, moves the Job to Assigned,
+moves an Assign Project to Ongoing, copies the agreed commercial snapshot to
+the Job and immediately issues Supplier PO version 1. The outbound PO email is
+placed in the durable email queue for the configured mail worker. Declined,
+expired and withdrawn offers remain in the Job history.
 
 ### Financial
 
@@ -82,7 +84,9 @@ words, 50–74%, 75–84%, 85–94%, 95–99%, 100% and Repetitions — and quan
 Each Client rate-card group stores one base price; its CAT rows store discount
 percentages and are recalculated automatically. The Project grid inherits its
 Service and Specialization from the Project rather than asking for them again.
-Individual rows may be removed when they do not apply. A rate-card line keeps
+Quantities are typed directly in the grid and the bold Project total at the
+bottom recalculates immediately. Individual rows may be removed when they do
+not apply. A rate-card line keeps
 the exact Client rate-item link plus a Project snapshot, so a later rate-card
 change does not rewrite historical Project pricing.
 
@@ -249,7 +253,9 @@ edited. Removing a capability retires affected current rate cards without
 rewriting historical Offer, Job or Supplier PO snapshots.
 
 Supplier POs are sent through portal and email. Work may begin before portal
-acknowledgement. Draft POs are editable; issued revisions are versioned.
+acknowledgement. There is no intermediate Draft PO after offer acceptance:
+version 1 is issued immediately and any later correction creates a new
+immutable version.
 Discounts, credits, surcharges and minimum-fee adjustments are supported.
 Supplier PO numbers use `PO-YYYY-NNNN`. Only the Administrator may issue or
 revise a PO. Client and Account identity remain hidden from the Resource by
@@ -350,9 +356,18 @@ show original currency and converted EUR values.
 - Changing unaccepted Job terms withdraws the active Draft/Sent Offer without
   deleting its history. A newly matching Approved Supplier rate is required
   before an assigned Job can save changed commercial terms.
-- PO-facing Job changes update an unissued Draft PO. If the PO is already
-  Issued or Acknowledged, the system creates the next immutable PO version and
-  snapshots both the Job facts and all price lines.
+- Offer preparation records per-band Supplier CAT quantities and amounts from
+  the selected approved rate card. These rows become the issued PO lines.
+- PO-facing Job changes create the next immutable PO version and snapshot both
+  the Job facts and all price lines.
+
+## Navigation and readability
+
+Authenticated operational screens share a top Project/Job quick search. Empty
+search shows the eight most recently visited records; text search covers names,
+numbers, references, workflow status, service and language direction. Keyboard
+shortcuts `/` and `Ctrl/Cmd+K` focus it. Forms and data tables use higher-
+contrast labels, larger controls, clearer focus states and stronger totals.
 
 MFA and sensitive-action reauthentication are deferred. Sessions must persist
 reliably. Backups run daily. Direct AI integration is deferred until the

@@ -37,7 +37,8 @@ during the module review.
 14. Run `tms/migrations/011_client_rate_cards_and_simplified_project_grid.sql` once.
 15. Run `tms/migrations/012_resource_selection_and_editable_capabilities.sql` once.
 16. Run `tms/migrations/013_multilanguage_rates_editable_work_and_po_versions.sql` once.
-17. Commit/push the updated repository files so Netlify deploys them.
+17. Run `tms/migrations/014_cat_quantities_assignment_and_quick_navigation.sql` once.
+18. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -69,16 +70,17 @@ during the module review.
 12. Create an unassigned Job. Confirm it opens in the separate Job workspace
     and does not require a Resource at creation.
 13. Create a Draft Job Offer to an Assignable Resource, mark it sent and record
-    acceptance. Confirm the Resource is assigned, the Job moves to In Progress,
-    the supplier amount rolls into Project expense/margin and a Draft Supplier
-    PO with a `PO-YYYY-NNNN` number is created.
+    acceptance. Confirm the Resource is assigned, the Job moves to Assigned,
+    the Project moves from Assign to Ongoing, the supplier amount rolls into
+    Project expense/margin and Supplier PO version 1 is immediately Issued with
+    a `PO-YYYY-NNNN` number. Confirm an outbound email queue record is created.
 14. Confirm a second active offer is blocked. Decline or withdraw the first
     offer and confirm a new candidate may then be selected. Confirm an
     Restricted Resource cannot receive an offer without an Administrator
     override and mandatory reason.
-15. Edit the Draft PO, including a discount or surcharge, and confirm totals
-    recalculate. Issue it as Administrator, confirm version 1 is locked, then
-    create a revision with a mandatory reason and confirm version 2 is retained.
+15. Open the issued PO, create an Administrator revision with a mandatory
+    reason, including a discount or surcharge, and confirm version 1 remains
+    locked while version 2 and its recalculated totals are retained.
 16. Confirm Client/Account identity is absent from the PO and offer by default.
     Confirm only the Administrator may enable disclosure.
 17. Open **External Resources**, combine source, target and specialization
@@ -122,10 +124,11 @@ during the module review.
     Resource's recorded language pairs, enter one base price and CAT discount
     percentages, and confirm the calculated CAT-band rates are shown beneath
     the base row after saving. Confirm Valid from / Valid to are not requested.
-28. Select the approved base rate in Job Overview, accept the Offer and open
-    the Supplier PO. Confirm its production line shows `Resource base rate` as
-    the rate source, while additional manual or adjustment lines are labelled
-    separately.
+28. Select the approved base rate in Job Overview and confirm all Supplier CAT
+    bands appear underneath. Enter a separate quantity in each used band and
+    confirm its amount and the bold Supplier total recalculate. Accept the Offer
+    and confirm these bands become the issued Supplier PO lines with their rate
+    provenance retained.
 29. In a Client profile, add one base rate and CAT discount percentages. Confirm
     the calculated CAT rates appear beneath the base row and no validity dates
     are requested. Open a Project and confirm the former Commercial tab is named
@@ -153,9 +156,16 @@ during the module review.
     Create one Approved Supplier rate card with both Source languages and
     Swedish as Target. Confirm both corresponding Jobs find the same card.
     Edit Project and Job operational fields directly and save them. With a
-    Draft PO, confirm its production line refreshes. Issue the PO, change a
     PO-facing Job field, save, and confirm the next PO version appears with the
     earlier version retained.
+35. In Project Financials, type quantities directly into several CAT rows
+    without opening the financial-line modal. Confirm line amounts update while
+    typing, the bold Project CAT total remains at the bottom, and Save persists
+    every changed quantity.
+36. Use the top quick search to open a Project and a Job. Focus it again and
+    confirm both appear under Recently visited; search by number/name and test
+    `/` and `Ctrl/Cmd+K`. Confirm labels, fields, focus outlines, tables and
+    totals remain clearly readable on desktop and narrow screens.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial

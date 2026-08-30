@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=015">
 </head>
 <body>
 <div class="app">
@@ -44,7 +44,7 @@
           <div class="section-title">Production task</div>
           <div class="form-grid form-grid-3">
             <div class="field"><label>Job number</label><input id="j-number" readonly></div>
-            <div class="field"><label>Status</label><select id="j-status"><option>Unassigned</option><option>In Progress</option><option>Delivered</option><option>Revision Required</option><option>Approved</option><option>Cancelled</option></select></div>
+            <div class="field"><label>Status</label><select id="j-status"><option>Unassigned</option><option>Assigned</option><option>In Progress</option><option>Delivered</option><option>Revision Required</option><option>Approved</option><option>Cancelled</option></select></div>
             <div class="field"><label>Resource deadline date</label><input id="j-deadline-date" type="date"></div>
             <div class="field"><label>Resource deadline time</label><input id="j-deadline-time" type="time" step="60"></div>
             <div class="field"><label>Service</label><select id="j-service"><option>Translation</option><option>MTPE</option><option>Proofreading</option><option>Independent Review</option><option>LQA</option><option>Terminology</option><option>DTP</option><option>Transcription</option><option>Project Management</option><option>Other</option></select></div>
@@ -59,8 +59,14 @@
             <div class="field"><label>Accepted supplier rate</label><input id="j-rate" readonly></div>
             <div class="field"><label>Supplier amount</label><input id="j-amount" readonly></div>
             <div class="field inline-check"><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
-            <div class="field field-full"><label>Internal instructions / notes</label><textarea id="j-notes"></textarea><small class="field-help">Saving PO-facing changes refreshes a Draft PO or creates a new version of an Issued PO automatically.</small></div>
+            <div class="field field-full"><label>Internal instructions / notes</label><textarea id="j-notes"></textarea><small class="field-help">Saving PO-facing changes creates the next version of an Issued PO automatically.</small></div>
           </div>
+        </div>
+        <div id="j-cat-card" class="section-card table-card hidden">
+          <div class="section-title">Supplier CAT analysis</div>
+          <p class="muted">Enter the quantity for each CAT band. Prices come from the selected Approved Supplier rate card.</p>
+          <table class="module-table cat-entry-table"><thead><tr><th>CAT band</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody id="j-cat-rows"></tbody></table>
+          <div class="cat-grid-total"><span>Supplier total</span><strong id="j-cat-total">0.00</strong></div>
         </div>
       </section>
 
@@ -70,7 +76,7 @@
       </section>
 
       <section class="record-pane" id="pane-po">
-        <div id="poEmpty" class="section-card"><div class="empty-compact">A Draft Supplier PO will be created automatically when a Job Offer is accepted.</div></div>
+        <div id="poEmpty" class="section-card"><div class="empty-compact">The Supplier PO is issued automatically when a sent Job Offer is accepted.</div></div>
         <div id="poWorkspace" class="hidden">
           <div class="pane-toolbar"><div><h2 id="poTitle">Supplier PO</h2><p id="poMeta"></p></div><div class="header-actions"><button class="btn-secondary" onclick="printPO()">Print / Save PDF</button><button id="savePoBtn" class="btn-secondary" onclick="savePO()">Save Draft</button><button id="issuePoBtn" class="btn-primary" onclick="issuePO()">Issue PO</button></div></div>
           <div class="section-card table-card"><table class="module-table po-lines-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Rate source</th><th>Adjustment</th><th>Amount</th><th></th></tr></thead><tbody id="poLinesTbody"></tbody></table><button class="add-line-btn" onclick="addPOLine()">+ Add line</button></div>
@@ -105,12 +111,13 @@
       <div class="field field-full"><label>Message / instructions</label><textarea id="o-message"></textarea></div>
       <div class="field field-full"><label class="checkbox-row"><input id="o-disclose" type="checkbox"> Disclose Client/Account identity to the Resource (Administrator only)</label></div>
     </div></div>
+    <div id="o-cat-card" class="section-card table-card hidden"><div class="section-title">Supplier CAT analysis</div><table class="module-table cat-entry-table"><thead><tr><th>CAT band</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th></tr></thead><tbody id="o-cat-rows"></tbody></table><div class="cat-grid-total"><span>Supplier total</span><strong id="o-cat-total">0.00</strong></div></div>
     <p id="offerError" class="error-msg hidden"></p>
   </div>
   <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('offerModal')">Cancel</button><button class="btn-primary" onclick="createOffer()">Create Draft Offer</button></div>
 </div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=014"></script><script src="auth.js?v=014"></script><script src="reference-data.js?v=014"></script><script src="job.js?v=014"></script>
+<script src="config.js?v=015"></script><script src="auth.js?v=015"></script><script src="reference-data.js?v=015"></script><script src="quick-nav.js?v=015"></script><script src="job.js?v=015"></script>
 </body>
 </html>
