@@ -381,7 +381,7 @@ function renderRateItems() {
     });
     body.innerHTML = bases.map(base => {
         const baseRow = `<tr class="clickable-row rate-base-row" data-id="${base.id}">
-            <td>${escapeHtml(base.source_language || 'Any')} → ${escapeHtml(base.target_language || 'Any')}</td>
+            <td>${escapeHtml(clientRateLanguages(base, 'source').join(', ') || 'Any')} → ${escapeHtml(clientRateLanguages(base, 'target').join(', ') || 'Any')}</td>
             <td>${escapeHtml(base.service_type)}<div class="customer-sub">${escapeHtml(specializationById(base.specialization_id)?.name || 'Any specialization')}</div></td>
             <td>${escapeHtml(base.unit)}<div class="customer-sub">Base price / New words</div></td><td>—</td>
             <td class="number-cell"><strong>${Number(base.rate).toFixed(4)} ${escapeHtml(currency)}</strong></td><td class="number-cell">${base.minimum_fee == null ? '—' : `${Number(base.minimum_fee).toFixed(2)} ${escapeHtml(currency)}`}</td>
@@ -421,13 +421,33 @@ function specializationOptions(selected = '') {
     ).join('');
 }
 
+function clientRateLanguages(rate, side) {
+    const list = rate?.[`${side}_languages`];
+    if (Array.isArray(list) && list.length) return list;
+    const scalar = rate?.[`${side}_language`];
+    return scalar ? [scalar] : [];
+}
+
+function selectedClientRateLanguages(containerId) {
+    return [...document.querySelectorAll(`#${containerId} input:checked`)].map(input => input.value);
+}
+
+function renderClientRateLanguageOptions(item = null) {
+    const selectedSources = new Set(clientRateLanguages(item, 'source'));
+    const selectedTargets = new Set(clientRateLanguages(item, 'target'));
+    const rows = selected => TMS_REF.languages.map(language =>
+        `<label class="checkbox-row"><input type="checkbox" value="${escapeHtml(language)}" ${selected.has(language) ? 'checked' : ''}>${escapeHtml(language)}</label>`
+    ).join('');
+    document.getElementById('ri-sources').innerHTML = rows(selectedSources);
+    document.getElementById('ri-targets').innerHTML = rows(selectedTargets);
+}
+
 function openRateItemModal(itemId = null) {
     if (!selectedRateCardId) return;
     const item = rateItems.find(row => row.id === itemId && !row.base_rate_id);
     document.getElementById('rateItemModalTitle').textContent = item ? 'Edit base rate' : 'Add base rate';
     document.getElementById('ri-id').value = item?.id || '';
-    document.getElementById('ri-source').value = item?.source_language || '';
-    document.getElementById('ri-target').value = item?.target_language || '';
+    renderClientRateLanguageOptions(item);
     document.getElementById('ri-service').value = item?.service_type || 'Translation';
     document.getElementById('ri-specialization').innerHTML = specializationOptions(item?.specialization_id || '');
     document.getElementById('ri-unit').value = item?.unit || 'Source words';
@@ -470,16 +490,16 @@ async function saveRateItem() {
     const itemId = value('ri-id');
     const rate = Number(value('ri-rate'));
     if (value('ri-rate') === '' || Number.isNaN(rate) || rate < 0) return setModalError('rateItemError', 'A valid non-negative rate is required.');
-    if (value('ri-source') && !TMS_REF.languages.includes(value('ri-source'))) return setModalError('rateItemError', 'Select a Source language from the shared language list.');
-    if (value('ri-target') && !TMS_REF.languages.includes(value('ri-target'))) return setModalError('rateItemError', 'Select a Target language from the shared language list.');
+    const sources = selectedClientRateLanguages('ri-sources');
+    const targets = selectedClientRateLanguages('ri-targets');
     const discounts = [...document.querySelectorAll('#clientCatDiscountRows .client-cat-discount')]
         .filter(input => input.value !== '')
         .map(input => ({ cat_band: input.dataset.band, discount_percent: Number(input.value) }));
     if (discounts.some(item => item.discount_percent < 0 || item.discount_percent > 100)) return setModalError('rateItemError', 'CAT discounts must be between 0% and 100%.');
     const payload = {
         base_rate_id: itemId || null,
-        rate_card_id: selectedRateCardId, source_language: nullable('ri-source'),
-        target_language: nullable('ri-target'), service_type: value('ri-service'),
+        rate_card_id: selectedRateCardId, source_languages: sources,
+        target_languages: targets, service_type: value('ri-service'),
         specialization_id: nullable('ri-specialization'), unit: value('ri-unit'),
         base_rate: rate,
         minimum_fee: value('ri-minimum') === '' ? null : Number(value('ri-minimum')),

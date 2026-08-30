@@ -39,6 +39,7 @@ during the module review.
 16. Run `tms/migrations/013_multilanguage_rates_editable_work_and_po_versions.sql` once.
 17. Run `tms/migrations/014_cat_quantities_assignment_and_quick_navigation.sql` once.
 18. Run `tms/migrations/015_direct_po_assignment_and_financial_grid_fix.sql` once.
+19. Run `tms/migrations/016_multilanguage_client_rate_cards.sql` once.
 19. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
@@ -171,6 +172,11 @@ during the module review.
     price update, and the value persists after refresh. Select a non-matching
     Client rate card and confirm the mismatch is reported instead of silently
     creating zero-price rows.
+38. Edit a Client base rate and select several Source and Target languages.
+    Confirm the same base/CAT prices can be loaded by Projects for every selected
+    language combination. Leave a language side empty and confirm it behaves as
+    Any language. Existing Project price snapshots must remain unchanged until
+    their CAT grid is explicitly reloaded.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial

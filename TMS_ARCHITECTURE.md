@@ -354,6 +354,10 @@ show original currency and converted EUR values.
 - A Supplier rate card stores sets of Source and Target languages and covers
   their configured cross-product. Existing one-pair cards are migrated as
   one-element sets.
+- A Client base rate uses the same multi-language model. Empty Source or Target
+  sets mean Any language; otherwise the rate covers the cross-product of all
+  selected Source and Target languages. Project CAT grids link only to a real
+  base row matching the Project service, specialization, unit and direction.
 - A newly matching Approved Supplier rate is required before an assigned Job
   can save changed commercial terms.
 - Assignment records per-band Supplier CAT quantities and amounts from the
