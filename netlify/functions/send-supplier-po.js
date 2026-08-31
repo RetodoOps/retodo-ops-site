@@ -57,7 +57,9 @@ async function gmailAccessToken() {
   });
   const data = await response.json();
   if (!response.ok || !data.access_token) {
-    throw new Error(data.error_description || data.error || 'Google OAuth token exchange failed');
+    const code = data.error || `HTTP ${response.status}`;
+    const description = data.error_description || response.statusText || 'Token exchange failed';
+    throw new Error(`${code}: ${description}`);
   }
   return data.access_token;
 }
@@ -137,12 +139,16 @@ exports.handler = async event => {
   const bearer = event.headers.authorization || event.headers.Authorization;
   if (!bearer?.startsWith('Bearer ')) return jsonResponse(401, {error: 'Authentication required'});
   let emailRecordId;
+  let stage = 'request validation';
   try {
     const body = JSON.parse(event.body || '{}');
     if (!body.purchase_order_id) return jsonResponse(400, {error: 'purchase_order_id is required'});
+    stage = 'PO preparation';
     const po = await rpc('prepare_supplier_po_email', {p_po_id: body.purchase_order_id}, bearer);
     emailRecordId = po.email_record_id;
+    stage = 'Google OAuth';
     const accessToken = await gmailAccessToken();
+    stage = 'Gmail delivery';
     const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',
       headers: {Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json'},
@@ -150,8 +156,10 @@ exports.handler = async event => {
     });
     const gmail = await gmailResponse.json();
     if (!gmailResponse.ok || !gmail.id) {
-      throw new Error(gmail.error?.message || 'Gmail did not accept the message');
+      const code = gmail.error?.status || `HTTP ${gmailResponse.status}`;
+      throw new Error(`${code}: ${gmail.error?.message || 'Gmail did not accept the message'}`);
     }
+    stage = 'delivery audit';
     await rpc('complete_supplier_po_email', {
       p_email_record_id: emailRecordId,
       p_gmail_message_id: gmail.id,
@@ -159,7 +167,9 @@ exports.handler = async event => {
     }, bearer);
     return jsonResponse(200, {ok: true, message_id: gmail.id, thread_id: gmail.threadId || null});
   } catch (error) {
-    const message = String(error?.message || error || 'Unknown PO email error').slice(0, 1000);
+    const detail = String(error?.message || error || 'Unknown PO email error');
+    const message = `${stage}: ${detail}`.slice(0, 1000);
+    console.error('Supplier PO email failed', {stage, detail});
     if (emailRecordId) {
       try {
         await rpc('fail_supplier_po_email', {
@@ -168,6 +178,6 @@ exports.handler = async event => {
         }, bearer);
       } catch { /* Preserve the original delivery error. */ }
     }
-    return jsonResponse(500, {ok: false, error: message});
+    return jsonResponse(500, {ok: false, stage, error: message});
   }
 };
