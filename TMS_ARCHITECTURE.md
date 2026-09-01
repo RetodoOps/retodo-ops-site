@@ -91,6 +91,13 @@ not apply. A rate-card line keeps
 the exact Client rate-item link plus a Project snapshot, so a later rate-card
 change does not rewrite historical Project pricing.
 
+Detailed Project financial rows use the same inline table pattern as Supplier
+PO lines: Description, Quantity, Unit, Unit price, Rate source, Adjustment and
+Amount. Manual rows are added directly in the table; linked Client/Account rate
+rows retain their provenance and allow quantity-only edits. Discount, Credit,
+Surcharge and Minimum fee adjustments are explicit rather than encoded as
+unlabelled positive or negative values.
+
 ### Post-delivery issue
 
 Issue Reported → Investigating → Correction Requested → Corrected → Resolved
@@ -318,10 +325,13 @@ Implementation boundary:
 
 Gmail remains the mailbox for `ops@retodo-ops.com`. Supplier POs are sent by an
 authenticated Netlify server function using the narrow `gmail.send` scope;
-OAuth credentials and the refresh token exist only as protected Netlify
-environment variables. Delivery attempts are recorded as Sent or Failed with
-recipient, timestamp and Gmail message/thread IDs. Incoming emails are linked
-manually at first.
+OAuth credentials and the refresh token exist only in the Netlify Functions
+runtime configuration and never in browser code. Every delivery attempt is
+linked to one immutable PO version and recorded as Sent or Failed with
+recipient, timestamp and Gmail message/thread IDs. Email subjects include the
+PO number and explicit version label (`V1`, `V2`, `V3`, and so on). Re-sending
+one version creates a separate audit attempt and never replaces or rolls back a
+newer PO version. Incoming emails are linked manually at first.
 
 Operational reminders appear in the dashboard and selected reminders also use
 email. No email reminder is sent for Quote expiring, Missing PO, Ready to

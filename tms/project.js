@@ -3,6 +3,7 @@ let specializations = [], projectSpecializations = [], scopeLines = [], jobs = [
 let accountSpecializationIds = [];
 let resources = [], internalResources = [], issues = [], files = [], purchaseOrders = [];
 let clientRateCards = [];
+let deletedScopeIds = [];
 const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const val = id => document.getElementById(id).value.trim();
 const nullable = id => val(id) || null;
@@ -72,7 +73,7 @@ async function saveProject(){
   const payload={display_name:val('g-name'),project_date:val('g-date'),client_id:val('g-client'),source_language:val('g-source'),target_language:val('g-target'),account_id:nullable('g-account'),contact_id:nullable('g-contact'),billing_entity_id:nullable('g-billing'),client_reference:nullable('g-client-ref'),email_reference:nullable('g-email-ref'),deadline:combineDateTime('g-deadline-date','g-deadline-time'),status:val('g-status'),waiting_reason:nullable('g-wait-reason'),waiting_follow_up_at:waitingFollow,project_manager_resource_id:nullable('g-pm'),qa_specialist_resource_id:nullable('g-qa'),project_coordinator_resource_id:nullable('g-coordinator'),project_type:val('g-type'),production_mode:val('g-production'),cat_system:nullable('g-cat'),client_instructions:nullable('g-instructions'),po_number:nullable('g-po'),missing_po:document.getElementById('g-missingpo').checked,place_of_delivery:nullable('g-delivery'),accounting_comment:nullable('g-comment'),upcoming:document.getElementById('g-upcoming').checked,urgent:document.getElementById('g-urgent').checked,currency:val('c-currency'),price_source:priceSource||null,price_override_reason:nullable('c-price-reason')};
   if(!scopeLines.length)payload.price=Number(val('c-price')||0);
   const {error}=await _sb.from('projects').update(payload).eq('id',projectId);if(error)return showError(error.message);
-  const quantityError=await saveInlineScopeQuantities();if(quantityError)return showError(`Project saved, but CAT quantities failed: ${quantityError}`);
+  const financialError=await saveProjectFinancialLines();if(financialError)return showError(`Project saved, but financial lines failed: ${financialError}`);
   const pricingContextChanged=project.client_id!==payload.client_id||project.account_id!==payload.account_id;
   if(pricingContextChanged&&scopeLines.some(line=>line.client_rate_item_id)){const detached=await _sb.from('scope_items').update({client_rate_item_id:null,rate_source:'Manual',override_reason:'Client/Account changed; retained price snapshot for review'}).eq('project_id',projectId).not('client_rate_item_id','is',null);if(detached.error)return showError(`Project saved, but linked financial lines need review: ${detached.error.message}`)}
   const currentManual=projectSpecializations.filter(link=>link.source==='Manual').map(link=>link.specialization_id),toDelete=currentManual.filter(id=>!checkedSet.has(id));
@@ -83,28 +84,50 @@ async function saveProject(){
   await loadProject();setStatus('Saved ✓');
 }
 
-function scopeAmount(line,quantity=Number(line.quantity||0)){return roundMoney(line.price_unit==='Fixed fee'?Number(line.unit_price||0):quantity*Number(line.unit_price||0))}
-function updateInlineScopeTotal(){
-  const quantities=new Map([...document.querySelectorAll('.scope-inline-quantity')].map(input=>[input.dataset.id,Number(input.value||0)]));
+function scopeAmount(line,quantity=Number(line.quantity||0)){
+  const amount=line.price_unit==='Fixed fee'?Number(line.unit_price||0):quantity*Number(line.unit_price||0);
+  return roundMoney(['Discount','Credit'].includes(line.adjustment_type)?-Math.abs(amount):Math.abs(amount));
+}
+function scopeUnitOptions(selected='Source words'){return ['Source words','Target words','Hours','Pages','Minutes','Fixed fee'].map(unit=>`<option ${unit===selected?'selected':''}>${unit}</option>`).join('')}
+function scopeSourceOptions(selected='Manual'){return ['Account','Client','Manual','Fixed'].map(source=>`<option ${source===selected?'selected':''}>${source}</option>`).join('')}
+function scopeAdjustmentOptions(selected=''){return ['','Discount','Credit','Surcharge','Minimum fee'].map(adjustment=>`<option value="${adjustment}" ${adjustment===selected?'selected':''}>${adjustment||'None'}</option>`).join('')}
+function scopeDescription(line={}){return line.description||[line.service_type,line.cat_band].filter(Boolean).join(' · ')||''}
+function projectFinancialRow(line={},isNew=false){
+  const linked=!!line.client_rate_item_id,description=scopeDescription(line),specializationId=line.specialization_id||projectSpecializations[0]?.specialization_id||'';
+  return `<tr class="project-price-row" data-id="${line.id||''}" data-new="${isNew?'true':'false'}" data-linked="${linked?'true':'false'}" data-rate-id="${line.client_rate_item_id||''}" data-service="${esc(line.service_type||project.project_type||'Translation')}" data-specialization="${specializationId}" data-cat-band="${esc(line.cat_band||'')}" data-sort="${Number(line.sort_order||0)}"><td><input class="scope-description" value="${esc(description)}" placeholder="Line description" ${linked?'disabled':''}></td><td><input class="scope-quantity" type="number" min="0" step="0.001" value="${Number(line.quantity||0)}"></td><td><select class="scope-unit" ${linked?'disabled':''}>${scopeUnitOptions(line.price_unit||'Source words')}</select></td><td><input class="scope-unit-price" type="number" min="0" step="0.0001" value="${Number(line.unit_price||0)}" ${linked?'disabled':''}></td><td><select class="scope-source" ${linked?'disabled':''}>${scopeSourceOptions(line.rate_source||'Manual')}</select><input class="scope-reason" value="${esc(line.override_reason||'')}" placeholder="Reason" ${linked?'disabled':''}>${linked?'<small class="customer-sub">Linked rate-card row</small>':''}</td><td><select class="scope-adjustment" ${linked?'disabled':''}>${scopeAdjustmentOptions(line.adjustment_type||'')}</select></td><td><input class="scope-amount" type="number" step="0.01" value="${scopeAmount(line).toFixed(2)}" readonly></td><td><button type="button" class="del-line-btn" onclick="removeProjectFinancialLine(this)" title="Remove line">×</button></td></tr>`;
+}
+function wireProjectFinancialRow(row){row.querySelectorAll('input,select').forEach(control=>control.addEventListener('input',updateProjectFinancialTotals))}
+function updateProjectFinancialTotals(){
   let total=0;
-  scopeLines.forEach(line=>{const amount=scopeAmount(line,quantities.has(line.id)?quantities.get(line.id):Number(line.quantity||0));total+=amount;const cell=document.querySelector(`[data-scope-amount="${line.id}"]`);if(cell)cell.textContent=money(amount)});
+  document.querySelectorAll('.project-price-row').forEach(row=>{
+    const quantity=Number(row.querySelector('.scope-quantity').value||0),unitPrice=Number(row.querySelector('.scope-unit-price').value||0),unit=row.querySelector('.scope-unit').value,adjustment=row.querySelector('.scope-adjustment').value;
+    const raw=unit==='Fixed fee'?unitPrice:quantity*unitPrice,amount=roundMoney(['Discount','Credit'].includes(adjustment)?-Math.abs(raw):Math.abs(raw));
+    row.querySelector('.scope-amount').value=amount.toFixed(2);total+=amount;
+  });
   const currency=val('c-currency')||project?.currency||'EUR',totalCell=document.getElementById('scopeInlineTotal');
   if(totalCell)totalCell.textContent=money(total,currency);
-  document.getElementById('c-price').value=total.toFixed(2);
-  document.getElementById('sum-price').textContent=money(total,currency);
+  document.getElementById('c-price').value=total.toFixed(2);document.getElementById('sum-price').textContent=money(total,currency);
   const margin=total-Number(project?.expense||0);document.getElementById('sum-margin').textContent=money(margin,currency);document.getElementById('sum-margin-pct').textContent=`${total?((margin/total)*100).toFixed(2):'0.00'}%`;
 }
-async function saveInlineScopeQuantities(){
-  const changed=[...document.querySelectorAll('.scope-inline-quantity')].filter(input=>Number(input.value||0)!==Number(scopeLines.find(line=>line.id===input.dataset.id)?.quantity||0));
-  for(const input of changed){const {error}=await _sb.from('scope_items').update({quantity:Number(input.value||0)}).eq('id',input.dataset.id).eq('project_id',projectId);if(error)return error.message}
-  return null;
+function addProjectFinancialLine(){
+  const body=document.getElementById('scopeTbody'),empty=body.querySelector('.state-row');if(empty)empty.remove();
+  const maxSort=Math.max(0,...[...body.querySelectorAll('.project-price-row')].map(row=>Number(row.dataset.sort||0)));
+  const totalRow=body.querySelector('.scope-total-row');totalRow.insertAdjacentHTML('beforebegin',projectFinancialRow({quantity:0,price_unit:'Source words',unit_price:0,rate_source:'Manual',sort_order:maxSort+10},true));
+  const row=totalRow.previousElementSibling;wireProjectFinancialRow(row);document.getElementById('c-price').readOnly=true;row.querySelector('.scope-description').focus();updateProjectFinancialTotals();
+}
+function removeProjectFinancialLine(button){
+  const row=button.closest('.project-price-row'),id=row.dataset.id;if(id&&!deletedScopeIds.includes(id))deletedScopeIds.push(id);row.remove();
+  const body=document.getElementById('scopeTbody');if(!body.querySelector('.project-price-row'))body.querySelector('.scope-total-row').insertAdjacentHTML('beforebegin','<tr class="state-row"><td colspan="8">No financial lines. Enter a fixed Project price or add a line.</td></tr>');updateProjectFinancialTotals();
+}
+function collectProjectFinancialLines(){return [...document.querySelectorAll('.project-price-row')].map(row=>({id:row.dataset.id||null,description:row.querySelector('.scope-description').value.trim(),service_type:row.dataset.service||project.project_type||'Translation',specialization_id:row.dataset.specialization||projectSpecializations[0]?.specialization_id||null,cat_band:row.dataset.catBand||null,quantity:row.querySelector('.scope-quantity').value,price_unit:row.querySelector('.scope-unit').value,unit_price:row.querySelector('.scope-unit-price').value,rate_source:row.querySelector('.scope-source').value,adjustment_type:row.querySelector('.scope-adjustment').value||null,override_reason:row.querySelector('.scope-reason').value.trim()||null,client_rate_item_id:row.dataset.rateId||null,sort_order:Number(row.dataset.sort||0)}))}
+async function saveProjectFinancialLines(){
+  const lines=collectProjectFinancialLines();for(const line of lines){if(!line.description)return 'Every financial line requires a description.';if(!line.specialization_id)return 'Every financial line requires a Project specialization.';if(['Manual','Fixed'].includes(line.rate_source)&&!line.override_reason)return `Add a reason for “${line.description}”.`}
+  const {error}=await _sb.rpc('save_project_financial_lines',{p_project_id:projectId,p_lines:lines,p_deleted_ids:deletedScopeIds});if(error)return error.message;deletedScopeIds=[];return null;
 }
 function renderScope(){
-  const body=document.getElementById('scopeTbody');
-  if(!scopeLines.length){body.innerHTML='<tr class="state-row"><td colspan="6">No financial lines. Enter a fixed Project price or load a CAT grid.</td></tr>';return}
-  body.innerHTML=scopeLines.map(line=>`<tr data-id="${line.id}"><td><button type="button" class="table-link scope-edit-link" data-id="${line.id}" title="Edit this financial line">${esc(line.cat_band||line.service_type||'—')}</button></td><td class="number-cell"><input class="scope-inline-quantity inline-number" data-id="${line.id}" type="number" min="0" step="0.001" value="${Number(line.quantity||0)}" aria-label="Quantity for ${esc(line.cat_band||line.service_type||'financial line')}"></td><td>${esc(line.price_unit||'—')}</td><td class="number-cell">${unitMoney(line.unit_price)}</td><td class="number-cell scope-line-amount" data-scope-amount="${line.id}">${money(scopeAmount(line))}</td><td>${esc(line.rate_source||'—')}${line.client_rate_item_id?'<div class="customer-sub">Linked rate-card row</div>':line.override_reason?`<div class="warning-text">${esc(line.override_reason)}</div>`:''}</td></tr>`).join('')+`<tr class="scope-total-row"><td colspan="4">Project CAT total</td><td id="scopeInlineTotal" class="number-cell">${money(scopeLines.reduce((sum,line)=>sum+scopeAmount(line),0))}</td><td><span class="muted">Saved with Project</span></td></tr>`;
-  body.querySelectorAll('.scope-inline-quantity').forEach(input=>input.addEventListener('input',updateInlineScopeTotal));
-  body.querySelectorAll('.scope-edit-link').forEach(button=>button.addEventListener('click',()=>openScopeModal(button.dataset.id)));
+  const body=document.getElementById('scopeTbody'),rows=scopeLines.map(line=>projectFinancialRow(line)).join(''),empty=scopeLines.length?'':'<tr class="state-row"><td colspan="8">No financial lines. Enter a fixed Project price or add a line.</td></tr>';
+  body.innerHTML=rows+empty+`<tr class="scope-total-row"><td colspan="6">Project total</td><td id="scopeInlineTotal" class="number-cell">${money(scopeLines.reduce((sum,line)=>sum+scopeAmount(line),0))}</td><td><span class="muted">Saved with Project</span></td></tr>`;
+  body.querySelectorAll('.project-price-row').forEach(wireProjectFinancialRow);deletedScopeIds=[];updateProjectFinancialTotals();
 }
 function specOptions(selected=''){return '<option value="">Select specialization…</option>'+projectSpecializations.map(link=>{const spec=specializations.find(item=>item.id===link.specialization_id);return spec?`<option value="${spec.id}" ${spec.id===selected?'selected':''}>${esc(spec.name)}</option>`:''}).join('')}
 function openScopeModal(lineId=null){const line=scopeLines.find(row=>row.id===lineId),linked=!!line?.client_rate_item_id;document.getElementById('scopeModalTitle').textContent=line?'Edit financial line':'Add financial line';const fields={'sc-id':line?.id,'sc-rate-id':line?.client_rate_item_id,'sc-service':line?.service_type||project.project_type||'Translation','sc-quantity':line?.quantity??0,'sc-unit':line?.price_unit||'Source words','sc-band':line?.cat_band,'sc-unit-price':line?.unit_price??0,'sc-amount':line?.price??0,'sc-source':line?.rate_source||'Manual','sc-reason':line?.override_reason};Object.entries(fields).forEach(([id,value])=>document.getElementById(id).value=value??'');document.getElementById('sc-specialization').innerHTML=specOptions(line?.specialization_id||'');['sc-service','sc-specialization','sc-unit','sc-band','sc-unit-price','sc-source'].forEach(id=>document.getElementById(id).disabled=linked);document.getElementById('deleteScopeBtn').classList.toggle('hidden',!line);document.getElementById('scopeModal').classList.remove('hidden')}

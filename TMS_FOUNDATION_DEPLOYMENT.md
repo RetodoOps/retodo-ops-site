@@ -59,7 +59,10 @@ during the module review.
 19. Run `tms/migrations/016_multilanguage_client_rate_cards.sql` once.
 20. Run `tms/migrations/017_repair_client_rate_card_base_structure.sql` once.
 21. Run `tms/migrations/018_job_assignment_validation_messages.sql` once.
-19. Commit/push the updated repository files so Netlify deploys them.
+22. Run `tms/migrations/019_remove_legacy_job_eligibility.sql` once.
+23. Run `tms/migrations/020_supplier_po_gmail_delivery.sql` once.
+24. Run `tms/migrations/021_po_version_email_and_project_line_editor.sql` once.
+25. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -207,6 +210,15 @@ during the module review.
     row has a delete action. Issue the PO without an informational confirmation
     dialog; if another readiness rule blocks assignment, confirm the error names
     the exact failing field.
+41. Create Supplier PO version 2, then send it. Confirm the current PO remains
+    Version 2, Version 1 stays in history, the email subject contains `V2`, and
+    the email body/total come from the immutable Version 2 snapshot. Send V2
+    again and confirm it creates another email audit attempt without changing
+    either PO version.
+42. In Project Financials, add a manual line directly in the PO-style table.
+    Confirm Description, Quantity, Unit, Unit price, Rate source, Adjustment and
+    Amount are visible together, adjustments use the correct sign, Save persists
+    the row, and a linked Client/Account row allows quantity-only editing.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial

@@ -68,7 +68,7 @@ function buildMessage(po) {
   const fromEmail = cleanHeader(process.env.GMAIL_FROM_EMAIL || 'ops@retodo-ops.com');
   const fromName = cleanHeader(process.env.GMAIL_FROM_NAME || 'Retodo Ops');
   const recipientEmail = cleanHeader(po.recipient_email);
-  const subject = cleanHeader(po.subject || `${po.po_number} · Supplier purchase order`);
+  const subject = cleanHeader(po.subject || `${po.po_number} · V${po.version} · Supplier Purchase Order`);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
     throw new Error('The assigned Resource email address is invalid');
   }
@@ -84,7 +84,7 @@ function buildMessage(po) {
     <div style="max-width:760px;margin:24px auto;background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden">
       <div style="padding:22px 26px;background:#4c1d95;color:#fff">
         <div style="font-size:13px;opacity:.85">RETODO OPS</div>
-        <h1 style="margin:5px 0 0;font-size:22px">Supplier Purchase Order ${htmlEscape(po.po_number)}</h1>
+        <h1 style="margin:5px 0 0;font-size:22px">Supplier Purchase Order ${htmlEscape(po.po_number)} · V${htmlEscape(po.version)}</h1>
         <div style="margin-top:6px;font-size:13px">Version ${htmlEscape(po.version)} · Issued ${htmlEscape(dateTime(po.issued_at))}</div>
       </div>
       <div style="padding:24px 26px">
