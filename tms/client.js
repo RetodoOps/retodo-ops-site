@@ -588,6 +588,7 @@ document.getElementById('ri-rate').addEventListener('input', calculateClientCatR
     const user = await requireAuth();
     if (!user) return;
     TMS_REF.installDatalists();
+    TMS_REF.populateServiceSelect('ri-service');
     clientId = new URLSearchParams(location.search).get('id');
     if (!clientId) { location.href = 'clients.html'; return; }
     await loadClient();

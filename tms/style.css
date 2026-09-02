@@ -779,6 +779,29 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .po-email-status.email-pending { border-color: #fde68a; background: #fffbeb; }
 .po-email-status.email-pending strong { color: #92400e; }
 
+/* Update 028: denser, visually grouped operational forms. */
+.summary-section-title { display: flex; align-items: baseline; gap: 8px; max-width: 1240px; margin: 2px 0 8px; color: #334155; font-size: 12px; font-weight: 800; letter-spacing: .35px; text-transform: uppercase; }
+.summary-section-title small { color: #64748b; font-size: 11px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.compact-financial-summary { grid-template-columns: repeat(4,minmax(175px,270px)); justify-content: start; max-width: 1240px; gap: 10px; }
+.compact-financial-summary > div { min-height: 76px; border-color: #cbd5e1; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+.project-total-preview > div { border-color: #c4b5fd; background: #faf9ff; }
+.project-total-preview strong { color: #4c1d95; }
+.job-summary { max-width: 1240px; }
+.job-overview-card { max-width: 1320px; }
+.job-form-grid { display: grid; grid-template-columns: repeat(4,minmax(190px,280px)); justify-content: start; gap: 12px; }
+.job-form-grid .field,.compact-form-grid .field { margin-bottom: 0; padding: 10px; border: 1px solid #e2e8f0; border-radius: 9px; background: #f8fafc; }
+.job-form-grid .field-full { grid-column: 1 / -1; max-width: 1156px; }
+.job-form-grid .inline-check { margin-top: 0; align-self: stretch; display: flex; align-items: center; }
+.inherited-value { min-height: 41px; display: flex; align-items: center; padding: 9px 12px; border: 1px solid #c4b5fd; border-radius: 7px; background: #f5f3ff; color: #4c1d95; font-size: 14px; font-weight: 750; }
+.job-create-modal { width: 820px; }
+.rate-card-modal { width: 920px; }
+.compact-form-grid { gap: 10px; }
+.compact-form-grid .checkbox-grid { background: white; }
+.field input[readonly] { border-color: #d8dee8; background: #f1f5f9; color: #475569; }
+@media (max-width: 1250px) { .job-form-grid { grid-template-columns: repeat(3,minmax(190px,1fr)); } .job-form-grid .field-full { grid-column: 1 / -1; } }
+@media (max-width: 900px) { .job-form-grid,.compact-financial-summary { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 650px) { .job-form-grid,.compact-financial-summary { grid-template-columns: 1fr; } }
+
 @media (max-width: 760px) {
     .quick-nav { padding: 8px 12px; }
     .quick-nav-results { top: 54px; width: calc(100% - 24px); }

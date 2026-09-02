@@ -503,6 +503,6 @@ async function reloadProjects() {
 (async () => {
     const user = await requireAuth();
     if (!user) return;
-
+    TMS_REF.populateServiceSelect('f-type');
     await reloadProjects();
 })();
