@@ -380,6 +380,9 @@ show original currency and converted EUR values.
   selected approved rate card. These rows become the issued PO lines.
 - PO-facing Job changes create the next immutable PO version and snapshot both
   the Job facts and all price lines.
+- Assignment history includes every immutable PO version as a dated commercial
+  event. The Supplier PO workspace has one consolidated Version history at the
+  bottom; each row shows its PO value and opens a read-only snapshot preview.
 - A Resource cannot use `Assignable`, `Proven` or `Preferred` without an email
   address. This is enforced when the Resource profile is saved and again by the
   database; PO issue is only a final defensive check.
@@ -387,13 +390,16 @@ show original currency and converted EUR values.
   `Active`, Resource status `Assignable` / `Proven` / `Preferred`, and a saved
   email address. Legacy eligibility, classification, assignment approval and
   compliance fields do not trigger an Administrator override.
-- A new Job Supplier CAT grid inherits quantities from matching Project CAT
-  bands. Job quantities remain editable, and individual Supplier rows may be
-  removed without changing the Project financial analysis.
+- A new or reassigned Job Supplier CAT grid inherits quantities from matching
+  Project CAT bands. It is hidden after an active PO exists because later
+  Supplier price changes are made in the versioned PO workspace.
 - The Job financial summary calculates Client value from the matching Project
-  CAT price rows and the Job's editable quantities. Once a Supplier PO exists,
-  its latest immutable version supplies the displayed Supplier cost; changing
-  editable Job terms switches the preview to the unsaved recalculated cost.
+  CAT price rows and the Job's editable quantities. When a Project has one
+  active Job, the Project's full current Client price is authoritative so
+  manual lines and adjustments are reflected in the Job margin. Once a
+  Supplier PO exists, its latest immutable version supplies the displayed
+  Supplier cost; changing editable Job terms switches the preview to the
+  unsaved recalculated cost.
   Profit and Profit margin are shown together. A margin is not shown when the
   Client and Supplier currencies differ until a currency-conversion model is
   configured.

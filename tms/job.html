@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=024">
+  <link rel="stylesheet" href="style.css?v=025">
 </head>
 <body>
 <div class="app">
@@ -89,10 +89,14 @@
           <div class="section-card table-card"><table class="module-table po-lines-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Rate source</th><th>Adjustment</th><th>Amount</th><th></th></tr></thead><tbody id="poLinesTbody"></tbody></table><button class="add-line-btn" onclick="addPOLine()">+ Add line</button></div>
           <div class="po-totals"><div><span>Subtotal</span><strong id="poSubtotal">0.00</strong></div><div><span>Adjustments</span><strong id="poAdjustments">0.00</strong></div><div><span>Total</span><strong id="poTotal">0.00</strong></div></div>
           <div id="revisionReasonWrap" class="section-card hidden"><div class="field"><label>Administrator revision reason *</label><input id="poRevisionReason" placeholder="What changed and why?"></div></div>
-          <div class="section-card"><div class="section-title">Version history</div><div id="poVersions" class="version-list"></div></div>
           <div id="poPrintArea" class="po-document"></div>
         </div>
-        <div id="poHistoryCard" class="section-card hidden"><div class="section-title">PO history for this Job</div><div id="poHistory" class="version-list"></div></div>
+        <div id="poVersionHistoryCard" class="section-card hidden">
+          <div class="section-title">Version history</div>
+          <p class="muted">Select a version to review its immutable lines and PO value.</p>
+          <div id="poVersions" class="version-list"></div>
+          <div id="poVersionPreview" class="po-version-preview hidden"></div>
+        </div>
       </section>
 
       <section class="record-pane" id="pane-delivery">
@@ -104,6 +108,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=019"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=024"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=019"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=025"></script>
 </body>
 </html>

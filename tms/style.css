@@ -643,8 +643,23 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .po-totals > div:last-child { border-left: 1px solid var(--border); padding-left: 22px; }
 .po-totals > div:last-child strong { color: var(--brand-dark); font-size: 18px; }
 .version-list { display: flex; flex-direction: column; gap: 7px; }
-.version-row { display: grid; grid-template-columns: 110px 250px minmax(0,1fr); gap: 12px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; }
+.version-row { display: grid; grid-template-columns: minmax(180px,.8fr) minmax(220px,1fr) minmax(240px,1.2fr); gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 7px; }
 .version-row span { color: var(--text-muted); font-size: 12px; }
+.version-row-button { width: 100%; background: white; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.version-row-button:hover { border-color: #a78bfa; background: #faf9ff; }
+.version-row-button:focus-visible { outline: 3px solid rgba(109,40,217,.22); outline-offset: 2px; }
+.version-row-button.selected { border-color: #7c3aed; background: #f5f3ff; box-shadow: 0 0 0 1px #7c3aed; }
+.version-row-button span strong { color: #2e1065; font-size: 13px; }
+.po-version-preview { margin-top: 16px; overflow-x: auto; border-top: 2px solid #7c3aed; padding-top: 16px; }
+.po-version-preview-head { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 12px; }
+.po-version-preview-head > div { display: flex; flex-direction: column; gap: 3px; }
+.po-version-preview-head > div:last-child { text-align: right; }
+.po-version-preview-head span { color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: .25px; text-transform: uppercase; }
+.po-version-preview-head strong { color: #2e1065; font-size: 16px; }
+.po-version-preview-total { display: flex; justify-content: flex-end; gap: 20px; align-items: baseline; padding: 12px 4px 2px; color: var(--text-muted); }
+.po-version-preview-total strong { color: #2e1065; font-size: 17px; }
+.history-version-row td:first-child { font-weight: 700; color: #4c1d95; }
+@media (max-width: 850px) { .version-row { grid-template-columns: 1fr; gap: 5px; } .po-version-preview-head { align-items: flex-start; flex-direction: column; } .po-version-preview-head > div:last-child { text-align: left; } }
 .po-document {
     background: white; color: #111827; padding: 38px; border: 1px solid var(--border);
     border-radius: 10px; margin-top: 16px;

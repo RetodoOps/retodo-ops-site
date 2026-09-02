@@ -65,6 +65,9 @@ during the module review.
 25. Run `tms/migrations/022_project_profit_and_po_cost_sync.sql` once.
 26. Commit/push the updated repository files so Netlify deploys them.
 
+Update 025 is a front-end history and financial-display update and does not
+require a database migration.
+
 ## Verification
 
 1. Sign in with the administrator account.
@@ -225,6 +228,14 @@ during the module review.
     expense is refreshed, and both the Profit value and Profit margin percentage
     recalculate. Add or remove a Project financial line and confirm Client price,
     Profit and Profit margin update live together at the bottom of the grid.
+44. Create Supplier PO versions 2 and 3. Confirm both appear as dated events in
+    Assignment history. In Supplier PO, confirm there is no separate PO history,
+    the consolidated Version history is at the bottom, every row shows its PO
+    value, and selecting V1/V2/V3 opens the correct immutable lines and total.
+    With one active Job, add or remove a Project financial line and confirm the
+    Job Client value, Profit and Profit margin use the updated Project price.
+    Confirm Supplier CAT analysis is hidden for the assigned Job and reappears
+    only while preparing an initial assignment or reassignment.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
