@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=028">
+  <link rel="stylesheet" href="style.css?v=029">
 </head>
 <body>
 <div class="app">
@@ -55,25 +55,43 @@
           <div><span>Project margin</span><strong id="project-margin">—</strong></div>
         </div>
         <div class="section-card job-overview-card">
-          <div class="section-title">Production task</div>
-          <div class="form-grid job-form-grid">
-            <div class="field"><label>Job number</label><input id="j-number" readonly></div>
-            <div class="field"><label>Status</label><select id="j-status"><option>Unassigned</option><option>Assigned</option><option>In Progress</option><option>Delivered</option><option>Revision Required</option><option>Approved</option><option>Cancelled</option></select></div>
-            <div class="field"><label>Resource deadline date</label><input id="j-deadline-date" type="date"></div>
-            <div class="field"><label>Resource deadline time</label><input id="j-deadline-time" type="time" step="60"></div>
-            <div class="field"><label>Service</label><select id="j-service"></select></div>
-            <div class="field"><label>Source language</label><input id="j-source" list="tms-language-options"></div>
-            <div class="field"><label>Target language</label><input id="j-target" list="tms-language-options"></div>
-            <div class="field"><label>Project specialization</label><input id="j-specialization" type="hidden"><div id="j-specialization-display" class="inherited-value">Inherited from Project</div><small class="field-help">Read-only Project value.</small></div>
-            <div class="field"><label>Quantity</label><input id="j-quantity" type="number" min="0" step="0.001"></div>
-            <div class="field"><label>Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
-            <div class="field"><label>Resource</label><select id="j-candidate"></select><small class="field-help">The selection remains editable. Replacing an assigned Resource cancels its current PO but preserves its complete history. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
-            <div class="field"><label>Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
-            <div class="field"><label>Assignment and PO</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Send PO</button></div>
-            <div class="field"><label>Current supplier rate</label><input id="j-rate" readonly></div>
-            <div class="field"><label>Supplier amount</label><input id="j-amount" readonly></div>
-            <div class="field inline-check"><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
-            <div class="field field-full"><label>Internal instructions / notes</label><textarea id="j-notes"></textarea><small class="field-help">Saving PO-facing changes creates the next version of an Issued PO automatically.</small></div>
+          <div class="section-card-heading"><div><h2>Production task</h2><p>Job scope, schedule and supplier assignment</p></div></div>
+          <div class="job-form-sections">
+            <fieldset class="job-fieldset">
+              <legend>Workflow and deadline</legend>
+              <div class="job-field-grid job-field-grid-4">
+                <div class="field"><label for="j-number">Job number</label><input id="j-number" readonly></div>
+                <div class="field"><label for="j-status">Status</label><select id="j-status"><option>Unassigned</option><option>Assigned</option><option>In Progress</option><option>Delivered</option><option>Revision Required</option><option>Approved</option><option>Cancelled</option></select></div>
+                <div class="field"><label for="j-deadline-date">Resource deadline date</label><input id="j-deadline-date" type="date"></div>
+                <div class="field"><label for="j-deadline-time">Resource deadline time</label><input id="j-deadline-time" type="time" step="60"></div>
+              </div>
+            </fieldset>
+            <fieldset class="job-fieldset">
+              <legend>Scope and language pair</legend>
+              <div class="job-field-grid job-field-grid-3">
+                <div class="field"><label for="j-service">Service</label><select id="j-service"></select></div>
+                <div class="field"><label for="j-source">Source language</label><input id="j-source" list="tms-language-options"></div>
+                <div class="field"><label for="j-target">Target language</label><input id="j-target" list="tms-language-options"></div>
+                <div class="field"><label>Project specialization</label><input id="j-specialization" type="hidden"><div id="j-specialization-display" class="inherited-value">Inherited from Project</div><small class="field-help">Inherited automatically from the Project.</small></div>
+                <div class="field"><label for="j-quantity">Quantity</label><input id="j-quantity" type="number" min="0" step="0.001"></div>
+                <div class="field"><label for="j-unit">Unit</label><select id="j-unit"><option>Source words</option><option>Target words</option><option>Hours</option><option>Pages</option><option>Minutes</option><option>Fixed fee</option></select></div>
+              </div>
+            </fieldset>
+            <fieldset class="job-fieldset job-assignment-fieldset">
+              <legend>Supplier assignment and PO</legend>
+              <div class="job-assignment-grid">
+                <div class="field assignment-resource"><label for="j-candidate">Resource</label><select id="j-candidate"></select><small class="field-help">Replacing an assigned Resource cancels its current PO and preserves the history. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
+                <div class="field assignment-rate"><label for="j-rate-select">Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
+                <div class="field"><label for="j-rate">Current supplier rate</label><input id="j-rate" readonly></div>
+                <div class="field"><label for="j-amount">Supplier amount</label><input id="j-amount" readonly></div>
+                <div class="field po-required-field"><label>Purchase order</label><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
+                <div class="field assignment-action"><label>Assignment action</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Send PO</button></div>
+              </div>
+            </fieldset>
+            <fieldset class="job-fieldset">
+              <legend>Internal instructions</legend>
+              <div class="field notes-field"><label for="j-notes">Notes for the Resource and PM</label><textarea id="j-notes"></textarea><small class="field-help">Saving PO-facing changes creates the next version of an issued PO automatically.</small></div>
+            </fieldset>
           </div>
         </div>
         <div id="j-cat-card" class="section-card table-card hidden">
@@ -116,6 +134,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=028"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=028"></script>
+  <script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=029"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=029"></script>
 </body>
 </html>

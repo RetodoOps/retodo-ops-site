@@ -66,13 +66,13 @@ function calculateCatRates(){const base=Number(val('rate-value')),currency=val('
 function toggleCatDiscounts(){const enabled=['Source words','Target words'].includes(val('rate-unit'));el('catDiscountSection').classList.toggle('hidden',!enabled)}
 function openRateModal(baseId=null){
     const base=rates.find(rate=>rate.id===baseId&&!rate.base_rate_id);el('rateModalTitle').textContent=base?'Edit supplier rate card':'Add supplier rate card';el('saveRateBtn').textContent=base?'Save changes':'Save rate card';el('rate-id').value=base?.id||'';renderRateLanguageOptions(base);
-    const configuredServices=services.map(service=>service.service_type);el('rate-service').innerHTML=configuredServices.length?configuredServices.map(service=>`<option>${esc(service)}</option>`).join(''):'<option value="">Add a Resource service first…</option>';
+    const catalog=[...TMS_REF.services];if(base?.service_type&&!catalog.includes(base.service_type))catalog.push(base.service_type);el('rate-service').innerHTML=catalog.map(service=>`<option>${esc(service)}</option>`).join('');
     const configuredSpecs=new Set(resourceSpecializations.map(item=>item.specialization_id));el('rate-spec').innerHTML='<option value="">All configured specializations</option>'+specializations.filter(spec=>configuredSpecs.has(spec.id)).map(spec=>`<option value="${spec.id}">${esc(spec.name)}</option>`).join('');
     el('rate-account').innerHTML='<option value="">All Accounts</option>'+accounts.map(account=>`<option value="${account.id}" ${account.id===base?.account_id?'selected':''}>${esc(account.name)}</option>`).join('');el('rate-value').value=base?.rate??'';el('rate-minimum').value=base?.minimum_fee??'';el('rate-currency').value=base?.currency||'EUR';el('rate-unit').value=base?.unit||'Source words';el('rate-status').value=base?.status||'Pending';if(base){el('rate-service').value=base.service_type;el('rate-spec').value=base.specialization_id||''}renderCatDiscountRows(base?.id||null);toggleCatDiscounts();el('rateModal').classList.remove('hidden')
 }
 async function saveRate(){
     const sources=selectedRateLanguages('rate-sources'),targets=selectedRateLanguages('rate-targets');if(!sources.length||!targets.length)return modalError('rateError','Select at least one Source and one Target language.');
-    if(!val('rate-service'))return modalError('rateError','Add and select a service from the Resource profile.');
+    if(!val('rate-service'))return modalError('rateError','Select a service from the Settings catalog.');
     if(val('rate-value')===''||Number(val('rate-value'))<0)return modalError('rateError','Enter a valid base price.');
     const discounts=[...el('catDiscountRows').querySelectorAll('.cat-discount')].filter(input=>input.value!=='').map(input=>({cat_band:input.dataset.band,discount_percent:Number(input.value)}));
     if(discounts.some(item=>item.discount_percent<0||item.discount_percent>100))return modalError('rateError','CAT discounts must be between 0% and 100%.');
@@ -125,4 +125,4 @@ document.querySelectorAll('.record-tab').forEach(tab=>tab.addEventListener('clic
 el('r-name').addEventListener('input',event=>{el('r-initials').value=initialsFromName(event.target.value)});
 el('rate-unit').addEventListener('change',toggleCatDiscounts);el('rate-value').addEventListener('input',calculateCatRates);el('rate-currency').addEventListener('change',calculateCatRates);
 el('test-type').addEventListener('change',updateTestScopeFields);
-(async()=>{const user=await requireAuth();if(!user)return;TMS_REF.installDatalists();TMS_REF.populateServiceSelect('service-name');resourceId=new URLSearchParams(location.search).get('id');if(!resourceId){location.href='resources.html?type=external';return}const role=await _sb.rpc('current_app_role');appRole=role.data||'user';await loadResource()})();
+(async()=>{const user=await requireAuth();if(!user)return;TMS_REF.installDatalists();await TMS_REF.loadServices(_sb);TMS_REF.populateServiceSelect('service-name');resourceId=new URLSearchParams(location.search).get('id');if(!resourceId){location.href='resources.html?type=external';return}const role=await _sb.rpc('current_app_role');appRole=role.data||'user';await loadResource()})();

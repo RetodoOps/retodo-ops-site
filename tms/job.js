@@ -248,4 +248,4 @@ document.getElementById('j-rate-select').addEventListener('change',()=>{supplier
 document.getElementById('j-quantity').addEventListener('input',()=>{supplierTermsDirty=true;renderJobFinancials()});
 document.getElementById('j-status').addEventListener('change',renderJobFinancials);
 
-(async()=>{currentUser=await requireAuth();if(!currentUser)return;TMS_REF.installDatalists();TMS_REF.populateServiceSelect('j-service');const {data:profile}=await _sb.from('profiles').select('role').eq('id',currentUser.id).maybeSingle();currentRole=profile?.role||'user';jobId=new URLSearchParams(location.search).get('id');if(!jobId){location.href='dashboard.html';return}await loadJob()})();
+(async()=>{currentUser=await requireAuth();if(!currentUser)return;TMS_REF.installDatalists();await TMS_REF.loadServices(_sb);TMS_REF.populateServiceSelect('j-service');const {data:profile}=await _sb.from('profiles').select('role').eq('id',currentUser.id).maybeSingle();currentRole=profile?.role||'user';jobId=new URLSearchParams(location.search).get('id');if(!jobId){location.href='dashboard.html';return}await loadJob()})();

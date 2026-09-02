@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Settings — RetodoOps TMS</title>
+  <link rel="stylesheet" href="style.css?v=029">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">TMS</div></div>
+    <nav class="nav" aria-label="Main navigation">
+      <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard</a>
+      <a class="nav-item" href="quotes.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Quotes</a>
+      <a class="nav-item" href="resources.html?type=external"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Resources</a>
+      <a class="nav-item" href="clients.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6z"/></svg>Clients</a>
+      <a class="nav-item active" href="settings.html" aria-current="page"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.08-.98l2.11-1.65-2-3.46-2.49 1a7.2 7.2 0 0 0-1.69-.98L15 3.27h-4l-.38 2.66c-.61.25-1.17.59-1.69.98l-2.49-1-2 3.46 2.11 1.65c-.04.32-.08.66-.08.98s.03.66.08.98l-2.11 1.65 2 3.46 2.49-1c.52.4 1.08.73 1.69.98L11 20.73h4l.38-2.66c.61-.25 1.17-.58 1.69-.98l2.49 1 2-3.46-2.13-1.65zM13 15.5A3.5 3.5 0 1 1 13 8a3.5 3.5 0 0 1 0 7.5z"/></svg>Settings</a>
+      <hr class="nav-divider">
+      <a class="nav-item" href="#" onclick="signOut();return false">Sign Out</a>
+    </nav>
+  </aside>
+
+  <main class="main settings-main">
+    <div class="module-header settings-header">
+      <div><div class="eyebrow">Administration</div><h1>Settings</h1><p>Shared reference data used across Clients, Projects, Jobs and Resources</p></div>
+    </div>
+    <p id="settingsError" class="error-msg hidden" role="alert"></p>
+    <div class="settings-layout">
+      <nav class="settings-nav" aria-label="Settings sections">
+        <a class="settings-nav-item active" href="#services" aria-current="page"><strong>Services</strong><span>Shared operational catalog</span></a>
+        <div class="settings-nav-item future" aria-disabled="true"><strong>Units</strong><span>Future setting</span></div>
+        <div class="settings-nav-item future" aria-disabled="true"><strong>Currencies</strong><span>Future setting</span></div>
+        <div class="settings-nav-item future" aria-disabled="true"><strong>Workflow</strong><span>Future setting</span></div>
+      </nav>
+
+      <section id="services" class="settings-content" aria-labelledby="services-title">
+        <div class="settings-panel-head">
+          <div><h2 id="services-title">Service catalog</h2><p>One list for Client prices, Projects, Jobs, Resource capabilities and Supplier rates.</p></div>
+          <button id="addServiceBtn" class="btn-primary" type="button" onclick="openServiceSetting()">+ Add service</button>
+        </div>
+        <div class="settings-info" role="note"><strong>How it works</strong><span>Inactive services remain in historical records but are removed from new dropdown selections.</span></div>
+        <div class="table-wrap settings-table-wrap">
+          <table class="module-table settings-table">
+            <thead><tr><th scope="col">Order</th><th scope="col">Service</th><th scope="col">Job code</th><th scope="col">Description</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+            <tbody id="servicesTbody"><tr class="state-row"><td colspan="6">Loading services…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div id="serviceSettingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="serviceSettingTitle">
+  <div class="modal modal-small settings-modal">
+    <div class="modal-header"><h3 id="serviceSettingTitle">Add service</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeServiceSetting()">×</button></div>
+    <div class="modal-body"><input id="ss-id" type="hidden"><div class="form-grid">
+      <div class="field field-full"><label for="ss-name">Service name *</label><input id="ss-name" autocomplete="off"><small class="field-help">Displayed consistently throughout the TMS.</small></div>
+      <div class="field"><label for="ss-code">Job code *</label><input id="ss-code" maxlength="8" autocomplete="off" placeholder="e.g. TRA"><small class="field-help">2–8 letters or numbers.</small></div>
+      <div class="field"><label for="ss-order">Display order</label><input id="ss-order" type="number" step="10" min="0"></div>
+      <div class="field field-full"><label for="ss-description">Description</label><textarea id="ss-description" rows="3"></textarea></div>
+      <div class="field field-full"><label class="checkbox-row"><input id="ss-active" type="checkbox" checked> Active for new records</label></div>
+    </div><p id="serviceSettingError" class="error-msg hidden" role="alert"></p></div>
+    <div class="modal-footer"><button class="btn-secondary" type="button" onclick="closeServiceSetting()">Cancel</button><button id="saveServiceSettingBtn" class="btn-primary" type="button" onclick="saveServiceSetting()">Save service</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=029"></script><script src="settings.js?v=029"></script>
+</body>
+</html>
