@@ -198,6 +198,8 @@ a { text-decoration: none; color: inherit; }
 
 .price-cell  { text-align: right; font-size: 12.5px; white-space: nowrap; }
 .margin-cell { text-align: right; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.margin-cell .margin-value,.margin-cell .margin-percent { color: #172033; font-size: 12.5px; font-weight: 700; }
+.margin-cell .margin-separator { color: #94a3b8; padding: 0 3px; }
 
 .state-row td { text-align: center; padding: 60px 20px; color: #9ca3af; font-size: 14px; }
 
@@ -719,12 +721,18 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .scope-line-amount { font-weight: 650; }
 .scope-total-row td { padding-top: 16px !important; padding-bottom: 16px !important; border-top: 3px solid #6d28d9 !important; background: #f5f3ff; color: #2e1065; font-size: 14px !important; font-weight: 800; }
 .scope-total-row #scopeInlineTotal { font-size: 17px !important; white-space: nowrap; }
+.project-result-bar { display: grid; grid-template-columns: repeat(4,minmax(145px,1fr)); gap: 1px; border-top: 1px solid #ddd6fe; background: #ddd6fe; }
+.project-result-bar > div { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; background: #faf9ff; text-align: right; }
+.project-result-bar span { color: #64748b; font-size: 11px; font-weight: 700; letter-spacing: .25px; text-transform: uppercase; }
+.project-result-bar strong { color: #2e1065; font-size: 15px; white-space: nowrap; }
+.project-result-bar > div:nth-child(3) strong,.project-result-bar > div:nth-child(4) strong { color: #6d28d9; font-size: 17px; }
 .cat-entry-table { min-width: 650px; }
 .cat-entry-table thead th { background: #f1f5f9; color: #475569; font-size: 12px; }
 .cat-entry-table tbody td { padding: 10px 11px; border-bottom: 1px solid #e8edf3; }
 .cat-grid-total { display: flex; justify-content: flex-end; align-items: baseline; gap: 14px; padding: 15px 16px; border-top: 3px solid #6d28d9; background: #f5f3ff; color: #2e1065; font-weight: 800; }
 .cat-grid-total strong { font-size: 18px; }
 .financial-summary strong { font-size: 17px; color: #172033; }
+@media (max-width: 900px) { .project-result-bar { grid-template-columns: 1fr 1fr; } }
 .po-email-status { margin-bottom: 14px; padding: 12px 15px; border: 1px solid var(--border); border-radius: 9px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: white; }
 .po-email-status > div { display: flex; flex-direction: column; gap: 4px; }
 .po-email-status strong { font-size: 13px; }

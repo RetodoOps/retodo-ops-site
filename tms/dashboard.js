@@ -156,7 +156,7 @@ function renderTable() {
             <td>${escapeHtml(p.po_number || (p.missing_po ? 'Missing' : '—'))}</td>
             <td class="price-cell">${price}</td>
             <td class="price-cell">${expense}</td>
-            <td class="margin-cell">${margin}<div class="customer-sub">${Number(p.scoop_margin || 0).toFixed(2)}%</div></td>
+            <td class="margin-cell"><span class="margin-value">${margin}</span><span class="margin-separator">·</span><span class="margin-percent">${Number(p.scoop_margin || 0).toFixed(2)}%</span></td>
             <td title="${escapeHtml(emailReference)}">${escapeHtml(emailReference.length > 34 ? emailReference.slice(0,31)+'…' : emailReference)}</td>
         </tr>`;
     }).join('');

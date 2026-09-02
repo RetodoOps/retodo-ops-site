@@ -62,7 +62,8 @@ during the module review.
 22. Run `tms/migrations/019_remove_legacy_job_eligibility.sql` once.
 23. Run `tms/migrations/020_supplier_po_gmail_delivery.sql` once.
 24. Run `tms/migrations/021_po_version_email_and_project_line_editor.sql` once.
-25. Commit/push the updated repository files so Netlify deploys them.
+25. Run `tms/migrations/022_project_profit_and_po_cost_sync.sql` once.
+26. Commit/push the updated repository files so Netlify deploys them.
 
 ## Verification
 
@@ -219,6 +220,11 @@ during the module review.
     Confirm Description, Quantity, Unit, Unit price, Rate source, Adjustment and
     Amount are visible together, adjustments use the correct sign, Save persists
     the row, and a linked Client/Account row allows quantity-only editing.
+43. Revise an issued Supplier PO by adding an adjustment. Confirm the latest PO
+    total appears as Supplier cost in the Job and Project Jobs overview, Project
+    expense is refreshed, and both the Profit value and Profit margin percentage
+    recalculate. Add or remove a Project financial line and confirm Client price,
+    Profit and Profit margin update live together at the bottom of the grid.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial

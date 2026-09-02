@@ -96,7 +96,9 @@ PO lines: Description, Quantity, Unit, Unit price, Rate source, Adjustment and
 Amount. Manual rows are added directly in the table; linked Client/Account rate
 rows retain their provenance and allow quantity-only edits. Discount, Credit,
 Surcharge and Minimum fee adjustments are explicit rather than encoded as
-unlabelled positive or negative values.
+unlabelled positive or negative values. The Project result remains visible
+beside the line grid and shows Client price, current Supplier expense, Profit
+and Profit margin together. Fixed-price Projects use the same calculation path.
 
 ### Post-delivery issue
 
@@ -225,8 +227,9 @@ Creating or changing a Job assignment checks Resource status, lifecycle,
 compliance and the exact domain/Account qualification. Only the Administrator
 may override a Restricted or incomplete-compliance Resource, with a mandatory
 reason. An explicit Not approved qualification and Do not use status remain
-blocking. Active Job
-amounts roll up automatically to Project expense and margin.
+blocking. The current non-cancelled Supplier PO version is the authoritative
+Job cost. Its total rolls up automatically to Project expense, Profit and
+Profit margin; a Job without a PO falls back to its saved supplier amount.
 
 ## Rates, CAT analysis and POs
 
@@ -388,9 +391,12 @@ show original currency and converted EUR values.
   bands. Job quantities remain editable, and individual Supplier rows may be
   removed without changing the Project financial analysis.
 - The Job financial summary calculates Client value from the matching Project
-  CAT price rows and the Job's editable quantities, then shows Supplier cost,
-  Profit and Profit margin. A margin is not shown when the Client and Supplier
-  currencies differ until a currency-conversion model is configured.
+  CAT price rows and the Job's editable quantities. Once a Supplier PO exists,
+  its latest immutable version supplies the displayed Supplier cost; changing
+  editable Job terms switches the preview to the unsaved recalculated cost.
+  Profit and Profit margin are shown together. A margin is not shown when the
+  Client and Supplier currencies differ until a currency-conversion model is
+  configured.
 
 ## Navigation and readability
 
