@@ -659,6 +659,10 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .po-version-preview-total { display: flex; justify-content: flex-end; gap: 20px; align-items: baseline; padding: 12px 4px 2px; color: var(--text-muted); }
 .po-version-preview-total strong { color: #2e1065; font-size: 17px; }
 .history-version-row td:first-child { font-weight: 700; color: #4c1d95; }
+.jobs-rollup { display: flex; justify-content: flex-end; align-items: baseline; gap: 14px; padding: 14px 16px; border-top: 3px solid #6d28d9; background: #f5f3ff; color: #64748b; }
+.jobs-rollup span { font-size: 12px; font-weight: 800; letter-spacing: .2px; text-transform: uppercase; }
+.jobs-rollup strong { color: #2e1065; font-size: 18px; }
+.jobs-rollup small { color: #64748b; }
 @media (max-width: 850px) { .version-row { grid-template-columns: 1fr; gap: 5px; } .po-version-preview-head { align-items: flex-start; flex-direction: column; } .po-version-preview-head > div:last-child { text-align: left; } }
 .po-document {
     background: white; color: #111827; padding: 38px; border: 1px solid var(--border);
