@@ -31,6 +31,7 @@ const TABS = [
 let allProjects  = [];
 let activeTab    = 'due_today';
 let searchQuery  = '';
+let sortState    = { key: 'deadline', direction: 'asc' };
 const escapeHtml = value => String(value ?? '')
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
@@ -95,6 +96,56 @@ function filterBySearch(projects, q) {
     );
 }
 
+const SORT_ACCESSORS = {
+    project: p => p.display_name || p.project_number,
+    client: p => p.clients?.name,
+    account: p => p.client_accounts?.name,
+    language: p => `${p.source_language || ''} ${p.target_language || ''}`,
+    deadline: p => p.deadline ? Date.parse(p.deadline) : null,
+    pm: p => p.project_manager,
+    status: p => p.status,
+    type: p => p.project_type,
+    po: p => p.po_number,
+    price: p => Number(p.price || 0),
+    expense: p => Number(p.expense || 0),
+    profit: p => Number(p.margin_amount || 0),
+    margin: p => Number(p.scoop_margin || 0),
+    email: p => p.email_reference,
+};
+
+function sortProjects(projects) {
+    const accessor = SORT_ACCESSORS[sortState.key] || SORT_ACCESSORS.deadline;
+    const factor = sortState.direction === 'desc' ? -1 : 1;
+    return projects.map((project, index) => ({ project, index })).sort((a, b) => {
+        const left = accessor(a.project), right = accessor(b.project);
+        const leftBlank = left === null || left === undefined || left === '' || Number.isNaN(left);
+        const rightBlank = right === null || right === undefined || right === '' || Number.isNaN(right);
+        if (leftBlank !== rightBlank) return leftBlank ? 1 : -1;
+        if (leftBlank && rightBlank) return a.index - b.index;
+        const compared = typeof left === 'number' && typeof right === 'number'
+            ? left - right
+            : String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: 'base' });
+        return compared === 0 ? a.index - b.index : compared * factor;
+    }).map(item => item.project);
+}
+
+function visibleProjects() {
+    return sortProjects(filterBySearch(filterByTab(allProjects, activeTab), searchQuery));
+}
+
+function updateSortIndicators() {
+    document.querySelectorAll('.sort-header').forEach(button => {
+        const active = button.dataset.sort === sortState.key;
+        button.classList.toggle('active', active);
+        button.querySelector('.sort-indicator').textContent = active
+            ? (sortState.direction === 'asc' ? '▲' : '▼')
+            : '↕';
+        button.closest('th').setAttribute('aria-sort', active
+            ? (sortState.direction === 'asc' ? 'ascending' : 'descending')
+            : 'none');
+    });
+}
+
 // ── Render tabs ────────────────────────────────────────────────────────────
 function renderTabs() {
     const bar = document.getElementById('tabsBar');
@@ -119,10 +170,11 @@ function renderTabs() {
 // ── Render table ───────────────────────────────────────────────────────────
 function renderTable() {
     const tbody = document.getElementById('projectsTbody');
-    let rows = filterBySearch(filterByTab(allProjects, activeTab), searchQuery);
+    const rows = visibleProjects();
+    updateSortIndicators();
 
     if (!rows.length) {
-        tbody.innerHTML = `<tr class="state-row"><td colspan="15">No projects found.</td></tr>`;
+        tbody.innerHTML = `<tr class="state-row"><td colspan="16">No projects found.</td></tr>`;
         return;
     }
 
@@ -134,7 +186,7 @@ function renderTable() {
             ? `${Number(p.price).toFixed(2)} ${p.currency || 'EUR'}`
             : '0 EUR';
         const expense  = `${Number(p.expense || 0).toFixed(2)} ${p.currency || 'EUR'}`;
-        const margin   = `${Number(p.margin_amount || 0).toFixed(2)} ${p.currency || 'EUR'}`;
+        const profit   = `${Number(p.margin_amount || 0).toFixed(2)} ${p.currency || 'EUR'}`;
         const emailReference = p.email_reference || '—';
 
         return `<tr>
@@ -156,7 +208,8 @@ function renderTable() {
             <td>${escapeHtml(p.po_number || (p.missing_po ? 'Missing' : '—'))}</td>
             <td class="price-cell">${price}</td>
             <td class="price-cell">${expense}</td>
-            <td class="margin-cell"><span class="margin-value">${margin}</span><span class="margin-separator">·</span><span class="margin-percent">${Number(p.scoop_margin || 0).toFixed(2)}%</span></td>
+            <td class="profit-cell">${profit}</td>
+            <td class="margin-percent-cell">${Number(p.scoop_margin || 0).toFixed(2)}%</td>
             <td title="${escapeHtml(emailReference)}">${escapeHtml(emailReference.length > 34 ? emailReference.slice(0,31)+'…' : emailReference)}</td>
         </tr>`;
     }).join('');
@@ -164,10 +217,10 @@ function renderTable() {
 
 // ── Export to CSV ──────────────────────────────────────────────────────────
 function exportCSV() {
-    let rows = filterBySearch(filterByTab(allProjects, activeTab), searchQuery);
+    const rows = visibleProjects();
     const headers = ['Project','Client','Account','Source Language','Target Language',
         'Deadline','Project Manager','Status','Type','PO','Price','Expense',
-        'Margin','Margin %','Currency','Email Reference'];
+        'Profit','Margin','Currency','Email Reference'];
     const lines = [headers.join(',')];
     rows.forEach(p => {
         lines.push([
@@ -200,6 +253,16 @@ document.getElementById('selectAll').addEventListener('change', e => {
 document.getElementById('searchBox').addEventListener('input', e => {
     searchQuery = e.target.value;
     renderTable();
+});
+
+document.querySelectorAll('.sort-header').forEach(button => {
+    button.addEventListener('click', () => {
+        const key = button.dataset.sort;
+        sortState = sortState.key === key
+            ? { key, direction: sortState.direction === 'asc' ? 'desc' : 'asc' }
+            : { key, direction: 'asc' };
+        renderTable();
+    });
 });
 
 // ── Languages and Project creation ─────────────────────────────────────────
@@ -429,7 +492,7 @@ async function reloadProjects() {
         .order('deadline', { ascending: true });
     if (error) {
         document.getElementById('projectsTbody').innerHTML =
-            `<tr class="state-row"><td colspan="15">Error: ${escapeHtml(error.message)}</td></tr>`;
+            `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(error.message)}</td></tr>`;
         return;
     }
     allProjects = data || [];

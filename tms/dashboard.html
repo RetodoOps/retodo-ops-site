@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — RetodoOps TMS</title>
-    <link rel="stylesheet" href="style.css?v=024">
+    <link rel="stylesheet" href="style.css?v=027">
 </head>
 <body>
 <div class="app">
@@ -113,14 +113,24 @@
                     <tr>
                         <th><input type="checkbox" id="selectAll"></th>
                         <th>#</th>
-                        <th>Project</th><th>Client</th><th>Account</th>
-                        <th>Language Pair</th><th>Deadline</th><th>PM</th>
-                        <th>Status</th><th>Type</th><th>PO</th><th>Price</th>
-                        <th>Expense</th><th>Margin</th><th>Email Reference</th>
+                        <th><button type="button" class="sort-header" data-sort="project">Project <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="client">Client <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="account">Account <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="language">Language Pair <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="deadline">Deadline <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="pm">PM <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="status">Status <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="type">Type <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="po">PO <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="price">Price <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="expense">Expense <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="profit">Profit <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="margin">Margin <span class="sort-indicator">↕</span></button></th>
+                        <th><button type="button" class="sort-header" data-sort="email">Email Reference <span class="sort-indicator">↕</span></button></th>
                     </tr>
                 </thead>
                 <tbody id="projectsTbody">
-                    <tr class="state-row"><td colspan="15">Loading projects…</td></tr>
+                    <tr class="state-row"><td colspan="16">Loading projects…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -185,6 +195,6 @@
 <script src="auth.js"></script>
 <script src="reference-data.js"></script>
 <script src="quick-nav.js?v=019"></script>
-<script src="dashboard.js?v=024"></script>
+<script src="dashboard.js?v=027"></script>
 </body>
 </html>

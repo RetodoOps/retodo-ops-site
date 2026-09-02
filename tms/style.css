@@ -157,11 +157,11 @@ a { text-decoration: none; color: inherit; }
 
 /* === TABLE === */
 .table-wrap { flex: 1; overflow: auto; }
-.projects-table { width: 100%; border-collapse: collapse; background: white; min-width: 1280px; }
+.projects-table { width: 100%; border-collapse: collapse; background: white; min-width: 1540px; }
 .projects-table thead th {
     background: #f9fafb; border-bottom: 2px solid var(--border);
-    padding: 9px 12px; text-align: left; font-weight: 600;
-    font-size: 11.5px; color: var(--text-muted); text-transform: uppercase;
+    padding: 11px 12px; text-align: left; font-weight: 700;
+    font-size: 12px; color: #475569; text-transform: uppercase;
     letter-spacing: .3px; white-space: nowrap;
     position: sticky; top: 0; z-index: 2;
 }
@@ -171,10 +171,16 @@ a { text-decoration: none; color: inherit; }
 .projects-table tbody td:nth-child(2) { width: 36px; color: var(--text-muted); font-size: 12px; }
 .projects-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .1s; }
 .projects-table tbody tr:hover { background: #faf8ff; }
-.projects-table tbody td { padding: 9px 12px; vertical-align: middle; }
+.projects-table tbody td { padding: 11px 12px; vertical-align: middle; font-size: 13.5px; line-height: 1.4; }
 
-.proj-num { color: #2563eb; font-weight: 500; font-size: 13px; cursor: pointer; }
-.proj-num:hover { text-decoration: underline; }
+.proj-num { color: #5b21b6; font-weight: 750; font-size: 13.5px; cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.proj-num:hover { color: #4c1d95; text-decoration-thickness: 2px; }
+
+.sort-header { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 2px 0; background: transparent; color: inherit; font: inherit; font-weight: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
+.sort-header:hover,.sort-header.active { color: #5b21b6; }
+.sort-header:focus-visible { outline: 2px solid #8b5cf6; outline-offset: 3px; border-radius: 2px; }
+.sort-indicator { display: inline-flex; align-items: center; justify-content: center; min-width: 12px; color: #94a3b8; font-size: 11px; }
+.sort-header.active .sort-indicator { color: #6d28d9; }
 
 .customer-main { font-weight: 500; font-size: 12.5px; color: #1f2937; }
 .customer-sub  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
@@ -200,6 +206,7 @@ a { text-decoration: none; color: inherit; }
 .margin-cell { text-align: right; font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .margin-cell .margin-value,.margin-cell .margin-percent { color: #172033; font-size: 12.5px; font-weight: 700; }
 .margin-cell .margin-separator { color: #94a3b8; padding: 0 3px; }
+.profit-cell,.margin-percent-cell { text-align: right; color: #172033; font-size: 13.5px; font-weight: 750; white-space: nowrap; }
 
 .state-row td { text-align: center; padding: 60px 20px; color: #9ca3af; font-size: 14px; }
 
@@ -516,8 +523,8 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .checkbox-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px 16px; padding: 11px; border: 1px solid var(--border); border-radius: 7px; background: #fafafa; }
 .language-checkbox-grid { max-height: 210px; overflow-y: auto; align-content: start; }
 .inline-check { min-height: 39px; margin-top: 22px; }
-.table-link { color: #2563eb; }
-.table-link:hover { text-decoration: underline; }
+.table-link { color: #5b21b6; font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.table-link:hover { color: #4c1d95; text-decoration-thickness: 2px; }
 .price-card-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; }
 .rate-card-list { display: flex; flex-direction: column; gap: 7px; }
 .rate-card-choice {
@@ -552,7 +559,7 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .input-action input { flex: 1; min-width: 0; }
 .input-action .btn-secondary { white-space: nowrap; }
 .financial-summary {
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px;
     margin-bottom: 16px;
 }
 .financial-summary > div {
@@ -663,6 +670,15 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .jobs-rollup span { font-size: 12px; font-weight: 800; letter-spacing: .2px; text-transform: uppercase; }
 .jobs-rollup strong { color: #2e1065; font-size: 18px; }
 .jobs-rollup small { color: #64748b; }
+.jobs-table { min-width: 1080px; }
+.jobs-table thead th { padding-top: 13px; padding-bottom: 13px; font-size: 12.5px; }
+.jobs-table tbody td { padding-top: 15px; padding-bottom: 15px; font-size: 14px; }
+.jobs-table tbody tr:nth-child(even) { background: #fcfcfe; }
+.jobs-table tbody tr:hover { background: #f5f3ff; }
+.table-link.job-name-link { display: inline-block; color: #4c1d95; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; font-weight: 800; letter-spacing: .1px; white-space: nowrap; }
+.table-link.resource-name-link,.table-link.po-link { font-size: 14px; }
+.supplier-cost-header,.supplier-cost-cell { text-align: center !important; }
+.supplier-cost-cell { color: #172033; font-size: 14px !important; font-weight: 750; white-space: nowrap; }
 @media (max-width: 850px) { .version-row { grid-template-columns: 1fr; gap: 5px; } .po-version-preview-head { align-items: flex-start; flex-direction: column; } .po-version-preview-head > div:last-child { text-align: left; } }
 .po-document {
     background: white; color: #111827; padding: 38px; border: 1px solid var(--border);
