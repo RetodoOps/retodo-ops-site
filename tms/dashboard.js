@@ -435,7 +435,7 @@ async function submitCreateProject() {
         specialization_ids: specializationIds,
     };
     const { data, error } = await _sb.rpc('create_project_with_specializations', { p_payload: payload });
-    btn.disabled = false; btn.textContent = 'Create Project';
+    btn.disabled = false; btn.textContent = 'Create Project and first Scoop';
     if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
     if (data?.[0]?.created_project_id) {
         const staff={project_manager_resource_id:document.getElementById('f-pm').value||null,qa_specialist_resource_id:document.getElementById('f-qa').value||null,project_coordinator_resource_id:document.getElementById('f-coordinator').value||null,place_of_delivery:document.getElementById('f-place-delivery').value.trim()||null};

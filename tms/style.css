@@ -927,3 +927,42 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     .settings-nav-item { border-right: 1px solid #e2e8f0; }
     .settings-panel-head { align-items: flex-start; flex-direction: column; }
 }
+
+/* Update 030: Project → Scoops → Jobs hierarchy. */
+.project-record-body #pane-general,
+.project-record-body #pane-financials,
+.project-record-body #pane-scoops { max-width: 1240px; }
+.project-overview-card { width: 100%; max-width: 1180px; }
+.project-overview-card .flags-row { min-height: 42px; align-items: center; }
+.project-name-preview { display: flex; flex-direction: column; gap: 5px; margin-bottom: 18px; padding: 13px 15px; border: 1px solid #c4b5fd; border-radius: 9px; background: #faf9ff; }
+.project-name-preview span { color: #64748b; font-size: 11px; font-weight: 750; letter-spacing: .35px; text-transform: uppercase; }
+.project-name-preview strong { color: #4c1d95; font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 14px; overflow-wrap: anywhere; }
+.scoop-edit-note { margin: 18px 0 0; line-height: 1.45; }
+.scoops-list { display: grid; gap: 18px; }
+.scoop-card { overflow: hidden; padding: 0; border-color: #cbd5e1; border-radius: 12px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+.scoop-card-head { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 19px 20px; border-bottom: 1px solid #e2e8f0; background: linear-gradient(90deg,#faf9ff 0,#fff 48%); }
+.scoop-card-head h3 { margin-top: 5px; color: #172033; font-size: 18px; line-height: 1.3; }
+.scoop-card-head h3 span { padding: 0 4px; color: #7c3aed; }
+.scoop-card-head p { margin-top: 5px; color: #64748b; font-size: 12px; }
+.scoop-number { color: #5b21b6; font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 13px; font-weight: 800; overflow-wrap: anywhere; }
+.scoop-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+.scoop-cost { min-width: 145px; margin-right: 6px; text-align: right; }
+.scoop-cost span { display: block; color: #64748b; font-size: 10px; font-weight: 750; letter-spacing: .3px; text-transform: uppercase; }
+.scoop-cost strong { display: block; margin-top: 4px; color: #2e1065; font-size: 16px; }
+.scoop-card .table-card { overflow-x: auto; border: 0; border-radius: 0; }
+.scoop-card .module-table { min-width: 900px; margin: 0; }
+.scoop-card .module-table th { color: #475569; font-size: 11px; }
+.scoop-card .module-table td { padding-top: 12px; padding-bottom: 12px; vertical-align: middle; }
+.job-name-link { font-size: 14px; font-weight: 800; }
+.supplier-cost-header,.supplier-cost-cell { text-align: center !important; }
+.supplier-cost-cell { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+@media (max-width: 900px) {
+    .scoop-card-head { align-items: flex-start; flex-direction: column; }
+    .scoop-actions { width: 100%; justify-content: flex-start; }
+    .scoop-cost { margin-right: auto; text-align: left; }
+}
+@media (max-width: 650px) {
+    .scoop-actions .btn-primary,.scoop-actions .btn-secondary { flex: 1 1 150px; }
+    .scoop-cost { flex: 1 0 100%; margin-bottom: 5px; }
+}
