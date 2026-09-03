@@ -83,6 +83,7 @@ function filterBySearch(projects, q) {
     if (!q) return projects;
     const lc = q.toLowerCase();
     return projects.filter(p =>
+        (p.scoop_number     || '').toLowerCase().includes(lc) ||
         (p.display_name     || p.project_number || '').toLowerCase().includes(lc) ||
         (p.clients?.name     || '').toLowerCase().includes(lc) ||
         (p.client_accounts?.name || '').toLowerCase().includes(lc) ||
@@ -97,7 +98,7 @@ function filterBySearch(projects, q) {
 }
 
 const SORT_ACCESSORS = {
-    project: p => p.display_name || p.project_number,
+    project: p => p.scoop_number || p.display_name || p.project_number,
     client: p => p.clients?.name,
     account: p => p.client_accounts?.name,
     language: p => `${p.source_language || ''} ${p.target_language || ''}`,
@@ -174,7 +175,7 @@ function renderTable() {
     updateSortIndicators();
 
     if (!rows.length) {
-        tbody.innerHTML = `<tr class="state-row"><td colspan="16">No projects found.</td></tr>`;
+        tbody.innerHTML = `<tr class="state-row"><td colspan="16">No Scoops found.</td></tr>`;
         return;
     }
 
@@ -192,7 +193,7 @@ function renderTable() {
         return `<tr>
             <td><input type="checkbox" class="row-check" data-id="${p.id}"></td>
             <td>${i + 1}</td>
-            <td><a class="proj-num" href="project.html?id=${p.id}">${escapeHtml(p.display_name || p.project_number || '—')}</a>${p.client_reference ? `<div class="customer-sub">Client ref: ${escapeHtml(p.client_reference)}</div>` : ''}</td>
+            <td><a class="proj-num" href="project.html?id=${encodeURIComponent(p.id)}&scoop=${encodeURIComponent(p.scoop_id)}">${escapeHtml(p.scoop_number || '—')}</a><div class="customer-sub">${escapeHtml(p.display_name || p.project_number || 'Project')}</div>${p.client_reference ? `<div class="customer-sub">Client ref: ${escapeHtml(p.client_reference)}</div>` : ''}</td>
             <td><div class="customer-main">${escapeHtml(p.clients?.name || '—')}</div></td>
             <td>${escapeHtml(p.client_accounts?.name || 'Non-defined')}</td>
             <td>
@@ -218,13 +219,13 @@ function renderTable() {
 // ── Export to CSV ──────────────────────────────────────────────────────────
 function exportCSV() {
     const rows = visibleProjects();
-    const headers = ['Project','Client','Account','Source Language','Target Language',
+    const headers = ['Scoop','Project','Client','Account','Source Language','Target Language',
         'Deadline','Project Manager','Status','Type','PO','Price','Expense',
         'Profit','Margin','Currency','Email Reference'];
     const lines = [headers.join(',')];
     rows.forEach(p => {
         lines.push([
-            p.display_name || p.project_number, p.clients?.name, p.client_accounts?.name,
+            p.scoop_number, p.display_name || p.project_number, p.clients?.name, p.client_accounts?.name,
             p.source_language, p.target_language,
             p.deadline, p.project_manager, p.status, p.project_type, p.po_number,
             p.price, p.expense, p.margin_amount, p.scoop_margin, p.currency,
@@ -234,7 +235,7 @@ function exportCSV() {
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `projects-${activeTab}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `scoops-${activeTab}-${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
 }
 
@@ -455,7 +456,7 @@ document.getElementById('f-po').addEventListener('input', event => {
     if (event.target.value.trim()) document.getElementById('f-missingpo').checked = false;
 });
 function selectedProjectIds() {
-    return [...document.querySelectorAll('.row-check:checked')].map(input => input.dataset.id);
+    return [...new Set([...document.querySelectorAll('.row-check:checked')].map(input => input.dataset.id))];
 }
 function openBulkStatus() {
     const ids = selectedProjectIds();
@@ -487,7 +488,7 @@ async function applyBulkStatus() {
 document.getElementById('changeStatusBtn').addEventListener('click', openBulkStatus);
 
 async function reloadProjects() {
-    const { data, error } = await _sb.from('projects')
+    const { data: projectRows, error } = await _sb.from('projects')
         .select('*, clients(name), client_accounts(name)')
         .order('deadline', { ascending: true });
     if (error) {
@@ -495,7 +496,57 @@ async function reloadProjects() {
             `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(error.message)}</td></tr>`;
         return;
     }
-    allProjects = data || [];
+    const projects = projectRows || [], projectIds = projects.map(project => project.id);
+    if (!projectIds.length) {
+        allProjects = [];
+        renderTabs(); renderTable();
+        return;
+    }
+    const [scoopResult, jobResult] = await Promise.all([
+        _sb.from('project_scoops').select('*').in('project_id', projectIds).eq('active', true).order('created_at'),
+        _sb.from('project_jobs').select('id,project_id,project_scoop_id,status,supplier_amount,supplier_currency').in('project_id', projectIds).order('created_at'),
+    ]);
+    if (scoopResult.error || jobResult.error) {
+        const message = scoopResult.error?.message || jobResult.error?.message;
+        document.getElementById('projectsTbody').innerHTML =
+            `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(message)}</td></tr>`;
+        return;
+    }
+    const jobs = jobResult.data || [], jobIds = jobs.map(job => job.id);
+    let purchaseOrders = [];
+    if (jobIds.length) {
+        const poResult = await _sb.from('supplier_purchase_orders')
+            .select('id,job_id,status,total,currency,created_at')
+            .in('job_id', jobIds)
+            .order('created_at', { ascending: false });
+        if (poResult.error) {
+            document.getElementById('projectsTbody').innerHTML =
+                `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(poResult.error.message)}</td></tr>`;
+            return;
+        }
+        purchaseOrders = poResult.data || [];
+    }
+    const projectsById = new Map(projects.map(project => [project.id, project]));
+    allProjects = (scoopResult.data || []).map(scoop => {
+        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status));
+        const expense = scoopJobs.reduce((sum, job) => {
+            const po = purchaseOrders.find(row => row.job_id === job.id && ['Issued','Acknowledged'].includes(row.status));
+            return sum + Number(po?.total ?? job.supplier_amount ?? 0);
+        }, 0);
+        const price = Number(scoop.price || 0), profit = price - expense;
+        return {
+            ...base,
+            scoop_id: scoop.id,
+            scoop_number: scoop.scoop_number,
+            source_language: scoop.source_language,
+            target_language: scoop.target_language,
+            deadline: scoop.deadline || base?.deadline,
+            price,
+            expense,
+            margin_amount: profit,
+            scoop_margin: price ? profit / price * 100 : 0,
+        };
+    });
     renderTabs(); renderTable();
 }
 
