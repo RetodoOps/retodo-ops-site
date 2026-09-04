@@ -267,8 +267,8 @@ document.querySelectorAll('.sort-header').forEach(button => {
 });
 
 // ── Languages and Project creation ─────────────────────────────────────────
-const LANGUAGES = TMS_REF.languages;
-const LANGUAGE_CODES = TMS_REF.languageCodes;
+let LANGUAGES = TMS_REF.languages;
+let LANGUAGE_CODES = TMS_REF.languageCodes;
 let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [], internalResources = [];
 let projectSpecializationCatalog = [], projectAccountSpecializationIds = [];
 
@@ -306,8 +306,11 @@ function internalResourceOptions(selected='',empty='Non-defined') {
 function renderCreateSpecializations(){
     const accountId=document.getElementById('f-account').value;
     const allowed=accountId?projectSpecializationCatalog.filter(spec=>projectAccountSpecializationIds.includes(spec.id)):projectSpecializationCatalog;
-    document.getElementById('f-specializations').innerHTML=allowed.map(spec=>`<label class="checkbox-row"><input type="checkbox" value="${spec.id}" ${accountId?'checked disabled':''}>${escapeHtml(spec.name)}</label>`).join('')||'<span class="muted">No specializations configured.</span>';
-    document.getElementById('f-specializations-help').textContent=accountId?'Inherited from the selected Account. Edit the Account to change this list.':'No Account selected: choose at least one specialization.';
+    const container=document.getElementById('f-specializations'),menu=container.querySelector('.catalog-dropdown-menu');
+    menu.innerHTML=allowed.map(spec=>`<label class="checkbox-row"><input type="checkbox" value="${spec.id}" ${accountId?'checked disabled':''}>${escapeHtml(spec.name)}</label>`).join('')||'<span class="muted">No specializations configured.</span>';
+    const update=()=>{const chosen=[...container.querySelectorAll('input:checked')].map(input=>projectSpecializationCatalog.find(spec=>spec.id===input.value)?.name).filter(Boolean);container.querySelector('summary').textContent=chosen.length?(chosen.length<=2?chosen.join(', '):`${chosen.length} specializations selected`):'Select specializations…'};
+    menu.querySelectorAll('input').forEach(input=>input.addEventListener('change',update));update();
+    document.getElementById('f-specializations-help').textContent=accountId?'Inherited from the selected Account. Edit the Account to change this list.':'Select one or more values from the Settings catalogue.';
 }
 function installLanguageShortcut(select) {
     const singleKey={s:'Swedish',d:'Danish',n:'Norwegian (Bokmål)',b:'Bulgarian',g:'German',e:'English (UK)',p:'Polish',r:'Russian',t:'Turkish'};
@@ -554,7 +557,8 @@ async function reloadProjects() {
 (async () => {
     const user = await requireAuth();
     if (!user) return;
-    await TMS_REF.loadServices(_sb);
+    await Promise.all([TMS_REF.loadLanguages(_sb), TMS_REF.loadServices(_sb)]);
+    LANGUAGES = TMS_REF.languages; LANGUAGE_CODES = TMS_REF.languageCodes;
     TMS_REF.populateServiceSelect('f-type');
     await reloadProjects();
 })();

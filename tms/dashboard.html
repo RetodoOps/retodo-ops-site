@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — RetodoOps TMS</title>
-    <link rel="stylesheet" href="style.css?v=031">
+    <link rel="stylesheet" href="style.css?v=032">
 </head>
 <body>
 <div class="app">
@@ -157,7 +157,7 @@
                 <div class="field"><label>Project date</label><input type="date" id="f-date"></div>
                 <div class="field"><label>Initial Scoop source language</label><select id="f-src"></select></div>
                 <div class="field"><label>Initial Scoop target language *</label><select id="f-tgt"></select></div>
-                <div class="field field-full"><label>Specialization *</label><div id="f-specializations" class="checkbox-grid"></div><small id="f-specializations-help" class="field-help"></small></div>
+                <div class="field field-full"><label>Specialization *</label><details id="f-specializations" class="catalog-dropdown"><summary>Select specializations…</summary><div class="catalog-dropdown-menu"></div></details><small id="f-specializations-help" class="field-help"></small></div>
                 <div class="field"><label>Client deadline date</label><input type="date" id="f-deadline-date"></div>
                 <div class="field"><label>Client deadline time</label><input type="time" id="f-deadline-time" step="60"></div>
                 <div class="field"><label>Project manager</label><select id="f-pm"></select></div>
@@ -193,8 +193,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="reference-data.js?v=029"></script>
+<script src="reference-data.js?v=032"></script>
 <script src="quick-nav.js?v=019"></script>
-<script src="dashboard.js?v=031"></script>
+<script src="dashboard.js?v=032"></script>
 </body>
 </html>

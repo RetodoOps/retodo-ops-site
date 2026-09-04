@@ -964,6 +964,28 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .supplier-cost-header,.supplier-cost-cell { text-align: center !important; }
 .supplier-cost-cell { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
+/* Update 032 — catalogue dropdowns and Scoop financial editor */
+.catalog-dropdown { position: relative; width: 100%; }
+.catalog-dropdown > summary { display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding: 9px 34px 9px 12px; border: 1px solid #94a3b8; border-radius: 7px; background: #fff; color: #172033; cursor: pointer; font-size: 13px; list-style: none; text-align: left; }
+.catalog-dropdown > summary::-webkit-details-marker { display: none; }
+.catalog-dropdown > summary::after { content: "⌄"; position: absolute; right: 13px; color: #475569; font-size: 17px; }
+.catalog-dropdown[open] > summary { border-color: #7c3aed; box-shadow: 0 0 0 2px rgba(124,58,237,.14); }
+.catalog-dropdown-menu { position: absolute; z-index: 60; top: calc(100% + 5px); left: 0; right: 0; display: grid; gap: 3px; max-height: 250px; overflow-y: auto; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; box-shadow: 0 14px 30px rgba(15,23,42,.16); }
+.catalog-dropdown-menu .checkbox-row { min-height: 34px; padding: 7px 9px; border-radius: 6px; text-align: left; }
+.catalog-dropdown-menu .checkbox-row:hover { background: #f5f3ff; }
+.settings-content + .settings-content { margin-top: 20px; }
+.settings-content-stack { min-width: 0; }
+.scoop-editor-modal { width: min(1120px,calc(100vw - 32px)); max-height: calc(100vh - 32px); }
+.scoop-financial-editor { margin-top: 20px; }
+.scoop-financial-editor .button-row { justify-content: flex-start; margin: 12px 0; }
+.scoop-financial-table { min-width: 900px; }
+.scoop-financial-table th,.scoop-financial-table td { text-align: center; vertical-align: middle; }
+.scoop-financial-table input,.scoop-financial-table select { min-width: 105px; }
+.scoop-financial-table .scp-line-description { min-width: 190px; }
+.scoop-financial-table .scp-line-reason { margin-top: 5px; min-width: 150px; }
+.scoop-fin-total { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 13px 8px 2px; color: #475569; font-weight: 700; }
+.scoop-fin-total strong { color: #4c1d95; font-size: 17px; font-variant-numeric: tabular-nums; }
+
 @media (max-width: 900px) {
     .scoop-card-head { align-items: flex-start; flex-direction: column; }
     .scoop-actions { width: 100%; justify-content: flex-start; }

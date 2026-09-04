@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Settings — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=029">
+  <link rel="stylesheet" href="style.css?v=032">
 </head>
 <body>
 <div class="app">
@@ -29,11 +29,14 @@
     <div class="settings-layout">
       <nav class="settings-nav" aria-label="Settings sections">
         <a class="settings-nav-item active" href="#services" aria-current="page"><strong>Services</strong><span>Shared operational catalog</span></a>
+        <a class="settings-nav-item" href="#languages"><strong>Languages</strong><span>Source and target catalog</span></a>
+        <a class="settings-nav-item" href="#specializations"><strong>Specializations</strong><span>Domain catalog</span></a>
         <div class="settings-nav-item future" aria-disabled="true"><strong>Units</strong><span>Future setting</span></div>
         <div class="settings-nav-item future" aria-disabled="true"><strong>Currencies</strong><span>Future setting</span></div>
         <div class="settings-nav-item future" aria-disabled="true"><strong>Workflow</strong><span>Future setting</span></div>
       </nav>
 
+      <div class="settings-content-stack">
       <section id="services" class="settings-content" aria-labelledby="services-title">
         <div class="settings-panel-head">
           <div><h2 id="services-title">Service catalog</h2><p>One list for Client prices, Projects, Jobs, Resource capabilities and Supplier rates.</p></div>
@@ -47,9 +50,24 @@
           </table>
         </div>
       </section>
+
+      <section id="languages" class="settings-content" aria-labelledby="languages-title">
+        <div class="settings-panel-head"><div><h2 id="languages-title">Language catalog</h2><p>Source and Target dropdowns throughout the TMS use this list.</p></div><button id="addLanguageBtn" class="btn-primary" type="button" onclick="openCatalogSetting('language')">+ Add language</button></div>
+        <div class="settings-info" role="note"><strong>Shared catalogue</strong><span>Deactivating a language removes it from new selections while preserving historical records.</span></div>
+        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th>Order</th><th>Language</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead><tbody id="languagesTbody"><tr class="state-row"><td colspan="5">Loading languages…</td></tr></tbody></table></div>
+      </section>
+
+      <section id="specializations" class="settings-content" aria-labelledby="specializations-title">
+        <div class="settings-panel-head"><div><h2 id="specializations-title">Specialization catalog</h2><p>Projects, Scoops, Jobs and rate cards use this shared list.</p></div><button id="addSpecializationBtn" class="btn-primary" type="button" onclick="openCatalogSetting('specialization')">+ Add specialization</button></div>
+        <div class="settings-info" role="note"><strong>Shared catalogue</strong><span>Inactive specializations remain attached to historical work.</span></div>
+        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th>Specialization</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead><tbody id="specializationsTbody"><tr class="state-row"><td colspan="4">Loading specializations…</td></tr></tbody></table></div>
+      </section>
+      </div>
     </div>
   </main>
 </div>
+
+<div id="catalogSettingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="catalogSettingTitle"><div class="modal modal-small settings-modal"><div class="modal-header"><h3 id="catalogSettingTitle">Add catalogue value</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeCatalogSetting()">×</button></div><div class="modal-body"><input id="cs-kind" type="hidden"><input id="cs-id" type="hidden"><div class="form-grid"><div class="field field-full"><label for="cs-name">Name *</label><input id="cs-name" autocomplete="off"></div><div class="field"><label for="cs-code">Code *</label><input id="cs-code" maxlength="8" autocomplete="off"></div><div id="cs-order-field" class="field"><label for="cs-order">Display order</label><input id="cs-order" type="number" step="10" min="0"></div><div class="field field-full"><label class="checkbox-row"><input id="cs-active" type="checkbox" checked> Active for new records</label></div></div><p id="catalogSettingError" class="error-msg hidden" role="alert"></p></div><div class="modal-footer"><button class="btn-secondary" type="button" onclick="closeCatalogSetting()">Cancel</button><button id="saveCatalogSettingBtn" class="btn-primary" type="button" onclick="saveCatalogSetting()">Save</button></div></div></div>
 
 <div id="serviceSettingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="serviceSettingTitle">
   <div class="modal modal-small settings-modal">
@@ -66,6 +84,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=029"></script><script src="settings.js?v=029"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=032"></script><script src="settings.js?v=032"></script>
 </body>
 </html>

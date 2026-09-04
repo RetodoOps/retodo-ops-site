@@ -1,4 +1,6 @@
 let serviceSettings = [];
+let languageSettings = [];
+let specializationSettings = [];
 let settingsRole = 'user';
 
 const settingsEl = id => document.getElementById(id);
@@ -33,6 +35,62 @@ async function loadServiceSettings() {
   if (error) return settingsError(error.message);
   serviceSettings = data || [];
   renderServiceSettings();
+}
+
+function renderCatalogSettings() {
+  const canEdit = settingsRole === 'admin';
+  settingsEl('addLanguageBtn').disabled = !canEdit;
+  settingsEl('addSpecializationBtn').disabled = !canEdit;
+  settingsEl('languagesTbody').innerHTML = languageSettings.length ? languageSettings.map(row => `<tr><td class="settings-order">${Number(row.sort_order || 0)}</td><td><strong>${settingsEsc(row.name)}</strong></td><td><span class="service-code">${settingsEsc(row.code)}</span></td><td><span class="pill ${row.active ? 'pill-green' : ''}">${row.active ? 'Active' : 'Inactive'}</span></td><td><div class="table-actions"><button class="table-action" onclick="openCatalogSetting('language','${row.id}')" ${canEdit?'':'disabled'}>Edit</button><button class="table-action ${row.active?'danger':'success'}" onclick="toggleCatalogSetting('language','${row.id}')" ${canEdit?'':'disabled'}>${row.active?'Deactivate':'Activate'}</button></div></td></tr>`).join('') : '<tr class="state-row"><td colspan="5">No languages configured.</td></tr>';
+  settingsEl('specializationsTbody').innerHTML = specializationSettings.length ? specializationSettings.map(row => `<tr><td><strong>${settingsEsc(row.name)}</strong></td><td><span class="service-code">${settingsEsc(row.code || '—')}</span></td><td><span class="pill ${row.active ? 'pill-green' : ''}">${row.active ? 'Active' : 'Inactive'}</span></td><td><div class="table-actions"><button class="table-action" onclick="openCatalogSetting('specialization','${row.id}')" ${canEdit?'':'disabled'}>Edit</button><button class="table-action ${row.active?'danger':'success'}" onclick="toggleCatalogSetting('specialization','${row.id}')" ${canEdit?'':'disabled'}>${row.active?'Deactivate':'Activate'}</button></div></td></tr>`).join('') : '<tr class="state-row"><td colspan="4">No specializations configured.</td></tr>';
+}
+
+async function loadCatalogSettings() {
+  const [languages, specializations] = await Promise.all([
+    _sb.from('language_catalog').select('*').order('sort_order').order('name'),
+    _sb.from('specializations').select('*').order('name')
+  ]);
+  if (languages.error) return settingsError(languages.error.message);
+  if (specializations.error) return settingsError(specializations.error.message);
+  languageSettings = languages.data || [];
+  specializationSettings = specializations.data || [];
+  renderCatalogSettings();
+}
+
+function closeCatalogSetting() { settingsEl('catalogSettingModal').classList.add('hidden'); }
+function openCatalogSetting(kind, id = null) {
+  if (settingsRole !== 'admin') return settingsError('Administrator access is required to change Settings.');
+  const rows = kind === 'language' ? languageSettings : specializationSettings;
+  const row = rows.find(item => item.id === id);
+  settingsEl('cs-kind').value = kind; settingsEl('cs-id').value = row?.id || '';
+  settingsEl('catalogSettingTitle').textContent = `${row ? 'Edit' : 'Add'} ${kind}`;
+  settingsEl('cs-name').value = row?.name || ''; settingsEl('cs-code').value = row?.code || '';
+  settingsEl('cs-order').value = row?.sort_order ?? ((rows.length + 1) * 10);
+  settingsEl('cs-active').checked = row?.active !== false;
+  settingsEl('cs-order-field').classList.toggle('hidden', kind !== 'language');
+  clearSettingsError('catalogSettingError'); settingsEl('catalogSettingModal').classList.remove('hidden');
+  settingsEl('cs-name').focus();
+}
+async function saveCatalogSetting() {
+  clearSettingsError('catalogSettingError');
+  const kind = settingsEl('cs-kind').value, id = settingsEl('cs-id').value;
+  const name = settingsEl('cs-name').value.trim(), code = settingsEl('cs-code').value.trim().toUpperCase();
+  if (!name || !code) return settingsError('Name and code are required.', 'catalogSettingError');
+  const table = kind === 'language' ? 'language_catalog' : 'specializations';
+  const payload = {name, code, active: settingsEl('cs-active').checked};
+  if (kind === 'language') payload.sort_order = Number(settingsEl('cs-order').value || 0);
+  const result = id ? await _sb.from(table).update(payload).eq('id', id) : await _sb.from(table).insert(payload);
+  if (result.error) return settingsError(result.error.message, 'catalogSettingError');
+  closeCatalogSetting(); await loadCatalogSettings();
+}
+async function toggleCatalogSetting(kind, id) {
+  if (settingsRole !== 'admin') return;
+  const rows = kind === 'language' ? languageSettings : specializationSettings;
+  const row = rows.find(item => item.id === id); if (!row) return;
+  if (!confirm(`${row.active ? 'Deactivate' : 'Activate'} ${row.name}? Historical records remain unchanged.`)) return;
+  const table = kind === 'language' ? 'language_catalog' : 'specializations';
+  const {error} = await _sb.from(table).update({active: !row.active}).eq('id', id);
+  if (error) return settingsError(error.message); await loadCatalogSettings();
 }
 
 function openServiceSetting(id = null) {
@@ -80,9 +138,10 @@ async function toggleServiceSetting(id) {
 
 settingsEl('ss-code').addEventListener('input', event => { event.target.value = normalizeServiceCode(event.target.value); });
 settingsEl('serviceSettingModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeServiceSetting(); });
+settingsEl('catalogSettingModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeCatalogSetting(); });
 
 (async () => {
   const user = await requireAuth(); if (!user) return;
   const { data } = await _sb.rpc('current_app_role'); settingsRole = data || 'user';
-  await loadServiceSettings();
+  await Promise.all([loadServiceSettings(), loadCatalogSettings()]);
 })();
