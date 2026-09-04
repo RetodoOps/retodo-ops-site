@@ -31,7 +31,15 @@
 
   function installSettingsNav() {
     const nav = document.querySelector('.sidebar .nav');
-    if (!nav || nav.querySelector('a[href="settings.html"]')) return;
+    if (!nav) return;
+    const existing = [...nav.querySelectorAll('a.nav-item')].filter(link => {
+      try { return new URL(link.href, location.href).pathname.endsWith('/settings.html'); }
+      catch (_) { return false; }
+    });
+    if (existing.length) {
+      existing.slice(1).forEach(link => link.remove());
+      return;
+    }
     const link = document.createElement('a');
     link.className = `nav-item${location.pathname.endsWith('/settings.html') ? ' active' : ''}`;
     link.href = 'settings.html';

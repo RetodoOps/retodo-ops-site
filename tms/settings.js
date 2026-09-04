@@ -140,6 +140,20 @@ settingsEl('ss-code').addEventListener('input', event => { event.target.value = 
 settingsEl('serviceSettingModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeServiceSetting(); });
 settingsEl('catalogSettingModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeCatalogSetting(); });
 
+function activateSettingsSection() {
+  const hash = location.hash || '#services';
+  document.querySelectorAll('.settings-nav-item[href]').forEach(link => {
+    const active = link.getAttribute('href') === hash;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+  });
+}
+document.querySelectorAll('.settings-nav-item[href]').forEach(link => link.addEventListener('click', () => {
+  requestAnimationFrame(activateSettingsSection);
+}));
+window.addEventListener('hashchange', activateSettingsSection);
+activateSettingsSection();
+
 (async () => {
   const user = await requireAuth(); if (!user) return;
   const { data } = await _sb.rpc('current_app_role'); settingsRole = data || 'user';
