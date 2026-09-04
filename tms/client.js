@@ -396,17 +396,18 @@ function renderRateItems() {
 }
 
 function openRateCardModal() {
-    document.getElementById('rc-name').value = '';
     document.getElementById('rc-account').innerHTML = accountOptions();
     document.getElementById('rc-currency').value = client.default_currency || 'EUR';
     document.getElementById('rateCardModal').classList.remove('hidden');
 }
 
 async function saveRateCard() {
-    if (!value('rc-name')) return setModalError('rateCardError', 'Rate-card name is required.');
+    const account = accounts.find(row => row.id === nullable('rc-account'));
+    const currency = value('rc-currency') || client.default_currency || 'EUR';
+    const automaticName = `${account?.name || 'Client-wide'} · New rate card · ${currency}`;
     const { data, error } = await _sb.from('client_rate_cards').insert({
-        client_id: clientId, account_id: nullable('rc-account'), name: value('rc-name'),
-        currency: value('rc-currency'),
+        client_id: clientId, account_id: nullable('rc-account'), name: automaticName,
+        currency,
     }).select('*').single();
     if (error) return setModalError('rateCardError', error.message);
     selectedRateCardId = data.id;
@@ -509,7 +510,7 @@ async function saveRateItem() {
     const { error } = await _sb.rpc('save_client_rate_card_item', { p_payload: payload });
     if (error) return setModalError('rateItemError', error.message);
     closeModal('rateItemModal');
-    await loadRateItems();
+    await loadRateCardData();
     setSaveStatus('Base rate saved ✓');
 }
 

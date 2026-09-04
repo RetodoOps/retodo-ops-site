@@ -130,7 +130,7 @@
 
 <div id="rateCardModal" class="modal-overlay hidden"><div class="modal modal-small">
     <div class="modal-header"><h3>Add rate card</h3><button class="modal-close" onclick="closeModal('rateCardModal')">×</button></div>
-    <div class="modal-body"><div class="form-grid"><div class="field field-full"><label>Name *</label><input id="rc-name" placeholder="e.g. Standard Nordic rates 2026"></div><div class="field"><label>Account</label><select id="rc-account"></select></div><div class="field"><label>Currency</label><select id="rc-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div></div><p id="rateCardError" class="error-msg hidden"></p></div>
+    <div class="modal-body"><div class="form-grid"><div class="field"><label>Account</label><select id="rc-account"></select></div><div class="field"><label>Currency</label><select id="rc-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div></div><p class="field-help">The rate-card name is generated automatically from its language pairs, prices, service, currency and Account.</p><p id="rateCardError" class="error-msg hidden"></p></div>
     <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateCardModal')">Cancel</button><button class="btn-primary" onclick="saveRateCard()">Create rate card</button></div>
 </div></div>
 
@@ -145,5 +145,5 @@
     <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('rateItemModal')">Cancel</button><button class="btn-primary" onclick="saveRateItem()">Save base rate</button></div>
 </div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=032"></script><script src="quick-nav.js?v=019"></script><script src="client.js?v=032"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=034"></script><script src="quick-nav.js?v=019"></script><script src="client.js?v=034"></script>
 </body></html>
