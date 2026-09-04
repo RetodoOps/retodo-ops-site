@@ -531,7 +531,7 @@ async function reloadProjects() {
     }
     const projectsById = new Map(projects.map(project => [project.id, project]));
     allProjects = (scoopResult.data || []).map(scoop => {
-        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status));
+        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = TMS_REF.scoopStatus(scoopJobs);
         const expense = scoopJobs.reduce((sum, job) => {
             const po = purchaseOrders.find(row => row.job_id === job.id && ['Issued','Acknowledged'].includes(row.status));
             return sum + Number(po?.total ?? job.supplier_amount ?? 0);
@@ -544,6 +544,9 @@ async function reloadProjects() {
             source_language: scoop.source_language,
             target_language: scoop.target_language,
             deadline: scoop.deadline || base?.deadline,
+            project_status: base?.status,
+            scoop_status: scoopStatus,
+            status: scoopStatus,
             price,
             expense,
             margin_amount: profit,

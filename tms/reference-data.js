@@ -23,11 +23,54 @@
     'Terminology', 'DTP', 'Transcription', 'Subtitling', 'Voice-over',
     'Transcreation', 'Project Management', 'Other'
   ]);
+  const fallbackServiceCodes = Object.freeze({
+    'Translation':'TRA','MTPE':'MTP','Machine Translation Post-Editing':'MTP',
+    'Proofreading':'PRF','Independent Review':'REV','Review':'REV','LQA':'LQA',
+    'Terminology':'TER','DTP':'DTP','Transcription':'TRS','Subtitling':'SUB',
+    'Voice-over':'VO','Transcreation':'TRC','Project Management':'PM','Other':'OTH'
+  });
   let services = [...fallbackServices];
+  let serviceCodes = {...fallbackServiceCodes};
   let serviceLoadPromise = null;
 
   const escapeOption = value => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;')
     .replaceAll('>','&gt;').replaceAll('"','&quot;');
+
+  function compactLanguage(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return 'ANY';
+    const code = languageCodes[raw] || fallbackLanguageCodes[raw];
+    const normalized = String(code || raw).toUpperCase().replace(/\s+/g, '');
+    if (normalized === 'EN-GB') return 'EN-UK';
+    if (normalized === 'NB') return 'NO-NB';
+    return normalized.replace(/[^A-Z0-9-]/g, '') || 'ANY';
+  }
+
+  function compactServiceCode(value) {
+    const raw = String(value ?? '').trim();
+    return String(serviceCodes[raw] || fallbackServiceCodes[raw] || raw || 'OTH')
+      .toUpperCase().replace(/[^A-Z0-9-]/g, '') || 'OTH';
+  }
+
+  function compactUnit(value) {
+    const units = {
+      'Source words':'source-word', 'Target words':'target-word', Hours:'hour',
+      Pages:'page', Minutes:'minute', 'Fixed fee':'fixed-fee'
+    };
+    return units[String(value ?? '').trim()] || String(value ?? 'unit').trim().toLowerCase();
+  }
+
+  function scoopStatus(jobRows) {
+    const active = Array.isArray(jobRows)
+      ? jobRows.filter(row => !['Declined', 'Cancelled'].includes(row?.status))
+      : [];
+    if (!active.length) return 'Assign';
+    const assigned = active.filter(row => ['Assigned', 'In Progress', 'Delivered', 'Revision Required', 'Approved'].includes(row?.status));
+    if (!assigned.length) return 'Assign';
+    if (assigned.length === active.length && assigned.every(row => row.status === 'Approved')) return 'Approved';
+    if (assigned.length === active.length && assigned.every(row => ['Delivered', 'Approved'].includes(row.status))) return 'Delivered to Client';
+    return 'Ongoing';
+  }
 
   function installSettingsNav() {
     const nav = document.querySelector('.sidebar .nav');
@@ -62,6 +105,10 @@
   window.TMS_REF = Object.freeze({
     get languages() { return Object.freeze([...languages]); },
     get languageCodes() { return Object.freeze({...languageCodes}); },
+    compactLanguage,
+    compactServiceCode,
+    compactUnit,
+    scoopStatus,
     async loadLanguages(supabase) {
       if (!supabase) return [...languages];
       if (!languageLoadPromise) languageLoadPromise = (async () => {
@@ -80,8 +127,11 @@
       if (!supabase) return [...services];
       if (!serviceLoadPromise) serviceLoadPromise = (async () => {
         const { data, error } = await supabase.from('service_catalog')
-          .select('name,sort_order').eq('active', true).order('sort_order').order('name');
-        if (!error && data?.length) services = data.map(row => row.name);
+          .select('name,code,sort_order').eq('active', true).order('sort_order').order('name');
+        if (!error && data?.length) {
+          services = data.map(row => row.name);
+          serviceCodes = Object.fromEntries(data.map(row => [row.name, row.code]));
+        }
         return [...services];
       })();
       return serviceLoadPromise;

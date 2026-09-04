@@ -947,6 +947,7 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .scoop-card-head p { margin-top: 5px; color: #64748b; font-size: 12px; }
 .scoop-number { color: #5b21b6; font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 14px; font-weight: 800; overflow-wrap: anywhere; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .scoop-number:hover { color: #4c1d95; text-decoration-thickness: 2px; }
+.scoop-number-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .scoop-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
 .scoop-financials { display: grid; grid-template-columns: repeat(4,minmax(112px,1fr)); border: 1px solid #ddd6fe; border-radius: 9px; overflow: hidden; background: white; }
 .scoop-financials > div { min-width: 0; padding: 9px 11px; border-right: 1px solid #ede9fe; text-align: center; }
