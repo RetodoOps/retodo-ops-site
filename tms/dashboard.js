@@ -190,10 +190,11 @@ function renderTable() {
         const profit   = `${Number(p.margin_amount || 0).toFixed(2)} ${p.currency || 'EUR'}`;
         const emailReference = p.email_reference || '—';
 
+        const projectHref=`project.html?id=${encodeURIComponent(p.id)}${p.scoop_id?`&scoop=${encodeURIComponent(p.scoop_id)}`:''}`;
         return `<tr>
             <td><input type="checkbox" class="row-check" data-id="${p.id}"></td>
             <td>${i + 1}</td>
-            <td><a class="proj-num" href="project.html?id=${encodeURIComponent(p.id)}&scoop=${encodeURIComponent(p.scoop_id)}">${escapeHtml(p.scoop_number || '—')}</a><div class="customer-sub">${escapeHtml(p.display_name || p.project_number || 'Project')}</div>${p.client_reference ? `<div class="customer-sub">Client ref: ${escapeHtml(p.client_reference)}</div>` : ''}</td>
+            <td><a class="proj-num" href="${projectHref}">${escapeHtml(p.scoop_number || p.project_number || '—')}</a><div class="customer-sub">${escapeHtml(p.scoop_id?(p.display_name || p.project_number || 'Project'):'Create first Scoop')}</div>${p.client_reference ? `<div class="customer-sub">Client ref: ${escapeHtml(p.client_reference)}</div>` : ''}</td>
             <td><div class="customer-main">${escapeHtml(p.clients?.name || '—')}</div></td>
             <td>${escapeHtml(p.client_accounts?.name || 'Non-defined')}</td>
             <td>
@@ -270,6 +271,7 @@ document.querySelectorAll('.sort-header').forEach(button => {
 let LANGUAGES = TMS_REF.languages;
 let LANGUAGE_CODES = TMS_REF.languageCodes;
 let clientsList = [], projectAccounts = [], projectContacts = [], projectBillingEntities = [], internalResources = [];
+let currentUserId = '';
 let projectSpecializationCatalog = [], projectAccountSpecializationIds = [];
 
 function projectOptions(rows, label, selected = '', empty = 'Non-defined') {
@@ -298,8 +300,12 @@ function combineDateTime(dateId,timeId) {
 function internalResourceName(resource) {
     return resource.legal_name || resource.company_name || resource.internal_number;
 }
-function internalResourceOptions(selected='',empty='Non-defined') {
-    return `<option value="">${empty}</option>`+internalResources.map(resource=>
+function internalResourceOptions(position,selected='',empty='Non-defined') {
+    const eligible=internalResources.filter(resource=>{
+        const positions=resource.internal_positions||[];
+        return resource.lifecycle_status==='Active'&&(!positions.length||positions.includes(position));
+    });
+    return `<option value="">${empty}</option>`+eligible.map(resource=>
         `<option value="${resource.id}" ${resource.id===selected?'selected':''}>${escapeHtml(internalResourceName(resource))}</option>`
     ).join('');
 }
@@ -330,11 +336,11 @@ function updateProjectNamePreview() {
         document.getElementById('f-name-preview').textContent = 'Select a Client and target language';
         return;
     }
-    const date = (document.getElementById('f-date').value || localDateValue()).replaceAll('-', '').slice(2);
+    const projectDate=document.getElementById('f-date').value||localDateValue(),date=projectDate.replaceAll('-', '').slice(2),dailySequence=new Set(allProjects.filter(row=>row.project_date===projectDate).map(row=>row.id)).size+1;
     const ref = (document.getElementById('f-client-ref').value.trim() || 'NOREF')
         .toUpperCase().replace(/[^A-Z0-9]/g, '') || 'NOREF';
     document.getElementById('f-name-preview').textContent =
-        `${date}_${client.code || 'CLIENT'}_${LANGUAGE_CODES[target] || 'XX'}_${ref}`;
+        `${date}-${dailySequence}_${client.code || 'CLIENT'}_${LANGUAGE_CODES[target] || 'XX'}_${ref}`;
 }
 async function loadProjectClientDefaults() {
     const clientId = document.getElementById('f-client').value;
@@ -379,7 +385,7 @@ async function openCreateModal() {
         clientsList = data || [];
     }
     if (!internalResources.length) {
-        const {data}=await _sb.from('resources').select('id,internal_number,legal_name,company_name,lifecycle_status').eq('resource_type','Internal').eq('assignment_approved',true).eq('lifecycle_status','Active').order('legal_name');
+        const {data}=await _sb.from('resources').select('id,profile_id,internal_number,legal_name,company_name,lifecycle_status,internal_positions').eq('resource_type','Internal').eq('lifecycle_status','Active').order('legal_name');
         internalResources=data||[];
     }
     if (!projectSpecializationCatalog.length) {
@@ -390,12 +396,10 @@ async function openCreateModal() {
     ['f-src','f-tgt'].forEach(id => document.getElementById(id).innerHTML = '<option value="">Select…</option>' + LANGUAGES.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join(''));
     document.getElementById('f-src').value = 'English (UK)';
     document.getElementById('f-date').value = localDateValue();
-    document.getElementById('f-deadline-date').value = '';
-    document.getElementById('f-deadline-time').value = '';
     document.getElementById('f-place-delivery').value = '';
-    document.getElementById('f-pm').innerHTML = internalResourceOptions(currentUserResourceId(),'Select Project Manager…');
-    document.getElementById('f-qa').innerHTML = internalResourceOptions();
-    document.getElementById('f-coordinator').innerHTML = internalResourceOptions();
+    document.getElementById('f-pm').innerHTML = internalResourceOptions('Project Manager',currentUserResourceId('Project Manager'),'Select Project Manager…');
+    document.getElementById('f-qa').innerHTML = internalResourceOptions('QA');
+    document.getElementById('f-coordinator').innerHTML = internalResourceOptions('Project');
     document.getElementById('f-missingpo').checked = true;
     document.getElementById('f-account').innerHTML = '<option value="">Non-defined</option>';
     document.getElementById('f-contact').innerHTML = '<option value="">Non-defined</option>';
@@ -404,7 +408,7 @@ async function openCreateModal() {
     renderCreateSpecializations();
     updateProjectNamePreview();
 }
-function currentUserResourceId(){return internalResources[0]?.id||''}
+function currentUserResourceId(position){const resource=internalResources.find(item=>item.profile_id===currentUserId),positions=resource?.internal_positions||[];return resource&&(!positions.length||positions.includes(position))?resource.id:''}
 function closeCreateModal() {
     document.getElementById('createModal').classList.add('hidden');
     document.getElementById('createError').classList.add('hidden');
@@ -423,7 +427,7 @@ async function submitCreateProject() {
         client_reference: document.getElementById('f-client-ref').value.trim() || null, email_reference: document.getElementById('f-email-ref').value.trim() || null,
         project_date: document.getElementById('f-date').value, source_language: document.getElementById('f-src').value || null,
         source_language_code: LANGUAGE_CODES[document.getElementById('f-src').value] || null,
-        target_language: target, target_language_code: LANGUAGE_CODES[target], deadline: combineDateTime('f-deadline-date','f-deadline-time'),
+        target_language: target, target_language_code: LANGUAGE_CODES[target], deadline: null,
         project_manager: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-pm').value)||{} ) || null,
         qa_specialist: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-qa').value)||{} ) || null,
         project_coordinator: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-coordinator').value)||{} ) || null, status: 'Assign', project_type: document.getElementById('f-type').value,
@@ -528,7 +532,8 @@ async function reloadProjects() {
         purchaseOrders = poResult.data || [];
     }
     const projectsById = new Map(projects.map(project => [project.id, project]));
-    allProjects = (scoopResult.data || []).map(scoop => {
+    const scoopRows=scoopResult.data||[],scoopProjectIds=new Set(scoopRows.map(scoop=>scoop.project_id));
+    allProjects = scoopRows.map(scoop => {
         const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = scoop.status || TMS_REF.scoopStatus(scoop, scoopJobs) || 'Assign';
         const expense = scoopJobs.reduce((sum, job) => {
             const po = purchaseOrders.find(row => row.job_id === job.id && ['Issued','Acknowledged'].includes(row.status));
@@ -551,6 +556,7 @@ async function reloadProjects() {
             scoop_margin: price ? profit / price * 100 : 0,
         };
     });
+    allProjects.push(...projects.filter(project=>!scoopProjectIds.has(project.id)).map(project=>({...project,scoop_id:null,scoop_number:project.project_number,status:'Assign',scoop_status:'Assign',price:0,expense:0,margin_amount:0,scoop_margin:0})));
     renderTabs(); renderTable();
 }
 
@@ -558,6 +564,7 @@ async function reloadProjects() {
 (async () => {
     const user = await requireAuth();
     if (!user) return;
+    currentUserId = user.id;
     await Promise.all([TMS_REF.loadLanguages(_sb), TMS_REF.loadServices(_sb)]);
     LANGUAGES = TMS_REF.languages; LANGUAGE_CODES = TMS_REF.languageCodes;
     TMS_REF.populateServiceSelect('f-type');

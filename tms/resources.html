@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>External Resources — RetodoOps TMS</title>
-    <link rel="stylesheet" href="style.css?v=029">
+    <link rel="stylesheet" href="style.css?v=037">
 </head>
 <body>
 <div class="app">
@@ -26,7 +26,7 @@
             <div><h1 id="moduleTitle">External Resources</h1><p>Searchable linguist network, Resource status and operational history</p></div>
             <button class="btn-primary" onclick="openCreateResource()">+ Add resource</button>
         </div>
-        <div class="resource-filter-panel">
+        <div class="resource-filter-panel" id="resourceFilters">
             <div class="resource-filter-row">
                 <input type="search" class="search-box resource-search" id="resourceSearch" placeholder="Name, number, email or legacy ID…">
                 <select class="toolbar-select" id="sourceFilter"><option value="">All source languages</option></select>
@@ -43,7 +43,7 @@
         </div>
         <div class="table-wrap">
             <table class="module-table resources-list-table">
-                <thead><tr><th>Internal №</th><th>Resource</th><th>Resource status</th><th>Source → target</th><th>Services</th><th>Specializations</th><th>Country</th><th>Availability</th><th>Last work</th></tr></thead>
+                <thead id="resourcesHead"><tr><th>Internal №</th><th>Resource</th><th>Resource status</th><th>Source → target</th><th>Services</th><th>Specializations</th><th>Country</th><th>Availability</th><th>Last work</th></tr></thead>
                 <tbody id="resourcesTbody"><tr class="state-row"><td colspan="9">Loading Resources…</td></tr></tbody>
             </table>
         </div>
@@ -53,9 +53,9 @@
 
 <div id="resourceModal" class="modal-overlay hidden">
     <div class="modal modal-small">
-        <div class="modal-header"><h3>Add resource</h3><button class="modal-close" onclick="closeCreateResource()">×</button></div>
-        <div class="modal-body"><div class="form-grid">
-            <div class="field"><label>Type</label><select id="newResourceType"><option>Freelancer</option><option>Company</option><option>Internal</option></select></div>
+        <div class="modal-header"><h3 id="resourceModalTitle">Add resource</h3><button class="modal-close" onclick="closeCreateResource()">×</button></div>
+        <div class="modal-body"><div id="externalCreateFields" class="form-grid">
+            <div class="field"><label>Type</label><select id="newResourceType"><option>Freelancer</option><option>Company</option></select></div>
             <div class="field"><label>Initials</label><input id="newResourceInitials" maxlength="12"></div>
             <div class="field field-full"><label>Legal / personal name</label><input id="newResourceName"></div>
             <div class="field field-full"><label>Company name</label><input id="newResourceCompany"></div>
@@ -64,11 +64,17 @@
             <div class="field"><label>Email</label><input id="newResourceEmail" type="email"></div>
             <div class="field"><label>Phone</label><input id="newResourcePhone"></div>
             <div class="field field-full"><label>LinkedIn URL</label><input id="newResourceLinkedIn" type="url"></div>
+        </div><div id="internalCreateFields" class="form-grid hidden">
+            <div class="field field-full"><label for="newInternalName">Name *</label><input id="newInternalName"></div>
+            <div class="field field-full"><label>Position *</label><details id="newInternalPositions" class="catalog-dropdown"><summary>Select one or more positions…</summary><div class="catalog-dropdown-menu"><label class="checkbox-row"><input type="checkbox" value="Project Manager">Project Manager</label><label class="checkbox-row"><input type="checkbox" value="QA">QA</label><label class="checkbox-row"><input type="checkbox" value="Project">Project</label></div></details></div>
+            <div class="field"><label for="newInternalGender">Gender</label><select id="newInternalGender"><option value="">Non-defined</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer not to say</option></select></div>
+            <div class="field"><label for="newInternalStatus">Status</label><select id="newInternalStatus"><option>Active</option><option>On leave</option><option>Inactive</option></select></div>
+            <div class="field field-full"><label for="newInternalEmail">Email *</label><input id="newInternalEmail" type="email"></div>
         </div><p id="resourceCreateError" class="error-msg hidden"></p></div>
         <div class="modal-footer"><button class="btn-secondary" onclick="closeCreateResource()">Cancel</button><button class="btn-primary" id="createResourceBtn" onclick="createResource()">Create and open</button></div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=029"></script><script src="quick-nav.js?v=019"></script><script src="resources.js?v=019"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js?v=019"></script><script src="auth.js?v=037"></script><script src="reference-data.js?v=029"></script><script src="quick-nav.js?v=019"></script><script src="resources.js?v=037"></script>
 </body>
 </html>

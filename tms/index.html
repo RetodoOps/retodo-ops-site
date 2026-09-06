@@ -43,8 +43,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js"></script>
+<script src="auth.js?v=037"></script>
 <script>
+    if (new URLSearchParams(location.search).get('access') === 'inactive') {
+        const inactiveError = document.getElementById('loginError');
+        inactiveError.textContent = 'This Internal Resource is inactive. TMS access has been disabled.';
+        inactiveError.classList.remove('hidden');
+    }
     checkSession().then(u => { if (u) location.href = 'dashboard.html'; });
 
     document.getElementById('loginForm').addEventListener('submit', async e => {

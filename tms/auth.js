@@ -14,6 +14,12 @@ async function checkSession() {
 async function requireAuth() {
     const user = await checkSession();
     if (!user) { window.location.href = 'index.html'; return null; }
+    const access = await _sb.rpc('current_user_access_enabled');
+    if (!access.error && access.data === false) {
+        await _sb.auth.signOut();
+        window.location.href = 'index.html?access=inactive';
+        return null;
+    }
     return user;
 }
 

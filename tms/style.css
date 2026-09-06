@@ -1007,3 +1007,10 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .cat-grid-toolbar label { color: #475569; font-size: 12px; font-weight: 750; }
 .cat-grid-toolbar select { width: auto; min-height: 36px; }
 .cat-entry-table tr[hidden] { display: none; }
+/* Update 037 — Internal Resources are an employee/access register, not a
+   linguist capability profile. */
+.internal-resource-mode .resource-tabs,
+.internal-resource-mode .record-pane { display: none; }
+.internal-resource-mode #internalOverviewCard { display: block; }
+.internal-resource-filters .resource-filter-row:first-child { grid-template-columns: minmax(280px, 520px); }
+.internal-resource-filters .resource-search { width: 100%; max-width: 520px; }
