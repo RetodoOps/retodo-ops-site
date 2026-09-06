@@ -48,7 +48,7 @@ function sameDay(dateStr, offset = 0) {
 }
 const isToday    = d => sameDay(d, 0);
 const isTomorrow = d => sameDay(d, 1);
-const isOverdue  = d => d && new Date(d) < new Date() && !isToday(d);
+const isOverdue  = d => d && new Date(d) < new Date();
 
 function fmtDate(dateStr) {
     if (!dateStr) return '—';
@@ -180,7 +180,7 @@ function renderTable() {
     }
 
     tbody.innerHTML = rows.map((p, i) => {
-        const dlClass  = isOverdue(p.deadline) || isToday(p.deadline) ? 'deadline-today' : 'deadline-normal';
+        const dlClass  = isOverdue(p.deadline) ? 'deadline-overdue' : isToday(p.deadline) ? 'deadline-today' : 'deadline-normal';
         const srcFlag  = LANG_FLAGS[p.source_language] || '🌐';
         const tgtFlag  = LANG_FLAGS[p.target_language] || '🌐';
         const price    = p.price != null

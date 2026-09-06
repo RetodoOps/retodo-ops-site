@@ -5,6 +5,7 @@ let overviewCandidates = [], resourceRates = [];
 let projectScopeLines = [], projectJobs = [];
 let supplierTermsDirty = false;
 let selectedPOVersionKey = null;
+const MANUAL_FLAT_FEE_VALUE = 'manual-flat-fee';
 
 const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const val = id => document.getElementById(id).value.trim();
@@ -33,7 +34,7 @@ function eligibleResource(resource){return ['Assignable','Proven','Preferred'].i
 function rateLanguages(rate,side){const list=rate?.[`${side}_languages`];if(Array.isArray(list)&&list.length)return list;const scalar=rate?.[`${side}_language`];return scalar?[scalar]:[]}
 function rateLabel(rate){const sources=rateLanguages(rate,'source'),targets=rateLanguages(rate,'target'),pair=`${sources.map(language=>TMS_REF.compactLanguage(language)).join('+')||'ANY'}-${targets.map(language=>TMS_REF.compactLanguage(language)).join('+')||'ANY'}`,specificity=rate.specialization_id?specName(rate.specialization_id):'All specs',service=TMS_REF.compactServiceCode(rate.service_type),projectAccount=project?.client_accounts?.name||project?.client_accounts?.[0]?.name,account=rate.account_id?(rate.account_id===project?.account_id?(projectAccount||'Account'):'Other acc'):'All acc',unit=TMS_REF.compactUnit(rate.unit),band=rate.cat_band?` · ${rate.cat_band}`:'';return `${pair} · ${service} · ${specificity} - ${account} - ${displayRate(rate.rate)} ${rate.currency}/${unit}${band}`}
 function selectedSupplierUnit(){const rate=resourceRates.find(item=>item.id===val('j-rate-select')&&!item.base_rate_id);return rate?.unit||job?.unit||'Source words'}
-function overviewTerms(){return {service_type:val('j-service')||job.service_type,source_language:val('j-source')||job.source_language,target_language:val('j-target')||job.target_language,specialization_id:val('j-specialization')||job.specialization_id,unit:selectedSupplierUnit()}}
+function overviewTerms(){return {service_type:val('j-service')||job.service_type,source_language:val('j-source')||job.source_language||scoop?.source_language||project?.source_language,target_language:val('j-target')||job.target_language||scoop?.target_language||project?.target_language,specialization_id:val('j-specialization')||job.specialization_id,unit:selectedSupplierUnit()}}
 function rateMismatchReasons(rate,resourceId){const terms=overviewTerms(),reasons=[],sources=rateLanguages(rate,'source'),targets=rateLanguages(rate,'target'),normalized=value=>String(value||'').trim().toLowerCase();if(rate.resource_id!==resourceId)reasons.push('different Resource');if(rate.base_rate_id)reasons.push('CAT child row');if(rate.status!=='Approved')reasons.push(`status ${rate.status}`);if(rate.active===false)reasons.push('inactive');if(rate.account_id&&rate.account_id!==project?.account_id)reasons.push('different Account');if(normalized(rate.service_type)!==normalized(terms.service_type))reasons.push(`Service ${rate.service_type} ≠ ${terms.service_type}`);if(sources.length&&!sources.includes(terms.source_language))reasons.push(`Source ${sources.join(', ')} does not include ${terms.source_language||'not set'}`);if(targets.length&&!targets.includes(terms.target_language))reasons.push(`Target ${targets.join(', ')} does not include ${terms.target_language||'not set'}`);if(rate.specialization_id&&rate.specialization_id!==terms.specialization_id)reasons.push(`Specialization ${specName(rate.specialization_id)} ≠ ${specName(terms.specialization_id)}`);return reasons}
 function matchingRate(rate,resourceId){return rateMismatchReasons(rate,resourceId).length===0}
 const SUPPLIER_CAT_ORDER=['New words','50–74%','75–84%','85–94%','95–99%','100%','100% matches','101% / Context match','Repetitions'];
@@ -68,8 +69,19 @@ function currentJobClientValue(terms,supplierRows){
 }
 function calculateSupplierCatGrid(prefix){const body=document.getElementById(`${prefix}-cat-rows`);let total=0,currency='';body.querySelectorAll('tr').forEach(row=>{const q=Number(row.querySelector('.supplier-cat-quantity').value||0),rate=Number(row.dataset.rate||0),amount=roundMoney(row.dataset.unit==='Fixed fee'?(q>0?rate:0):q*rate);row.querySelector('.supplier-cat-amount').textContent=money(amount,row.dataset.currency);total+=amount;currency=row.dataset.currency});document.getElementById(`${prefix}-cat-total`).textContent=money(total,currency||'EUR');renderJobFinancials()}
 function collectSupplierCatRows(prefix){return [...document.querySelectorAll(`#${prefix}-cat-rows tr`)].map(row=>({resource_rate_id:row.dataset.rateId,quantity:Number(row.querySelector('.supplier-cat-quantity').value||0)}))}
-function renderSupplierCatGrid(selectId){const prefix=supplierCatPrefix(),baseId=val(selectId),card=document.getElementById(`${prefix}-cat-card`),body=document.getElementById(`${prefix}-cat-rows`);if(!baseId){card.classList.add('hidden');body.innerHTML='';renderJobFinancials();return}const base=resourceRates.find(rate=>rate.id===baseId&&!rate.base_rate_id);if(!base){card.classList.add('hidden');renderJobFinancials();return}const children=resourceRates.filter(rate=>rate.base_rate_id===baseId),hasCatRows=children.length>0,saved=existingCatState(baseId),inherited=inheritedProjectCatQuantities(),allRows=[base,...children].sort((a,b)=>SUPPLIER_CAT_ORDER.indexOf(a.cat_band||'New words')-SUPPLIER_CAT_ORDER.indexOf(b.cat_band||'New words')),rows=saved.exists?allRows.filter(rate=>saved.quantities.has(rate.id)):allRows,defaultQuantity=Number(val('j-quantity')||0);body.innerHTML=rows.map((rate,index)=>{const dataBand=rate.cat_band||'',label=rate.cat_band||(hasCatRows?'New words':rate.unit),inheritedQuantity=inherited.get(catBandKey(dataBand||label)),quantity=saved.quantities.has(rate.id)?saved.quantities.get(rate.id):(inheritedQuantity??(index===0?defaultQuantity:0));return `<tr data-rate-id="${rate.id}" data-band="${esc(dataBand)}" data-rate="${rate.rate}" data-unit="${esc(rate.unit)}" data-currency="${esc(rate.currency)}"><td><strong>${esc(label)}</strong>${rate.discount_percent==null?'':`<div class="customer-sub">${Number(rate.discount_percent).toFixed(2).replace(/\.00$/,'')}% discount</div>`}</td><td><input class="supplier-cat-quantity inline-quantity" type="number" min="0" step="0.001" value="${quantity}"></td><td>${esc(rate.unit)}</td><td>${unitMoney(rate.rate,rate.currency)}</td><td class="supplier-cat-amount number-cell">${money(0,rate.currency)}</td><td><button type="button" class="del-line-btn cat-delete-btn" title="Remove this payment row" aria-label="Remove ${esc(label)}" onclick="supplierTermsDirty=true;this.closest('tr').remove();calculateSupplierCatGrid('${prefix}')">🗑</button></td></tr>`}).join('');body.querySelectorAll('.supplier-cat-quantity').forEach(input=>input.addEventListener('input',()=>{supplierTermsDirty=true;calculateSupplierCatGrid(prefix)}));const preparingAssignment=!purchaseOrder||val('j-candidate')!==job.resource_id;card.classList.toggle('hidden',!preparingAssignment);calculateSupplierCatGrid(prefix)}
-async function fillRateSelect(selectId,resourceId){const select=document.getElementById(selectId),help=document.getElementById('j-rate-help');renderSupplierCatGrid(selectId);if(!resourceId){select.innerHTML='<option value="">Select Resource first…</option>';select.disabled=true;help.textContent='';return}select.innerHTML='<option value="">Loading approved rates…</option>';select.disabled=true;help.textContent='Checking the selected Resource rate cards…';const {data,error}=await _sb.from('resource_rates').select('*').eq('resource_id',resourceId).eq('status','Approved').eq('active',true).order('created_at',{ascending:false});if(error){select.innerHTML='<option value="">Rate lookup failed</option>';help.textContent=error.message;return}resourceRates=data||[];const bases=resourceRates.filter(rate=>!rate.base_rate_id),matches=bases.filter(rate=>matchingRate(rate,resourceId)).sort((a,b)=>Number(!!b.account_id)-Number(!!a.account_id)||Number(!!b.specialization_id)-Number(!!a.specialization_id)),nonMatches=bases.filter(rate=>!matchingRate(rate,resourceId));let html=matches.length?'<option value="">Select approved matching rate…</option>'+matches.map(rate=>`<option value="${rate.id}">${esc(rateLabel(rate))}</option>`).join(''):'<option value="">No exact matching approved rate</option>';if(nonMatches.length)html+=`<optgroup label="Approved cards that do not match this Job">${nonMatches.map(rate=>`<option disabled>${esc(rateLabel(rate))} — ${esc(rateMismatchReasons(rate,resourceId).join('; '))}</option>`).join('')}</optgroup>`;select.innerHTML=html;select.disabled=!bases.length;if(matches.length===1)select.value=matches[0].id;help.textContent=matches.length?`${matches.length} matching approved base rate${matches.length===1?'':'s'} found.${matches.length===1?' Selected automatically.':''}`:bases.length?'Approved base rate cards exist, but none matches this Job. Open the dropdown to see the exact mismatch.':'This Resource has no active Approved base rate card.';renderSupplierCatGrid(selectId)}
+function updateFlatFeeField(){
+  const select=document.getElementById('j-rate-select'),wrap=document.getElementById('j-flat-fee-wrap'),fee=document.getElementById('j-flat-fee'),currency=document.getElementById('j-flat-fee-currency'),rate=document.getElementById('j-rate'),amount=document.getElementById('j-amount');
+  if(!select||!wrap)return;
+  const manual=select.value===MANUAL_FLAT_FEE_VALUE;wrap.classList.toggle('hidden',!manual);
+  if(manual){
+    if(!fee.value&&job?.unit==='Fixed fee'&&job?.supplier_rate!=null)fee.value=job.supplier_rate;
+    if(currency&&!currency.dataset.userSelected)currency.value=job?.supplier_currency||project?.currency||'EUR';
+    if(rate)rate.value=fee.value?unitMoney(fee.value,currency?.value||project?.currency||'EUR'):'';
+    if(amount)amount.value=fee.value?money(fee.value,currency?.value||project?.currency||'EUR'):'';
+  }
+}
+function renderSupplierCatGrid(selectId){const prefix=supplierCatPrefix(),baseId=val(selectId),card=document.getElementById(`${prefix}-cat-card`),body=document.getElementById(`${prefix}-cat-rows`);if(!baseId||baseId===MANUAL_FLAT_FEE_VALUE){card.classList.add('hidden');body.innerHTML='';renderJobFinancials();return}const base=resourceRates.find(rate=>rate.id===baseId&&!rate.base_rate_id);if(!base){card.classList.add('hidden');renderJobFinancials();return}const children=resourceRates.filter(rate=>rate.base_rate_id===baseId),hasCatRows=children.length>0,saved=existingCatState(baseId),inherited=inheritedProjectCatQuantities(),allRows=[base,...children].sort((a,b)=>SUPPLIER_CAT_ORDER.indexOf(a.cat_band||'New words')-SUPPLIER_CAT_ORDER.indexOf(b.cat_band||'New words')),rows=allRows,defaultQuantity=Number(val('j-quantity')||0);body.innerHTML=rows.map((rate,index)=>{const dataBand=rate.cat_band||'',label=rate.cat_band||(hasCatRows?'New words':rate.unit),inheritedQuantity=inherited.get(catBandKey(dataBand||label)),quantity=saved.quantities.has(rate.id)?saved.quantities.get(rate.id):(inheritedQuantity??(index===0?defaultQuantity:0));return `<tr data-rate-id="${rate.id}" data-band="${esc(dataBand)}" data-rate="${rate.rate}" data-unit="${esc(rate.unit)}" data-currency="${esc(rate.currency)}"><td><strong>${esc(label)}</strong>${rate.discount_percent==null?'':`<div class="customer-sub">${Number(rate.discount_percent).toFixed(2).replace(/\.00$/,'')}% discount</div>`}</td><td><input class="supplier-cat-quantity inline-quantity" type="number" min="0" step="0.001" value="${quantity}"></td><td>${esc(rate.unit)}</td><td>${unitMoney(rate.rate,rate.currency)}</td><td class="supplier-cat-amount number-cell">${money(0,rate.currency)}</td><td><button type="button" class="del-line-btn cat-delete-btn" title="Remove this payment row" aria-label="Remove ${esc(label)}" onclick="supplierTermsDirty=true;this.closest('tr').remove();calculateSupplierCatGrid('${prefix}')">🗑</button></td></tr>`}).join('');body.querySelectorAll('.supplier-cat-quantity').forEach(input=>input.addEventListener('input',()=>{supplierTermsDirty=true;calculateSupplierCatGrid(prefix)}));const preparingAssignment=!purchaseOrder||val('j-candidate')!==job.resource_id;card.classList.toggle('hidden',!preparingAssignment);calculateSupplierCatGrid(prefix)}
+async function fillRateSelect(selectId,resourceId){const select=document.getElementById(selectId),help=document.getElementById('j-rate-help');renderSupplierCatGrid(selectId);if(!resourceId){select.innerHTML='<option value="">Select Resource first…</option>';select.disabled=true;updateFlatFeeField();help.textContent='';return}select.innerHTML='<option value="">Loading approved rates…</option>';select.disabled=true;help.textContent='Checking the selected Resource rate cards…';const {data,error}=await _sb.from('resource_rates').select('*').eq('resource_id',resourceId).eq('status','Approved').eq('active',true).order('created_at',{ascending:false});if(error){select.innerHTML='<option value="">Rate lookup failed</option>';help.textContent=error.message;return}resourceRates=data||[];const bases=resourceRates.filter(rate=>!rate.base_rate_id),matches=bases.filter(rate=>matchingRate(rate,resourceId)).sort((a,b)=>Number(!!b.account_id)-Number(!!a.account_id)||Number(!!b.specialization_id)-Number(!!a.specialization_id)),nonMatches=bases.filter(rate=>!matchingRate(rate,resourceId));let html=matches.length?'<option value="">Select approved matching rate…</option>'+matches.map(rate=>`<option value="${rate.id}">${esc(rateLabel(rate))}</option>`).join(''):'<option value="">No exact matching approved rate</option>';if(nonMatches.length)html+=`<optgroup label="Approved cards that do not match this Job">${nonMatches.map(rate=>`<option disabled>${esc(rateLabel(rate))} — ${esc(rateMismatchReasons(rate,resourceId).join('; '))}</option>`).join('')}</optgroup>`;html+='<option value="'+MANUAL_FLAT_FEE_VALUE+'">Manual flat fee — no matching rate card</option>';select.innerHTML=html;select.disabled=false;if(matches.length===1)select.value=matches[0].id;else if(!matches.length)select.value=MANUAL_FLAT_FEE_VALUE;help.textContent=matches.length?`${matches.length} matching approved base rate${matches.length===1?'':'s'} found.${matches.length===1?' Selected automatically.':''} You may also choose Manual flat fee.`:bases.length?'Approved base rate cards exist, but none matches this Job. Choose Manual flat fee to continue without a rate card.':'This Resource has no active Approved base rate card. Choose Manual flat fee to continue.';updateFlatFeeField();renderSupplierCatGrid(selectId)}
 function statusClass(status){return status==='Accepted'||status==='Approved'?'pill-green':status==='Declined'||status==='Withdrawn'||status==='Cancelled'?'pill-red':status==='Sent'||status==='Viewed'||status==='Assigned'||status==='In Progress'?'pill-blue':status==='Expired'||status==='Revision Required'?'pill-amber':''}
 
 function populateHeader(){
@@ -77,14 +89,15 @@ function populateHeader(){
   document.getElementById('jobTitle').textContent=job.job_number;
   document.getElementById('jobBreadcrumb').textContent=job.job_number;
   const scoopLink=document.getElementById('scoopLink');scoopLink.textContent=scoop?.scoop_number||'Scoop';scoopLink.href=scoop?`project.html?id=${encodeURIComponent(project.id)}&scoop=${encodeURIComponent(scoop.id)}`:`project.html?id=${encodeURIComponent(project.id)}`;
-  document.getElementById('jobSubtitle').textContent=`${scoop?.scoop_number||project.display_name} · ${job.source_language||'—'} → ${job.target_language||'—'} · ${job.service_type}`;
+  const sourceLanguage=job.source_language||scoop?.source_language||project?.source_language,targetLanguage=job.target_language||scoop?.target_language||project?.target_language;
+  document.getElementById('jobSubtitle').textContent=`${scoop?.scoop_number||project.display_name} · ${sourceLanguage||'—'} → ${targetLanguage||'—'} · ${job.service_type}`;
   const projectLink=document.getElementById('projectLink'); projectLink.href=`project.html?id=${project.id}`; projectLink.textContent=project.display_name;
   const resourceLink=document.getElementById('openResourceLink');
   if(assignedResource){resourceLink.href=`resource.html?id=${assignedResource.id}`;resourceLink.classList.remove('hidden')}else resourceLink.classList.add('hidden');
 }
 
 function populateOverview(){
-  const effectiveCost=effectiveJobSupplierCost(),fields={'j-number':job.job_number,'j-status':job.status,'j-deadline-date':datePart(job.deadline),'j-deadline-time':timePart(job.deadline),'j-service':job.service_type,'j-source':job.source_language,'j-target':job.target_language,'j-quantity':job.quantity,'j-rate':job.supplier_rate,'j-amount':job.resource_id?money(effectiveCost.amount,effectiveCost.currency):'','j-notes':job.notes};
+  const effectiveCost=effectiveJobSupplierCost(),fields={'j-number':job.job_number,'j-status':job.status,'j-deadline-date':datePart(job.deadline),'j-deadline-time':timePart(job.deadline),'j-service':job.service_type,'j-source':job.source_language||scoop?.source_language||project?.source_language,'j-target':job.target_language||scoop?.target_language||project?.target_language,'j-quantity':job.quantity,'j-rate':job.supplier_rate,'j-amount':job.resource_id?money(effectiveCost.amount,effectiveCost.currency):'','j-notes':job.notes};
   Object.entries(fields).forEach(([id,value])=>document.getElementById(id).value=value??'');
   syncInheritedSpecialization();document.getElementById('j-deadline-date').min=localDateValue();
   document.getElementById('j-po-required').checked=!!job.po_required;
@@ -104,7 +117,7 @@ async function loadOverviewCandidates(){
   candidateSelect.innerHTML='<option value="">Select assignable Resource…</option>'+overviewCandidates.map(resource=>`<option value="${resource.id}" ${resource.id===job.resource_id?'selected':''}>${esc(resource.internal_number)} · ${esc(resourceName(resource))} · ${esc(resource.resource_status||'Current')}</option>`).join('');
   candidateSelect.disabled=!overviewCandidates.length;rateSelect.innerHTML='<option value="">Select Resource first…</option>';rateSelect.disabled=true;
   if(!overviewCandidates.length){candidateSelect.innerHTML='<option value="">No Active Assignable, Proven or Preferred Resources</option>';document.getElementById('j-create-offer').disabled=true;return}
-  if(job.resource_id){await fillRateSelect('j-rate-select',job.resource_id);if(resourceRates.some(rate=>rate.id===job.resource_rate_id))rateSelect.value=job.resource_rate_id;renderSupplierCatGrid('j-rate-select')}
+  if(job.resource_id){await fillRateSelect('j-rate-select',job.resource_id);if(resourceRates.some(rate=>rate.id===job.resource_rate_id))rateSelect.value=job.resource_rate_id;else if(!job.resource_rate_id&&job.unit==='Fixed fee'&&job.supplier_rate!=null&&[...rateSelect.options].some(option=>option.value===MANUAL_FLAT_FEE_VALUE))rateSelect.value=MANUAL_FLAT_FEE_VALUE;updateFlatFeeField();renderSupplierCatGrid('j-rate-select')}
   updateAssignmentAction();
 }
 
@@ -115,16 +128,17 @@ async function sendSupplierPOEmail(poId){
   const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||'PO email could not be sent');return result;
 }
 async function assignResourceAndIssuePO(){
-  clearError();const resourceId=val('j-candidate'),rateId=val('j-rate-select');
+  clearError();const resourceId=val('j-candidate'),rateId=val('j-rate-select'),manualFlatFee=rateId===MANUAL_FLAT_FEE_VALUE;
   if(deadlineIsPast())return showError('Resource deadline cannot be in the past.');
   if(!resourceId)return showError('Select a Resource.');
   if(job.resource_id===resourceId)return showError('This Resource is already assigned. Change Job terms and Save to create a PO revision, or select another Resource.');
-  if(!rateId)return showError('Select an Approved matching Supplier rate card.');
-  const catRows=collectSupplierCatRows('j');if(!catRows.some(row=>row.quantity>0))return showError('Enter a quantity in at least one Supplier payment row.');
+  if(!rateId)return showError('Select an Approved matching Supplier rate card or choose Manual flat fee.');
+  const flatFee=Number(val('j-flat-fee')||0);if(manualFlatFee&&(!Number.isFinite(flatFee)||flatFee<=0))return showError('Enter a Manual flat fee greater than zero.');
+  const catRows=manualFlatFee?[]:collectSupplierCatRows('j');if(!manualFlatFee&&!catRows.some(row=>row.quantity>0))return showError('Enter a quantity in at least one Supplier payment row.');
   const replacing=!!job.resource_id;let reason=null;if(replacing){reason=prompt('Reason for replacing the assigned Resource and cancelling the current PO:');if(!reason)return}
   if(replacing&&!confirm('The current PO will be cancelled and a new PO will be issued and emailed to the selected Resource.'))return;
   const action=document.getElementById('j-create-offer');action.disabled=true;action.textContent='Creating and sending…';
-  const {data:poId,error}=await _sb.rpc('assign_job_and_issue_po_inherit_rate_unit',{p_job_id:jobId,p_resource_id:resourceId,p_resource_rate_id:rateId,p_cat_rows:catRows,p_reassignment_reason:reason});
+  const {data:poId,error}=manualFlatFee?await _sb.rpc('assign_job_and_issue_po_flat_fee',{p_job_id:jobId,p_resource_id:resourceId,p_flat_fee:flatFee,p_currency:val('j-flat-fee-currency')||project?.currency||'EUR',p_reassignment_reason:reason}):await _sb.rpc('assign_job_and_issue_po_inherit_rate_unit',{p_job_id:jobId,p_resource_id:resourceId,p_resource_rate_id:rateId,p_cat_rows:catRows,p_reassignment_reason:reason});
   if(error){updateAssignmentAction();return showError(error.message)}
   try{await sendSupplierPOEmail(poId)}catch(mailError){await loadJob();showError(`Resource assigned and PO created, but the email was not sent: ${mailError.message}. Open Supplier PO and use Retry sending.`);return}
   await loadJob();setStatus(replacing?'Resource reassigned · new PO sent ✓':'Resource assigned · PO sent ✓');
@@ -139,9 +153,10 @@ async function saveJob(){
   if(!job.resource_id&&['Assigned','In Progress','Delivered','Revision Required','Approved'].includes(val('j-status')))return showError('Assign a Resource and issue its Supplier PO before moving this Job into production.');
   if(!val('j-source')||!val('j-target'))return showError('Source and Target languages are required.');
   if(!TMS_REF.languages.includes(val('j-source'))||!TMS_REF.languages.includes(val('j-target')))return showError('Choose Source and Target from the shared language list.');
+  const manualFlatFee=val('j-rate-select')===MANUAL_FLAT_FEE_VALUE;
   const termsChanged=val('j-service')!==job.service_type||val('j-source')!==(job.source_language||'')||val('j-target')!==(job.target_language||'')||val('j-specialization')!==job.specialization_id||Number(val('j-quantity')||0)!==Number(job.quantity||0);
-  if(job.resource_id&&termsChanged&&!val('j-rate-select'))return showError('Select an Approved Supplier rate matching the edited Job terms.');
-  const catRows=val('j-rate-select')?collectSupplierCatRows('j'):[],payload={status:val('j-status'),deadline:combineDateTime('j-deadline-date','j-deadline-time'),service_type:val('j-service'),source_language:val('j-source'),target_language:val('j-target'),specialization_id:val('j-specialization'),quantity:catRows.length?catRows.reduce((sum,row)=>sum+Number(row.quantity||0),0):(val('j-quantity')===''?null:Number(val('j-quantity'))),po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes'),resource_rate_id:job.resource_id?nullable('j-rate-select'):null,cat_rows:catRows};
+  if(job.resource_id&&termsChanged&&!val('j-rate-select'))return showError('Select an Approved Supplier rate matching the edited Job terms, or choose Manual flat fee.');
+  const catRows=val('j-rate-select')&&!manualFlatFee?collectSupplierCatRows('j'):[],payload={status:val('j-status'),deadline:combineDateTime('j-deadline-date','j-deadline-time'),service_type:val('j-service'),source_language:val('j-source'),target_language:val('j-target'),specialization_id:val('j-specialization'),quantity:catRows.length?catRows.reduce((sum,row)=>sum+Number(row.quantity||0),0):(val('j-quantity')===''?null:Number(val('j-quantity'))),po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes'),resource_rate_id:job.resource_id&&!manualFlatFee?nullable('j-rate-select'):null,cat_rows:catRows};
   const {data,error}=await _sb.rpc('save_job_overview_inherit_rate_unit',{p_job_id:jobId,p_payload:payload});if(error)return showError(error.message);
   await loadJob();setStatus(Number(data)>0?`Job saved · Supplier PO version ${data} created ✓`:'Job saved ✓');
 }
@@ -242,23 +257,15 @@ async function loadJob(){
   populateHeader();populateOverview();renderOffers();renderPO();renderIssues();window.TMS_QUICK_NAV?.recordVisit('Job',job.id,job.job_number,[project.display_name,job.service_type,job.status].filter(Boolean).join(' · '));await loadOverviewCandidates();
 }
 
-// Update 036: keep Supplier payment compact while allowing the PM to reveal
-// every zero-quantity CAT band when needed.
-function catRowsVisibilityMode(prefix='j'){return document.getElementById(prefix+'-cat-row-visibility')?.value==='all'?'all':'active'}
-function applySupplierCatVisibility(prefix='j'){
-  const showAll=catRowsVisibilityMode(prefix)==='all';
-  document.querySelectorAll('#'+prefix+'-cat-rows tr').forEach(row=>{
-    const quantity=Number(row.querySelector('.supplier-cat-quantity')?.value||0);
-    row.hidden=!showAll&&quantity===0;
-  });
-}
+// Update 038: the Supplier payment grid is returned to its previous state;
+// every CAT band is visible and there is no visibility selector.
 function calculateSupplierCatGrid(prefix){
   const body=document.getElementById(prefix+'-cat-rows');let total=0,currency='';
   body.querySelectorAll('tr').forEach(row=>{
     const q=Number(row.querySelector('.supplier-cat-quantity').value||0),rate=Number(row.dataset.rate||0),amount=roundMoney(row.dataset.unit==='Fixed fee'?(q>0?rate:0):q*rate);
     row.querySelector('.supplier-cat-amount').textContent=money(amount,row.dataset.currency);total+=amount;currency=row.dataset.currency;
   });
-  document.getElementById(prefix+'-cat-total').textContent=money(total,currency||'EUR');applySupplierCatVisibility(prefix);renderJobFinancials();
+  document.getElementById(prefix+'-cat-total').textContent=money(total,currency||'EUR');renderJobFinancials();
 }
 function renderSupplierCatGrid(selectId){
   const prefix=supplierCatPrefix(),baseId=val(selectId),card=document.getElementById(prefix+'-cat-card'),body=document.getElementById(prefix+'-cat-rows');
@@ -274,7 +281,7 @@ function renderSupplierCatGrid(selectId){
   const preparingAssignment=!purchaseOrder||val('j-candidate')!==job.resource_id;card.classList.toggle('hidden',!preparingAssignment);calculateSupplierCatGrid(prefix);
 }
 function poDisplayLabel(po=purchaseOrder,snapshot={}){
-  return po?.display_name||snapshot.display_name||[job?.job_number,po?.po_number||snapshot.po_number].filter(Boolean).join(' · ')||'Supplier PO';
+  return po?.po_number||snapshot.po_number||'Supplier PO';
 }
 function updateVisiblePOLabels(){
   if(!purchaseOrder)return;
@@ -293,8 +300,9 @@ const renderPO036=renderPO;
 renderPO=()=>{renderPO036();updateVisiblePOLabels()};
 document.querySelectorAll('.record-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t===tab));document.querySelectorAll('.record-pane').forEach(pane=>pane.classList.toggle('active',pane.id===`pane-${tab.dataset.tab}`))}));
 document.getElementById('j-candidate').addEventListener('change',async event=>{await fillRateSelect('j-rate-select',event.target.value);updateAssignmentAction()});
-document.getElementById('j-rate-select').addEventListener('change',()=>{supplierTermsDirty=true;renderSupplierCatGrid('j-rate-select')});
-document.getElementById('j-cat-row-visibility').addEventListener('change',()=>applySupplierCatVisibility('j'));
+document.getElementById('j-rate-select').addEventListener('change',()=>{supplierTermsDirty=true;updateFlatFeeField();renderSupplierCatGrid('j-rate-select');updateAssignmentAction()});
+document.getElementById('j-flat-fee').addEventListener('input',()=>{supplierTermsDirty=true;updateFlatFeeField();renderJobFinancials()});
+document.getElementById('j-flat-fee-currency').addEventListener('change',event=>{event.target.dataset.userSelected='true';supplierTermsDirty=true;updateFlatFeeField();renderJobFinancials()});
 ['j-service','j-source','j-target'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(id==='j-service')syncInheritedSpecialization();supplierTermsDirty=true;const resourceId=val('j-candidate')||job.resource_id;if(resourceId)fillRateSelect('j-rate-select',resourceId)}));
 document.getElementById('j-quantity').addEventListener('input',()=>{supplierTermsDirty=true;renderJobFinancials()});
 document.getElementById('j-status').addEventListener('change',renderJobFinancials);

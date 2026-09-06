@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=036">
+  <link rel="stylesheet" href="style.css?v=038">
 </head>
 <body>
 <div class="app">
@@ -75,6 +75,7 @@
               <div class="job-assignment-grid">
                 <div class="field assignment-resource"><label for="j-candidate">Resource</label><select id="j-candidate"></select><small class="field-help">Replacing an assigned Resource cancels its current PO and preserves the history. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
                 <div class="field assignment-rate"><label for="j-rate-select">Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
+                <div id="j-flat-fee-wrap" class="field hidden"><label for="j-flat-fee">Manual flat fee</label><div class="input-inline"><input id="j-flat-fee" type="number" min="0.01" step="0.01" placeholder="0.00"><select id="j-flat-fee-currency" aria-label="Manual flat fee currency"><option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="NOK">NOK</option><option value="SEK">SEK</option><option value="DKK">DKK</option><option value="CHF">CHF</option></select></div><small id="j-flat-fee-help" class="field-help">Use this when no approved Supplier rate card matches the selected Resource.</small></div>
                 <div class="field"><label for="j-rate">Current supplier rate</label><input id="j-rate" readonly></div>
                 <div class="field"><label for="j-amount">Supplier amount</label><input id="j-amount" readonly></div>
                 <div class="field po-required-field"><label>Purchase order</label><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
@@ -90,7 +91,6 @@
         <div id="j-cat-card" class="section-card table-card hidden">
           <div class="section-title">Supplier payment</div>
           <p class="muted">Payment quantities are editable. Prices come from the selected Approved Supplier rate card.</p>
-          <div class="cat-grid-toolbar"><label for="j-cat-row-visibility">CAT rows</label><select id="j-cat-row-visibility"><option value="active">Show rows with quantities</option><option value="all">Show zero-quantity rows</option></select></div>
           <table class="module-table cat-entry-table"><thead><tr><th>Payment item</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody id="j-cat-rows"></tbody></table>
           <div class="cat-grid-total"><span>Supplier total</span><strong id="j-cat-total">0.00</strong></div>
         </div>
@@ -128,6 +128,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=036"></script><script src="auth.js?v=037"></script><script src="reference-data.js?v=036"></script><script src="quick-nav.js?v=036"></script><script src="job.js?v=036"></script>
+  <script src="config.js?v=036"></script><script src="auth.js?v=037"></script><script src="reference-data.js?v=036"></script><script src="quick-nav.js?v=036"></script><script src="job.js?v=038"></script>
 </body>
 </html>
