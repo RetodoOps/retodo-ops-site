@@ -414,10 +414,8 @@ async function submitCreateProject() {
     err.classList.add('hidden');
     const clientId = document.getElementById('f-client').value, target = document.getElementById('f-tgt').value;
     if (!clientId || !target) { err.textContent = 'Client and target language are required.'; err.classList.remove('hidden'); return; }
-    const priceSource = document.getElementById('f-price-source').value;
     const specializationIds=[...document.querySelectorAll('#f-specializations input:checked')].map(input=>input.value);
     if(!specializationIds.length){err.textContent='Select at least one Project specialization.';err.classList.remove('hidden');return}
-    if (['Manual','Fixed'].includes(priceSource) && !document.getElementById('f-price-reason').value.trim()) { err.textContent = 'Explain why a manual or fixed price is being used.'; err.classList.remove('hidden'); return; }
     btn.disabled = true; btn.textContent = 'Creating…';
     const payload = {
         client_id: clientId, account_id: document.getElementById('f-account').value || null,
@@ -430,16 +428,16 @@ async function submitCreateProject() {
         qa_specialist: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-qa').value)||{} ) || null,
         project_coordinator: internalResourceName(internalResources.find(resource=>resource.id===document.getElementById('f-coordinator').value)||{} ) || null, status: 'Assign', project_type: document.getElementById('f-type').value,
         production_mode: document.getElementById('f-production').value, cat_system: document.getElementById('f-cat').value.trim() || null,
-        client_instructions: document.getElementById('f-instructions').value.trim() || null, price: Number(document.getElementById('f-price').value || 0),
-        currency: document.getElementById('f-currency').value, price_source: priceSource || null,
-        price_override_reason: document.getElementById('f-price-reason').value.trim() || null, po_number: document.getElementById('f-po').value.trim() || null,
+        client_instructions: document.getElementById('f-instructions').value.trim() || null,
+        currency: document.getElementById('f-currency').value,
+        po_number: document.getElementById('f-po').value.trim() || null,
         missing_po: document.getElementById('f-missingpo').checked, upcoming: document.getElementById('f-upcoming').checked,
         urgent: document.getElementById('f-urgent').checked,
         place_of_delivery: document.getElementById('f-place-delivery').value.trim() || null,
         specialization_ids: specializationIds,
     };
     const { data, error } = await _sb.rpc('create_project_with_specializations', { p_payload: payload });
-    btn.disabled = false; btn.textContent = 'Create Project and first Scoop';
+    btn.disabled = false; btn.textContent = 'Create Project and open Scoops';
     if (error) { err.textContent = error.message; err.classList.remove('hidden'); return; }
     if (data?.[0]?.created_project_id) {
         const staff={project_manager_resource_id:document.getElementById('f-pm').value||null,qa_specialist_resource_id:document.getElementById('f-qa').value||null,project_coordinator_resource_id:document.getElementById('f-coordinator').value||null,place_of_delivery:document.getElementById('f-place-delivery').value.trim()||null};
@@ -531,7 +529,7 @@ async function reloadProjects() {
     }
     const projectsById = new Map(projects.map(project => [project.id, project]));
     allProjects = (scoopResult.data || []).map(scoop => {
-        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = TMS_REF.scoopStatus(scoopJobs);
+        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = scoop.status || TMS_REF.scoopStatus(scoop, scoopJobs) || 'Assign';
         const expense = scoopJobs.reduce((sum, job) => {
             const po = purchaseOrders.find(row => row.job_id === job.id && ['Issued','Acknowledged'].includes(row.status));
             return sum + Number(po?.total ?? job.supplier_amount ?? 0);

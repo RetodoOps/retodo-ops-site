@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts — RetodoOps TMS</title>
+    <link rel="stylesheet" href="style.css?v=036">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">TMS</div></div>
+        <nav class="nav">
+            <a class="nav-item" href="dashboard.html">⌂ <span>Dashboard</span></a>
+            <a class="nav-item" href="quotes.html">▣ <span>Quotes</span></a>
+            <div class="nav-item" onclick="toggleSub('sub-res',this)">•• <span>Resources</span><span class="nav-arrow">▾</span></div>
+            <div class="nav-sub" id="sub-res"><a href="resources.html?type=internal">Internal Resource</a><a href="resources.html?type=external">External Resource</a></div>
+            <div class="nav-item active open" onclick="toggleSub('sub-cli',this)">▰ <span>Clients</span><span class="nav-arrow">▾</span></div>
+            <div class="nav-sub open" id="sub-cli"><a href="clients.html">Client List</a><a class="active" href="accounts.html">Accounts</a></div>
+            <div class="nav-item" onclick="toggleSub('sub-rep',this)">▤ <span>Reports</span><span class="nav-arrow">▾</span></div>
+            <div class="nav-sub" id="sub-rep"><a href="reports.html?type=projects">Project Report</a><a href="reports.html?type=jobs">Jobs Report</a><a href="reports.html?type=margin">Margin Report</a><a href="reports.html?type=invoices">Invoice Report</a></div>
+            <hr class="nav-divider">
+            <div class="sidebar-bottom"><a class="nav-item" href="#" onclick="signOut();return false">↪ <span>Sign Out</span></a></div>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="module-header">
+            <div><h1>Accounts</h1><p>Account defaults and specializations used by Projects and rate cards.</p></div>
+            <button class="btn-primary" type="button" onclick="openAccountModal()">+ Add account</button>
+        </div>
+        <div class="toolbar">
+            <input type="search" class="search-box" id="accountSearch" placeholder="Search accounts, clients or codes…">
+            <select class="toolbar-select" id="accountClientFilter"><option value="">All clients</option></select>
+            <select class="toolbar-select" id="accountStatusFilter"><option value="">All statuses</option><option>Active</option><option>On Hold</option><option>Do not work with</option></select>
+            <div class="toolbar-right"><span class="record-count" id="accountCount"></span></div>
+        </div>
+        <div class="table-wrap">
+            <table class="module-table">
+                <thead><tr><th>Client</th><th>Code</th><th>Account</th><th>Specializations</th><th>Production</th><th>CAT</th><th>Status</th><th>Updated</th></tr></thead>
+                <tbody id="accountsTbody"><tr class="state-row"><td colspan="8">Loading accounts…</td></tr></tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<div id="accountModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
+    <div class="modal">
+        <div class="modal-header"><h3 id="accountModalTitle">Add account</h3><button class="modal-close" onclick="closeModal('accountModal')">×</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="a-id">
+            <div class="form-grid form-grid-3">
+                <div class="field field-span-2"><label for="a-client">Client *</label><select id="a-client"></select></div>
+                <div class="field"><label for="a-code">Account code</label><input id="a-code" maxlength="12"></div>
+                <div class="field field-span-2"><label for="a-name">Account name *</label><input id="a-name"></div>
+                <div class="field"><label for="a-source">Default source language</label><input id="a-source"></div>
+                <div class="field"><label for="a-cat">Default CAT system</label><input id="a-cat" placeholder="e.g. memoQ"></div>
+                <div class="field"><label for="a-production">Production mode</label><select id="a-production"><option>Not selected</option><option>Client CAT</option><option>Retodo memoQ</option><option>File workflow</option></select></div>
+                <div class="field"><label for="a-blind">Blind-CV label</label><input id="a-blind"></div>
+                <div class="field field-span-2"><label class="checkbox-row inline-check"><input type="checkbox" id="a-disclose"> Account name may appear in blind CV</label></div>
+                <div class="field field-full"><label>Default specializations *</label><div id="a-specializations" class="checkbox-grid"></div><small class="field-help">These defaults are preselected when the Account is used on a Resource rate card.</small></div>
+                <div class="field"><label for="a-instructions">Client instructions</label><textarea id="a-instructions"></textarea></div>
+                <div class="field"><label for="a-terminology">Terminology</label><textarea id="a-terminology"></textarea></div>
+                <div class="field"><label for="a-communication">Communication boundaries</label><textarea id="a-communication"></textarea></div>
+                <div class="field field-span-2"><label for="a-confidentiality">Confidentiality notes</label><textarea id="a-confidentiality"></textarea></div>
+                <div class="field"><label for="a-restriction">Status</label><select id="a-restriction"><option>Active</option><option>On Hold</option><option>Do not work with</option></select></div>
+                <div class="field field-full"><label for="a-restriction-reason">Restriction reason</label><input id="a-restriction-reason"></div>
+            </div>
+            <p id="accountError" class="error-msg hidden"></p>
+        </div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('accountModal')">Cancel</button><button class="btn-primary" onclick="saveAccount()">Save account</button></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=036"></script><script src="auth.js?v=036"></script><script src="reference-data.js?v=036"></script><script src="quick-nav.js?v=036"></script><script src="accounts.js?v=036"></script>
+</body>
+</html>

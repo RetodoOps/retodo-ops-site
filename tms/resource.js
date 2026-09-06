@@ -1,5 +1,5 @@
 let resourceId, resource, appRole = 'user', cvData = null;
-let pairs=[], services=[], specializations=[], resourceSpecializations=[], rates=[], tests=[], accountQualifications=[], accounts=[], education=[], documents=[], history=[], availability=[], privateNotes=[];
+let pairs=[], services=[], specializations=[], resourceSpecializations=[], rates=[], tests=[], accountQualifications=[], accounts=[], education=[], documents=[], history=[], availability=[], privateNotes=[], accountSpecializationDefaults=[];
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const el=id=>document.getElementById(id), val=id=>el(id).value.trim(), nullable=id=>val(id)||null;
 const initialsFromName=name=>String(name||'').trim().split(/[\s-]+/).filter(Boolean).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase().slice(0,12);
@@ -122,8 +122,40 @@ async function downloadBlindCvPdf(){if(!cvData)return;try{await window.html2pdf(
 
 async function loadResource(){const base=await _sb.from('resources').select('*').eq('id',resourceId).single();if(base.error)return showError(base.error.message);resource=base.data;const requests=[_sb.from('resource_language_pairs').select('*').eq('resource_id',resourceId).order('target_language'),_sb.from('resource_services').select('*').eq('resource_id',resourceId).order('service_type'),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('resource_specializations').select('*').eq('resource_id',resourceId),_sb.from('resource_rates').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),_sb.from('resource_tests').select('*').eq('resource_id',resourceId).order('assigned_at',{ascending:false}),_sb.from('resource_account_qualifications').select('*').eq('resource_id',resourceId).order('updated_at',{ascending:false}),_sb.from('client_accounts').select('id,name').order('name'),_sb.from('resource_education').select('*').eq('resource_id',resourceId).order('sort_order'),_sb.from('resource_documents').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),_sb.from('resource_project_history').select('*').eq('resource_id',resourceId).order('project_year',{ascending:false}),_sb.from('resource_availability').select('*').eq('resource_id',resourceId).order('starts_at',{ascending:false})];if(appRole==='admin')requests.push(_sb.from('resource_private_notes').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}));const result=await Promise.all(requests);[pairs,services,specializations,resourceSpecializations,rates,tests,accountQualifications,accounts,education,documents,history,availability]=result.slice(0,12).map(x=>x.data||[]);privateNotes=appRole==='admin'?(result[12]?.data||[]):[];populateOverview();renderPairs();renderServices();renderSpecializations();renderRates();renderTests();renderEducation();renderHistory();renderAvailability();renderPrivateNotes()}
 
+// Update 036: an Account carries its default specializations into the
+// Resource rate-card editor, preventing an Account/rate-card discrepancy.
+function accountDefaultSpecializationIds(accountId){
+    return accountSpecializationDefaults.filter(row=>row.account_id===accountId).sort((a,b)=>Number(b.is_default)-Number(a.is_default)).map(row=>row.specialization_id);
+}
+function renderRateSpecializationOptions(selected=''){
+    const accountId=val('rate-account'),configured=new Set(resourceSpecializations.map(row=>row.specialization_id)),defaults=accountDefaultSpecializationIds(accountId),allowed=[...new Set([...configured,...defaults,...(selected?[selected]:[])])],chosen=selected||defaults[0]||'';
+    el('rate-spec').innerHTML='<option value="">All configured specializations</option>'+specializations.filter(spec=>allowed.includes(spec.id)).map(spec=>'<option value="'+spec.id+'">'+esc(spec.name)+'</option>').join('');
+    if(chosen&&allowed.includes(chosen))el('rate-spec').value=chosen;
+    const help=el('rate-spec-help');if(help)help.textContent=accountId&&defaults.length?'Preselected from this Account.':'Choose the specialization configured for this rate.';
+}
+function openRateModal(baseId=null){
+    const base=rates.find(rate=>rate.id===baseId&&!rate.base_rate_id);el('rateModalTitle').textContent=base?'Edit supplier rate card':'Add supplier rate card';el('saveRateBtn').textContent=base?'Save changes':'Save rate card';el('rate-id').value=base?.id||'';renderRateLanguageOptions(base);
+    const catalog=[...TMS_REF.services];if(base?.service_type&&!catalog.includes(base.service_type))catalog.push(base.service_type);el('rate-service').innerHTML=catalog.map(service=>'<option>'+esc(service)+'</option>').join('');
+    el('rate-account').innerHTML='<option value="">All Accounts</option>'+accounts.map(account=>'<option value="'+account.id+'" '+(account.id===base?.account_id?'selected':'')+'>'+esc(account.name)+'</option>').join('');
+    el('rate-value').value=base?.rate??'';el('rate-minimum').value=base?.minimum_fee??'';el('rate-currency').value=base?.currency||'EUR';el('rate-unit').value=base?.unit||'Source words';el('rate-status').value=base?.status||'Pending';
+    if(base)el('rate-service').value=base.service_type;
+    renderRateSpecializationOptions(base?.specialization_id||'');renderCatDiscountRows(base?.id||null);toggleCatDiscounts();el('rateModal').classList.remove('hidden');
+}
+async function saveRate(){
+    const sources=selectedRateLanguages('rate-sources'),targets=selectedRateLanguages('rate-targets');if(!sources.length||!targets.length)return modalError('rateError','Select at least one Source and one Target language.');
+    if(!val('rate-service'))return modalError('rateError','Select a service from the Settings catalog.');
+    if(val('rate-value')===''||Number(val('rate-value'))<0)return modalError('rateError','Enter a valid base price.');
+    const discounts=[...el('catDiscountRows').querySelectorAll('.cat-discount')].filter(input=>input.value!=='').map(input=>({cat_band:input.dataset.band,discount_percent:Number(input.value)}));if(discounts.some(item=>item.discount_percent<0||item.discount_percent>100))return modalError('rateError','CAT discounts must be between 0% and 100%.');
+    const specializationId=nullable('rate-spec');
+    if(specializationId&&!resourceSpecializations.some(row=>row.specialization_id===specializationId)){const capability=await _sb.from('resource_specializations').insert({resource_id:resourceId,specialization_id:specializationId,qualification_status:'Not tested'});if(capability.error)return modalError('rateError','The Account specialization could not be added to this Resource: '+capability.error.message)}
+    const baseId=val('rate-id'),payload={base_rate_id:baseId||null,resource_id:resourceId,account_id:nullable('rate-account'),source_languages:sources,target_languages:targets,service_type:val('rate-service'),specialization_id:specializationId,unit:val('rate-unit'),base_rate:Number(val('rate-value')),currency:val('rate-currency'),minimum_fee:val('rate-minimum')===''?null:Number(val('rate-minimum')),status:val('rate-status'),cat_discounts:['Source words','Target words'].includes(val('rate-unit'))?discounts:[]};
+    const {error}=await _sb.rpc('save_scoped_resource_rate_card',{p_payload:payload});if(error)return modalError('rateError',error.message);closeModal('rateModal');await loadResource();setStatus(baseId?'Supplier rate card updated ✓':'Supplier rate card added ✓');
+}
+const loadResourceWithoutAccountDefaults=loadResource;
+loadResource=async function(){await loadResourceWithoutAccountDefaults();const result=await _sb.from('client_account_specializations').select('account_id,specialization_id,is_default');accountSpecializationDefaults=result.data||[];renderRates()};
 document.querySelectorAll('.record-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t===tab));document.querySelectorAll('.record-pane').forEach(pane=>pane.classList.toggle('active',pane.id===`pane-${tab.dataset.tab}`))}));
 el('r-name').addEventListener('input',event=>{el('r-initials').value=initialsFromName(event.target.value)});
 el('rate-unit').addEventListener('change',toggleCatDiscounts);el('rate-value').addEventListener('input',calculateCatRates);el('rate-currency').addEventListener('change',calculateCatRates);
+el('rate-account').addEventListener('change',()=>renderRateSpecializationOptions());
 el('test-type').addEventListener('change',updateTestScopeFields);
 (async()=>{const user=await requireAuth();if(!user)return;await Promise.all([TMS_REF.loadLanguages(_sb),TMS_REF.loadServices(_sb)]);TMS_REF.installDatalists();TMS_REF.populateServiceSelect('service-name');resourceId=new URLSearchParams(location.search).get('id');if(!resourceId){location.href='resources.html?type=external';return}const role=await _sb.rpc('current_app_role');appRole=role.data||'user';await loadResource()})();

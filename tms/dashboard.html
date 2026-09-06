@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — RetodoOps TMS</title>
-    <link rel="stylesheet" href="style.css?v=035">
+    <link rel="stylesheet" href="style.css?v=036">
 </head>
 <body>
 <div class="app">
@@ -44,6 +44,7 @@
             </div>
             <div class="nav-sub" id="sub-cli">
                 <a href="clients.html">Client List</a>
+                <a href="accounts.html">Accounts</a>
             </div>
 
             <div class="nav-item" onclick="toggleSub('sub-rep',this)">
@@ -166,10 +167,8 @@
                 <div class="field"><label>Primary service</label><select id="f-type"><option>Translation</option><option>MTPE</option><option>Proofreading</option><option>Independent Review</option><option>LQA</option><option>Terminology</option><option>DTP</option><option>Transcription</option><option>Project Management</option><option>Other</option></select></div>
                 <div class="field"><label>Production mode</label><select id="f-production"><option>Not selected</option><option>Client CAT</option><option>Retodo memoQ</option><option>File workflow</option></select></div>
                 <div class="field"><label>CAT system</label><input id="f-cat"></div>
-                <div class="field"><label>Client price</label><input type="number" id="f-price" step="0.01" min="0" value="0"></div>
+                <div class="field field-full"><p class="info-banner">Client price is defined per Scoop after the Project is created.</p></div>
                 <div class="field"><label>Currency</label><select id="f-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>NOK</option><option>SEK</option><option>DKK</option><option>CHF</option></select></div>
-                <div class="field"><label>Price source</label><select id="f-price-source"><option value="">Not selected</option><option>Account</option><option>Client</option><option>Manual</option><option>Fixed</option></select></div>
-                <div class="field field-span-2"><label>Manual/fixed price reason</label><input id="f-price-reason"></div>
                 <div class="field"><label>Client PO</label><input id="f-po"></div>
                 <div class="field field-span-2"><label>Place of delivery</label><input id="f-place-delivery" placeholder="Portal, email address, folder or delivery link"></div>
                 <div class="field field-full"><label>Inherited/client instructions</label><textarea id="f-instructions" rows="3"></textarea></div>
@@ -179,7 +178,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
-            <button class="btn-primary" id="createBtn" onclick="submitCreateProject()">Create Project and first Scoop</button>
+            <button class="btn-primary" id="createBtn" onclick="submitCreateProject()">Create Project and open Scoops</button>
         </div>
     </div>
 </div>
@@ -193,8 +192,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="reference-data.js?v=035"></script>
+<script src="reference-data.js?v=036"></script>
 <script src="quick-nav.js?v=019"></script>
-<script src="dashboard.js?v=035"></script>
+<script src="dashboard.js?v=036"></script>
 </body>
 </html>

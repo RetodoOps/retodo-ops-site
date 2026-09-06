@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=035">
+  <link rel="stylesheet" href="style.css?v=036">
 </head>
 <body>
 <div class="app">
@@ -14,7 +14,8 @@
       <a class="nav-item" href="dashboard.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard</a>
       <a class="nav-item" href="quotes.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Quotes</a>
       <a class="nav-item" href="resources.html?type=external"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg>Resources</a>
-      <a class="nav-item" href="clients.html"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6z"/></svg>Clients</a>
+      <div class="nav-item" onclick="toggleSub('sub-cli',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6z"/></svg>Clients<span class="nav-arrow">▾</span></div>
+      <div class="nav-sub open" id="sub-cli"><a href="clients.html">Client List</a><a href="accounts.html">Accounts</a></div>
       <hr class="nav-divider">
       <a class="nav-item" href="#" onclick="signOut();return false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5z"/></svg>Sign Out</a>
     </nav>
@@ -89,6 +90,7 @@
         <div id="j-cat-card" class="section-card table-card hidden">
           <div class="section-title">Supplier payment</div>
           <p class="muted">Payment quantities are editable. Prices come from the selected Approved Supplier rate card.</p>
+          <div class="cat-grid-toolbar"><label for="j-cat-row-visibility">CAT rows</label><select id="j-cat-row-visibility"><option value="active">Show rows with quantities</option><option value="all">Show zero-quantity rows</option></select></div>
           <table class="module-table cat-entry-table"><thead><tr><th>Payment item</th><th>Quantity</th><th>Unit</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody id="j-cat-rows"></tbody></table>
           <div class="cat-grid-total"><span>Supplier total</span><strong id="j-cat-total">0.00</strong></div>
         </div>
@@ -126,6 +128,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=019"></script><script src="auth.js?v=019"></script><script src="reference-data.js?v=035"></script><script src="quick-nav.js?v=019"></script><script src="job.js?v=035"></script>
+  <script src="config.js?v=036"></script><script src="auth.js?v=036"></script><script src="reference-data.js?v=036"></script><script src="quick-nav.js?v=036"></script><script src="job.js?v=036"></script>
 </body>
 </html>

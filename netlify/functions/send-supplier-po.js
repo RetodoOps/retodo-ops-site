@@ -68,7 +68,8 @@ function buildMessage(po) {
   const fromEmail = cleanHeader(process.env.GMAIL_FROM_EMAIL || 'ops@retodo-ops.com');
   const fromName = cleanHeader(process.env.GMAIL_FROM_NAME || 'Retodo Ops');
   const recipientEmail = cleanHeader(po.recipient_email);
-  const subject = cleanHeader(po.subject || `${po.po_number} · V${po.version} · Supplier Purchase Order`);
+  const poLabel = po.po_display_name || po.display_name || [po.job_number, po.po_number].filter(Boolean).join(' · ') || 'Supplier PO';
+  const subject = cleanHeader(`${poLabel} · V${po.version} · Supplier Purchase Order`);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
     throw new Error('The assigned Resource email address is invalid');
   }
@@ -84,7 +85,7 @@ function buildMessage(po) {
     <div style="max-width:760px;margin:24px auto;background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden">
       <div style="padding:22px 26px;background:#4c1d95;color:#fff">
         <div style="font-size:13px;opacity:.85">RETODO OPS</div>
-        <h1 style="margin:5px 0 0;font-size:22px">Supplier Purchase Order ${htmlEscape(po.po_number)} · V${htmlEscape(po.version)}</h1>
+        <h1 style="margin:5px 0 0;font-size:22px">Supplier Purchase Order ${htmlEscape(poLabel)} · V${htmlEscape(po.version)}</h1>
         <div style="margin-top:6px;font-size:13px">Version ${htmlEscape(po.version)} · Issued ${htmlEscape(dateTime(po.issued_at))}</div>
       </div>
       <div style="padding:24px 26px">
@@ -108,7 +109,7 @@ function buildMessage(po) {
   const plainLines = (po.lines || []).map(line =>
     `${line.description || ''} | ${line.quantity ?? ''} ${line.unit || ''} × ${unitPrice(line.unit_price)} ${po.currency} = ${money(line.amount, po.currency)}`
   ).join('\n');
-  const plain = `Hello ${po.recipient_name},\n\nThis purchase order confirms that Job ${po.job_number} is assigned to you and work may begin.\n\nPO: ${po.po_number} · Version ${po.version}\nService: ${po.service}\nLanguages: ${po.source_language} → ${po.target_language}\nDeadline: ${dateTime(po.deadline)}\n\n${plainLines}\n\nTotal: ${money(po.total, po.currency)}\nPayment terms: ${po.payment_terms_days || 60} days${po.invoice_cycle ? ` · Invoice cycle: ${po.invoice_cycle}` : ''}.\n\nBest regards,\nRetodo Ops\n${fromEmail}`;
+  const plain = `Hello ${po.recipient_name},\n\nThis purchase order confirms that Job ${po.job_number} is assigned to you and work may begin.\n\nPO: ${poLabel} · Version ${po.version}\nService: ${po.service}\nLanguages: ${po.source_language} → ${po.target_language}\nDeadline: ${dateTime(po.deadline)}\n\n${plainLines}\n\nTotal: ${money(po.total, po.currency)}\nPayment terms: ${po.payment_terms_days || 60} days${po.invoice_cycle ? ` · Invoice cycle: ${po.invoice_cycle}` : ''}.\n\nBest regards,\nRetodo Ops\n${fromEmail}`;
   const boundary = `retodo_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   const mime = [
     `From: ${encodeHeader(fromName)} <${fromEmail}>`,

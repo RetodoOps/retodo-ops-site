@@ -60,15 +60,17 @@
     return units[String(value ?? '').trim()] || String(value ?? 'unit').trim().toLowerCase();
   }
 
-  function scoopStatus(jobRows) {
+  function scoopStatus(scoopOrJobs, maybeJobRows) {
+    const scoop = Array.isArray(scoopOrJobs) ? null : scoopOrJobs;
+    if (scoop?.status) return scoop.status;
+    const jobRows = Array.isArray(scoopOrJobs) ? scoopOrJobs : maybeJobRows;
     const active = Array.isArray(jobRows)
       ? jobRows.filter(row => !['Declined', 'Cancelled'].includes(row?.status))
       : [];
-    if (!active.length) return 'Assign';
-    const assigned = active.filter(row => ['Assigned', 'In Progress', 'Delivered', 'Revision Required', 'Approved'].includes(row?.status));
-    if (!assigned.length) return 'Assign';
-    if (assigned.length === active.length && assigned.every(row => row.status === 'Approved')) return 'Approved';
-    if (assigned.length === active.length && assigned.every(row => ['Delivered', 'Approved'].includes(row.status))) return 'Delivered to Client';
+    if (!active.length || active.every(row => row.status === 'Unassigned')) return 'Assign';
+    if (active.every(row => row.status === 'Approved')) return 'Approved';
+    if (active.every(row => ['Delivered', 'Approved'].includes(row.status))
+        && active.some(row => row.status === 'Delivered')) return 'Ready for QA';
     return 'Ongoing';
   }
 

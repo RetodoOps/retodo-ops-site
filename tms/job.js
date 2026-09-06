@@ -242,9 +242,59 @@ async function loadJob(){
   populateHeader();populateOverview();renderOffers();renderPO();renderIssues();window.TMS_QUICK_NAV?.recordVisit('Job',job.id,job.job_number,[project.display_name,job.service_type,job.status].filter(Boolean).join(' · '));await loadOverviewCandidates();
 }
 
+// Update 036: keep Supplier payment compact while allowing the PM to reveal
+// every zero-quantity CAT band when needed.
+function catRowsVisibilityMode(prefix='j'){return document.getElementById(prefix+'-cat-row-visibility')?.value==='all'?'all':'active'}
+function applySupplierCatVisibility(prefix='j'){
+  const showAll=catRowsVisibilityMode(prefix)==='all';
+  document.querySelectorAll('#'+prefix+'-cat-rows tr').forEach(row=>{
+    const quantity=Number(row.querySelector('.supplier-cat-quantity')?.value||0);
+    row.hidden=!showAll&&quantity===0;
+  });
+}
+function calculateSupplierCatGrid(prefix){
+  const body=document.getElementById(prefix+'-cat-rows');let total=0,currency='';
+  body.querySelectorAll('tr').forEach(row=>{
+    const q=Number(row.querySelector('.supplier-cat-quantity').value||0),rate=Number(row.dataset.rate||0),amount=roundMoney(row.dataset.unit==='Fixed fee'?(q>0?rate:0):q*rate);
+    row.querySelector('.supplier-cat-amount').textContent=money(amount,row.dataset.currency);total+=amount;currency=row.dataset.currency;
+  });
+  document.getElementById(prefix+'-cat-total').textContent=money(total,currency||'EUR');applySupplierCatVisibility(prefix);renderJobFinancials();
+}
+function renderSupplierCatGrid(selectId){
+  const prefix=supplierCatPrefix(),baseId=val(selectId),card=document.getElementById(prefix+'-cat-card'),body=document.getElementById(prefix+'-cat-rows');
+  if(!baseId){card.classList.add('hidden');body.innerHTML='';renderJobFinancials();return}
+  const base=resourceRates.find(rate=>rate.id===baseId&&!rate.base_rate_id);
+  if(!base){card.classList.add('hidden');renderJobFinancials();return}
+  const children=resourceRates.filter(rate=>rate.base_rate_id===baseId),hasCatRows=children.length>0,saved=existingCatState(baseId),inherited=inheritedProjectCatQuantities(),allRows=[base,...children].sort((a,b)=>SUPPLIER_CAT_ORDER.indexOf(a.cat_band||'New words')-SUPPLIER_CAT_ORDER.indexOf(b.cat_band||'New words')),defaultQuantity=Number(val('j-quantity')||0);
+  body.innerHTML=allRows.map((rate,index)=>{
+    const dataBand=rate.cat_band||'',label=rate.cat_band||(hasCatRows?'New words':rate.unit),inheritedQuantity=inherited.get(catBandKey(dataBand||label)),quantity=saved.quantities.has(rate.id)?saved.quantities.get(rate.id):(inheritedQuantity??(index===0?defaultQuantity:0));
+    return '<tr data-rate-id="'+rate.id+'" data-band="'+esc(dataBand)+'" data-rate="'+rate.rate+'" data-unit="'+esc(rate.unit)+'" data-currency="'+esc(rate.currency)+'"><td><strong>'+esc(label)+'</strong>'+(rate.discount_percent==null?'':'<div class="customer-sub">'+Number(rate.discount_percent).toFixed(2).replace(/\.00$/,'')+'% discount</div>')+'</td><td><input class="supplier-cat-quantity inline-quantity" type="number" min="0" step="0.001" value="'+quantity+'"></td><td>'+esc(rate.unit)+'</td><td>'+unitMoney(rate.rate,rate.currency)+'</td><td class="supplier-cat-amount number-cell">'+money(0,rate.currency)+'</td><td><button type="button" class="del-line-btn cat-delete-btn" title="Remove this payment row" aria-label="Remove '+esc(label)+'" onclick="supplierTermsDirty=true;this.closest(\'tr\').remove();calculateSupplierCatGrid(\''+prefix+'\')">🗑</button></td></tr>';
+  }).join('');
+  body.querySelectorAll('.supplier-cat-quantity').forEach(input=>input.addEventListener('input',()=>{supplierTermsDirty=true;calculateSupplierCatGrid(prefix)}));
+  const preparingAssignment=!purchaseOrder||val('j-candidate')!==job.resource_id;card.classList.toggle('hidden',!preparingAssignment);calculateSupplierCatGrid(prefix);
+}
+function poDisplayLabel(po=purchaseOrder,snapshot={}){
+  return po?.display_name||snapshot.display_name||[job?.job_number,po?.po_number||snapshot.po_number].filter(Boolean).join(' · ')||'Supplier PO';
+}
+function updateVisiblePOLabels(){
+  if(!purchaseOrder)return;
+  const label=poDisplayLabel(),version=currentPOVersion(),title=document.getElementById('poTitle'),preview=document.querySelector('#poVersionPreview .po-version-preview-head strong'),printHeading=document.querySelector('#poPrintArea .po-doc-head h2');
+  if(title)title.textContent=label+' · V'+version;
+  if(preview){const selected=allPOVersions.find(row=>poVersionKey(row.purchase_order_id,row.version_number)===selectedPOVersionKey),snapshot=selected?.snapshot||{};preview.textContent=poDisplayLabel(poForVersion(selected)||purchaseOrder,snapshot)+' · V'+Number(selected?.version_number||version)}
+  if(printHeading)printHeading.textContent=label;
+  const ordered=[...allPOVersions].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)||Number(b.version_number)-Number(a.version_number));
+  document.querySelectorAll('#poVersions .version-row-button').forEach((button,index)=>{const row=ordered[index],snapshot=row?.snapshot||{},strong=button.querySelector('strong');if(strong&&row)strong.textContent=poDisplayLabel(poForVersion(row),snapshot)+' · V'+Number(row.version_number)});
+}
+const renderVersionHistory036=renderVersionHistory;
+renderVersionHistory=()=>{renderVersionHistory036();updateVisiblePOLabels()};
+const renderPOPrint036=renderPOPrint;
+renderPOPrint=(...args)=>{renderPOPrint036(...args);updateVisiblePOLabels()};
+const renderPO036=renderPO;
+renderPO=()=>{renderPO036();updateVisiblePOLabels()};
 document.querySelectorAll('.record-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t===tab));document.querySelectorAll('.record-pane').forEach(pane=>pane.classList.toggle('active',pane.id===`pane-${tab.dataset.tab}`))}));
 document.getElementById('j-candidate').addEventListener('change',async event=>{await fillRateSelect('j-rate-select',event.target.value);updateAssignmentAction()});
 document.getElementById('j-rate-select').addEventListener('change',()=>{supplierTermsDirty=true;renderSupplierCatGrid('j-rate-select')});
+document.getElementById('j-cat-row-visibility').addEventListener('change',()=>applySupplierCatVisibility('j'));
 ['j-service','j-source','j-target'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(id==='j-service')syncInheritedSpecialization();supplierTermsDirty=true;const resourceId=val('j-candidate')||job.resource_id;if(resourceId)fillRateSelect('j-rate-select',resourceId)}));
 document.getElementById('j-quantity').addEventListener('input',()=>{supplierTermsDirty=true;renderJobFinancials()});
 document.getElementById('j-status').addEventListener('change',renderJobFinancials);

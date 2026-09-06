@@ -998,3 +998,12 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     .scoop-actions .btn-primary,.scoop-actions .btn-secondary { flex: 1 1 150px; }
     .scoop-financials { flex: 1 0 100%; margin-bottom: 5px; }
 }
+
+/* Update 036 — compact financial grouping, CAT visibility and Scoop status. */
+.project-price-lines-table .scoop-cell { min-width: 190px; vertical-align: top; text-align: left; }
+.scoop-status-override { margin-top: 12px; }
+.scoop-editor-modal .field-help { line-height: 1.4; }
+.cat-grid-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 9px; padding: 10px 0; }
+.cat-grid-toolbar label { color: #475569; font-size: 12px; font-weight: 750; }
+.cat-grid-toolbar select { width: auto; min-height: 36px; }
+.cat-entry-table tr[hidden] { display: none; }
