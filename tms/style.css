@@ -1000,6 +1000,206 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     .scoop-financials { flex: 1 0 100%; margin-bottom: 5px; }
 }
 
+/* Update 039 — role-aware UI and least-privilege External Resource portal. */
+.role-readonly-banner {
+    margin: 12px 18px 0;
+    padding: 10px 13px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+.role-qa-readonly [data-qa-read-only="true"] { cursor: not-allowed !important; }
+.role-qa-readonly input:disabled,
+.role-qa-readonly select:disabled,
+.role-qa-readonly textarea:disabled { opacity: 1; background: #f8fafc; color: #475569; }
+
+.portal-link-card {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.portal-link-card > div { display: grid; gap: 4px; }
+.portal-link-card span { color: var(--text-muted); font-size: 13px; }
+.portal-link-card.portal-link-ready { border-color: #86efac; background: #f0fdf4; }
+.portal-link-card.portal-link-warning { border-color: #fde68a; background: #fffbeb; }
+.portal-link-card.portal-link-error { border-color: #fecaca; background: #fef2f2; }
+
+.resource-portal-main {
+    overflow-y: auto;
+    background: #f6f7fb;
+}
+.resource-portal-sidebar .b-sub { text-transform: none; }
+.resource-portal-header { min-height: 92px; }
+.resource-portal-header .header-actions { align-items: center; }
+.portal-identity-separator { padding: 0 6px; color: #cbd5e1; }
+.portal-notice {
+    margin: 16px 20px 0;
+    padding: 13px 15px;
+    border: 1px solid #fcd34d;
+    border-radius: 9px;
+    background: #fffbeb;
+    color: #92400e;
+    line-height: 1.5;
+}
+.portal-summary,
+.portal-job-context {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 18px 20px 0;
+    overflow: hidden;
+    border: 1px solid #ddd6fe;
+    border-radius: 11px;
+    background: #fff;
+}
+.portal-summary > div,
+.portal-job-context > div {
+    min-width: 0;
+    padding: 16px 18px;
+    border-right: 1px solid #ede9fe;
+}
+.portal-summary > div:last-child,
+.portal-job-context > div:last-child { border-right: 0; }
+.portal-summary span,
+.portal-job-context span {
+    display: block;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .35px;
+    text-transform: uppercase;
+}
+.portal-summary strong,
+.portal-job-context strong {
+    display: block;
+    margin-top: 7px;
+    color: #2e1065;
+    font-size: 17px;
+    overflow-wrap: anywhere;
+}
+.portal-section { margin: 18px 20px 0; flex: 0 0 auto; }
+.portal-section:last-child { margin-bottom: 24px; }
+.portal-search {
+    width: min(260px, 100%);
+    padding: 9px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    outline: none;
+}
+.portal-search:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+.portal-table { min-width: 920px; }
+.portal-table th { background: #f8fafc; color: #475569; font-size: 11px; }
+.portal-table td { vertical-align: middle; }
+.portal-primary-link { font-weight: 800; }
+.portal-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    padding: 0 24px;
+}
+.portal-detail-grid > div { min-width: 0; padding: 18px 16px; border-bottom: 1px solid #e2e8f0; }
+.portal-detail-grid dt { color: #64748b; font-size: 10px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; }
+.portal-detail-grid dd { margin-top: 7px; color: #172033; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.portal-instructions { margin: 20px 24px 24px; padding: 16px; border: 1px solid #ddd6fe; border-radius: 9px; background: #faf9ff; }
+.portal-instructions span { color: #5b21b6; font-size: 10px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; }
+.portal-instructions p { margin-top: 8px; color: #334155; line-height: 1.6; white-space: pre-wrap; }
+
+.portal-po-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+    margin: 18px 20px 24px;
+}
+.portal-version-card { position: sticky; top: 18px; padding-bottom: 10px; }
+.portal-version-card .section-title { padding: 17px 18px 11px; }
+.portal-version-list { display: grid; gap: 8px; padding: 0 10px 8px; }
+.portal-version-list button {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3px 8px;
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+    text-align: left;
+}
+.portal-version-list button:hover,
+.portal-version-list button.selected { border-color: #8b5cf6; background: #faf9ff; box-shadow: 0 0 0 2px rgba(124,58,237,.09); }
+.portal-version-list button strong { color: #5b21b6; }
+.portal-version-list button span { justify-self: end; font-size: 11px; }
+.portal-version-list button small { color: #64748b; }
+.portal-version-list button b { justify-self: end; color: #172033; font-size: 11px; }
+.portal-po-document { overflow: hidden; }
+.portal-po-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px;
+    border-bottom: 1px solid #ddd6fe;
+    background: linear-gradient(100deg, #f5f3ff 0, #fff 55%);
+}
+.portal-po-heading > div:last-child { text-align: right; }
+.portal-po-heading span { display: block; color: #6d28d9; font-size: 10px; font-weight: 850; letter-spacing: .5px; text-transform: uppercase; }
+.portal-po-heading h2 { margin-top: 6px; color: #24124d; font-size: 21px; }
+.portal-po-heading strong { display: block; margin-top: 7px; color: #2e1065; font-size: 19px; }
+.portal-po-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.portal-po-lines { min-width: 800px; }
+.portal-po-totals { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 18px; padding: 17px 24px; border-top: 1px solid #e2e8f0; color: #475569; }
+.portal-po-totals span:last-child { color: #4c1d95; font-size: 16px; }
+.portal-po-note { display: flex; gap: 12px; margin: 0 24px 18px; padding: 12px 14px; border-radius: 7px; background: #f8fafc; color: #475569; }
+.portal-po-note strong { flex: 0 0 auto; color: #334155; }
+.portal-confidentiality-note { margin: 0 24px 24px; color: #64748b; font-size: 11.5px; line-height: 1.5; }
+
+@media (max-width: 920px) {
+    .resource-portal-sidebar { width: 190px; }
+    .portal-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .portal-po-layout { grid-template-columns: 1fr; }
+    .portal-version-card { position: static; }
+    .portal-version-list { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+}
+@media (max-width: 680px) {
+    .portal-link-card { align-items: stretch; flex-direction: column; }
+    .resource-portal-body .app { height: auto; min-height: 100vh; overflow: visible; }
+    .resource-portal-sidebar { width: 72px; }
+    .resource-portal-sidebar .sidebar-brand { padding: 17px 8px; }
+    .resource-portal-sidebar .b-name { font-size: 12px; }
+    .resource-portal-sidebar .b-sub { display: none; }
+    .resource-portal-sidebar .nav-item { justify-content: center; min-height: 54px; margin: 4px 6px; padding: 7px; font-size: 10px; text-align: center; }
+    .resource-portal-main { min-width: 0; overflow: visible; }
+    .portal-summary,.portal-job-context { grid-template-columns: 1fr; }
+    .portal-summary > div,.portal-job-context > div { border-right: 0; border-bottom: 1px solid #ede9fe; }
+    .portal-summary > div:last-child,.portal-job-context > div:last-child { border-bottom: 0; }
+    .section-card-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .portal-detail-grid,.portal-po-meta { grid-template-columns: 1fr; }
+    .portal-po-heading { flex-direction: column; }
+    .portal-po-heading > div:last-child { text-align: left; }
+}
+
+@media print {
+    .printing-resource-po .resource-portal-sidebar,
+    .printing-resource-po .resource-portal-header,
+    .printing-resource-po #poContext,
+    .printing-resource-po .portal-version-card,
+    .printing-resource-po #portalError { display: none !important; }
+    .printing-resource-po .app,
+    .printing-resource-po .resource-portal-main,
+    .printing-resource-po .portal-po-layout { display: block; height: auto; overflow: visible; margin: 0; background: #fff; }
+    .printing-resource-po .portal-po-document { border: 0; box-shadow: none; }
+}
+
 /* Update 036 — compact financial grouping, CAT visibility and Scoop status. */
 .project-price-lines-table .scoop-cell { min-width: 190px; vertical-align: top; text-align: left; }
 .scoop-status-override { margin-top: 12px; }

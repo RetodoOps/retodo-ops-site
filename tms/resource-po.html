@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supplier PO — RetodoOps Resource Portal</title>
+  <link rel="stylesheet" href="style.css?v=039">
+</head>
+<body class="resource-portal-body">
+<div class="app">
+  <aside class="sidebar resource-portal-sidebar">
+    <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">Resource Portal</div></div>
+    <nav class="nav" aria-label="Resource portal navigation">
+      <a class="nav-item" href="resource-dashboard.html#myJobs">My Jobs</a>
+      <a class="nav-item active" href="resource-dashboard.html#myPurchaseOrders">My Purchase Orders</a>
+      <hr class="nav-divider">
+      <a class="nav-item" href="#" onclick="signOut();return false">Sign Out</a>
+    </nav>
+  </aside>
+
+  <main class="main resource-portal-main">
+    <header class="module-header resource-portal-header">
+      <div>
+        <div class="breadcrumbs"><a href="resource-dashboard.html#myPurchaseOrders">My Purchase Orders</a><span>/</span><span id="poBreadcrumb">Loading…</span></div>
+        <h1 id="poTitle">Loading Supplier PO…</h1>
+        <p><span id="portalResourceName"></span><span class="portal-identity-separator">·</span><span id="portalResourceNumber"></span></p>
+      </div>
+      <div class="header-actions"><span id="poStatus" class="pill">Loading</span><button id="printPortalPoBtn" class="btn-secondary hidden" type="button" onclick="printPortalPo()">Print / Save PDF</button></div>
+    </header>
+
+    <p id="portalError" class="error-msg hidden" role="alert"></p>
+
+    <section id="poContext" class="portal-job-context hidden" aria-label="Purchase Order context">
+      <div><span>Project reference</span><strong id="poProjectNumber">—</strong></div>
+      <div><span>Scoop reference</span><strong id="poScoopNumber">—</strong></div>
+      <div><span>Issued</span><strong id="poIssuedAt">—</strong></div>
+    </section>
+
+    <div id="poWorkspace" class="portal-po-layout hidden">
+      <aside class="section-card portal-version-card">
+        <div class="section-title">Immutable versions</div>
+        <div id="portalPoVersions" class="portal-version-list"></div>
+      </aside>
+
+      <section id="portalPoDocument" class="section-card portal-po-document" aria-live="polite">
+        <div class="portal-po-heading">
+          <div><span>RETODO OPS</span><h2 id="documentPoNumber">Supplier Purchase Order</h2></div>
+          <div><span id="documentVersion">Version —</span><strong id="documentTotal">—</strong></div>
+        </div>
+        <dl class="portal-detail-grid portal-po-meta">
+          <div><dt>Job</dt><dd id="documentJob">—</dd></div>
+          <div><dt>Status</dt><dd id="documentStatus">—</dd></div>
+          <div><dt>Service</dt><dd id="documentService">—</dd></div>
+          <div><dt>Language pair</dt><dd id="documentLanguages">—</dd></div>
+          <div><dt>Deadline</dt><dd id="documentDeadline">—</dd></div>
+          <div><dt>Quantity</dt><dd id="documentQuantity">—</dd></div>
+        </dl>
+        <div class="table-wrap"><table class="module-table portal-table portal-po-lines"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Adjustment</th><th>Amount</th></tr></thead><tbody id="documentLines"></tbody></table></div>
+        <div class="portal-po-totals"><span>Subtotal <strong id="documentSubtotal">—</strong></span><span>Adjustments <strong id="documentAdjustments">—</strong></span><span>Total <strong id="documentGrandTotal">—</strong></span></div>
+        <div class="portal-po-note"><strong id="documentReasonLabel">Initial issue</strong><span id="documentReason"></span></div>
+        <p class="portal-confidentiality-note">This Resource view contains Retodo Ops technical references only. Client and Account identity, Client price, profit and margin are not included.</p>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=036"></script>
+<script src="auth.js?v=039"></script>
+<script src="resource-portal.js?v=039"></script>
+<script src="resource-po.js?v=039"></script>
+</body>
+</html>

@@ -3,6 +3,9 @@ let languageSettings = [];
 let specializationSettings = [];
 let settingsRole = 'user';
 
+const canAddSetting = () => settingsRole === 'admin' || settingsRole === 'pm';
+const canManageSetting = () => settingsRole === 'admin';
+
 const settingsEl = id => document.getElementById(id);
 const settingsEsc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;')
   .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
@@ -15,9 +18,9 @@ function closeServiceSetting() { settingsEl('serviceSettingModal').classList.add
 function normalizeServiceCode(value) { return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); }
 
 function renderServiceSettings() {
-  const canEdit = settingsRole === 'admin';
-  settingsEl('addServiceBtn').disabled = !canEdit;
-  settingsEl('addServiceBtn').title = canEdit ? '' : 'Administrator access required';
+  const canAdd = canAddSetting(), canEdit = canManageSetting();
+  settingsEl('addServiceBtn').disabled = !canAdd;
+  settingsEl('addServiceBtn').title = canAdd ? '' : 'Administrator or Project Manager access required';
   settingsEl('servicesTbody').innerHTML = serviceSettings.length ? serviceSettings.map(service => `
     <tr>
       <td class="settings-order">${Number(service.sort_order || 0)}</td>
@@ -38,9 +41,11 @@ async function loadServiceSettings() {
 }
 
 function renderCatalogSettings() {
-  const canEdit = settingsRole === 'admin';
-  settingsEl('addLanguageBtn').disabled = !canEdit;
-  settingsEl('addSpecializationBtn').disabled = !canEdit;
+  const canAdd = canAddSetting(), canEdit = canManageSetting();
+  settingsEl('addLanguageBtn').disabled = !canAdd;
+  settingsEl('addSpecializationBtn').disabled = !canAdd;
+  settingsEl('addLanguageBtn').title = canAdd ? '' : 'Administrator or Project Manager access required';
+  settingsEl('addSpecializationBtn').title = canAdd ? '' : 'Administrator or Project Manager access required';
   settingsEl('languagesTbody').innerHTML = languageSettings.length ? languageSettings.map(row => `<tr><td class="settings-order">${Number(row.sort_order || 0)}</td><td><strong>${settingsEsc(row.name)}</strong></td><td><span class="service-code">${settingsEsc(row.code)}</span></td><td><span class="pill ${row.active ? 'pill-green' : ''}">${row.active ? 'Active' : 'Inactive'}</span></td><td><div class="table-actions"><button class="table-action" onclick="openCatalogSetting('language','${row.id}')" ${canEdit?'':'disabled'}>Edit</button><button class="table-action ${row.active?'danger':'success'}" onclick="toggleCatalogSetting('language','${row.id}')" ${canEdit?'':'disabled'}>${row.active?'Deactivate':'Activate'}</button></div></td></tr>`).join('') : '<tr class="state-row"><td colspan="5">No languages configured.</td></tr>';
   settingsEl('specializationsTbody').innerHTML = specializationSettings.length ? specializationSettings.map(row => `<tr><td><strong>${settingsEsc(row.name)}</strong></td><td><span class="service-code">${settingsEsc(row.code || '—')}</span></td><td><span class="pill ${row.active ? 'pill-green' : ''}">${row.active ? 'Active' : 'Inactive'}</span></td><td><div class="table-actions"><button class="table-action" onclick="openCatalogSetting('specialization','${row.id}')" ${canEdit?'':'disabled'}>Edit</button><button class="table-action ${row.active?'danger':'success'}" onclick="toggleCatalogSetting('specialization','${row.id}')" ${canEdit?'':'disabled'}>${row.active?'Deactivate':'Activate'}</button></div></td></tr>`).join('') : '<tr class="state-row"><td colspan="4">No specializations configured.</td></tr>';
 }
@@ -59,14 +64,17 @@ async function loadCatalogSettings() {
 
 function closeCatalogSetting() { settingsEl('catalogSettingModal').classList.add('hidden'); }
 function openCatalogSetting(kind, id = null) {
-  if (settingsRole !== 'admin') return settingsError('Administrator access is required to change Settings.');
   const rows = kind === 'language' ? languageSettings : specializationSettings;
   const row = rows.find(item => item.id === id);
+  if ((row && !canManageSetting()) || (!row && !canAddSetting())) {
+    return settingsError(row ? 'Only the Administrator can edit catalogue values.' : 'Administrator or Project Manager access is required to add catalogue values.');
+  }
   settingsEl('cs-kind').value = kind; settingsEl('cs-id').value = row?.id || '';
   settingsEl('catalogSettingTitle').textContent = `${row ? 'Edit' : 'Add'} ${kind}`;
   settingsEl('cs-name').value = row?.name || ''; settingsEl('cs-code').value = row?.code || '';
   settingsEl('cs-order').value = row?.sort_order ?? ((rows.length + 1) * 10);
   settingsEl('cs-active').checked = row?.active !== false;
+  settingsEl('cs-active').disabled = !canManageSetting();
   settingsEl('cs-order-field').classList.toggle('hidden', kind !== 'language');
   clearSettingsError('catalogSettingError'); settingsEl('catalogSettingModal').classList.remove('hidden');
   settingsEl('cs-name').focus();
@@ -74,17 +82,18 @@ function openCatalogSetting(kind, id = null) {
 async function saveCatalogSetting() {
   clearSettingsError('catalogSettingError');
   const kind = settingsEl('cs-kind').value, id = settingsEl('cs-id').value;
+  if ((id && !canManageSetting()) || (!id && !canAddSetting())) return settingsError('This role cannot save that catalogue change.', 'catalogSettingError');
   const name = settingsEl('cs-name').value.trim(), code = settingsEl('cs-code').value.trim().toUpperCase();
   if (!name || !code) return settingsError('Name and code are required.', 'catalogSettingError');
   const table = kind === 'language' ? 'language_catalog' : 'specializations';
-  const payload = {name, code, active: settingsEl('cs-active').checked};
+  const payload = {name, code, active: canManageSetting() ? settingsEl('cs-active').checked : true};
   if (kind === 'language') payload.sort_order = Number(settingsEl('cs-order').value || 0);
   const result = id ? await _sb.from(table).update(payload).eq('id', id) : await _sb.from(table).insert(payload);
   if (result.error) return settingsError(result.error.message, 'catalogSettingError');
   closeCatalogSetting(); await loadCatalogSettings();
 }
 async function toggleCatalogSetting(kind, id) {
-  if (settingsRole !== 'admin') return;
+  if (!canManageSetting()) return;
   const rows = kind === 'language' ? languageSettings : specializationSettings;
   const row = rows.find(item => item.id === id); if (!row) return;
   if (!confirm(`${row.active ? 'Deactivate' : 'Activate'} ${row.name}? Historical records remain unchanged.`)) return;
@@ -94,8 +103,10 @@ async function toggleCatalogSetting(kind, id) {
 }
 
 function openServiceSetting(id = null) {
-  if (settingsRole !== 'admin') return settingsError('Administrator access is required to change Settings.');
   const service = serviceSettings.find(row => row.id === id);
+  if ((service && !canManageSetting()) || (!service && !canAddSetting())) {
+    return settingsError(service ? 'Only the Administrator can edit services.' : 'Administrator or Project Manager access is required to add services.');
+  }
   settingsEl('serviceSettingTitle').textContent = service ? 'Edit service' : 'Add service';
   settingsEl('ss-id').value = service?.id || '';
   settingsEl('ss-name').value = service?.name || '';
@@ -103,6 +114,7 @@ function openServiceSetting(id = null) {
   settingsEl('ss-order').value = service?.sort_order ?? ((serviceSettings.length + 1) * 10);
   settingsEl('ss-description').value = service?.description || '';
   settingsEl('ss-active').checked = service?.active !== false;
+  settingsEl('ss-active').disabled = !canManageSetting();
   settingsEl('ss-name').readOnly = !!service;
   settingsEl('ss-code').readOnly = !!service;
   clearSettingsError('serviceSettingError');
@@ -113,12 +125,13 @@ function openServiceSetting(id = null) {
 async function saveServiceSetting() {
   clearSettingsError('serviceSettingError');
   const id = settingsEl('ss-id').value;
+  if ((id && !canManageSetting()) || (!id && !canAddSetting())) return settingsError('This role cannot save that service change.', 'serviceSettingError');
   const name = settingsEl('ss-name').value.trim();
   const code = normalizeServiceCode(settingsEl('ss-code').value);
   const sortOrder = Number(settingsEl('ss-order').value || 0);
   if (!name) return settingsError('Enter a service name.', 'serviceSettingError');
   if (code.length < 2) return settingsError('Enter a Job code containing 2–8 letters or numbers.', 'serviceSettingError');
-  const payload = { description: settingsEl('ss-description').value.trim() || null, sort_order: sortOrder, active: settingsEl('ss-active').checked };
+  const payload = { description: settingsEl('ss-description').value.trim() || null, sort_order: sortOrder, active: canManageSetting() ? settingsEl('ss-active').checked : true };
   const result = id
     ? await _sb.from('service_catalog').update(payload).eq('id', id)
     : await _sb.from('service_catalog').insert({ ...payload, name, code });
@@ -128,7 +141,7 @@ async function saveServiceSetting() {
 }
 
 async function toggleServiceSetting(id) {
-  const service = serviceSettings.find(row => row.id === id); if (!service || settingsRole !== 'admin') return;
+  const service = serviceSettings.find(row => row.id === id); if (!service || !canManageSetting()) return;
   const action = service.active ? 'deactivate' : 'activate';
   if (!confirm(`${action[0].toUpperCase() + action.slice(1)} ${service.name}? Historical records will remain unchanged.`)) return;
   const { error } = await _sb.from('service_catalog').update({ active: !service.active }).eq('id', id);

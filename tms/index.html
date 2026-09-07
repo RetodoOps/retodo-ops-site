@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RetodoOps TMS — Login</title>
-    <link rel="stylesheet" href="style.css?v=019">
+    <link rel="stylesheet" href="style.css?v=039">
 </head>
 <body class="login-body">
 
@@ -43,14 +43,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=037"></script>
+    <script src="auth.js?v=039"></script>
 <script>
-    if (new URLSearchParams(location.search).get('access') === 'inactive') {
-        const inactiveError = document.getElementById('loginError');
-        inactiveError.textContent = 'This Internal Resource is inactive. TMS access has been disabled.';
-        inactiveError.classList.remove('hidden');
+    const accessReason = new URLSearchParams(location.search).get('access');
+    if (accessReason) {
+        const accessError = document.getElementById('loginError');
+        accessError.textContent = accessReason === 'inactive'
+            ? 'This account does not currently have active TMS portal access.'
+            : accessReason === 'error'
+                ? 'The access check could not be completed. Please sign in again.'
+                : 'This account is not assigned an active TMS role.';
+        accessError.classList.remove('hidden');
     }
-    checkSession().then(u => { if (u) location.href = 'dashboard.html'; });
+    redirectAuthenticatedUser();
 
     document.getElementById('loginForm').addEventListener('submit', async e => {
         e.preventDefault();
@@ -70,9 +75,7 @@
             err.classList.remove('hidden');
             btn.disabled = false;
             btn.textContent = 'Sign In';
-        } else {
-            location.href = 'dashboard.html';
-        }
+        } else await redirectAuthenticatedUser();
     });
 
     const loginForm = document.getElementById('loginForm');

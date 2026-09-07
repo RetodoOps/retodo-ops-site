@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Work — RetodoOps Resource Portal</title>
+  <link rel="stylesheet" href="style.css?v=039">
+</head>
+<body class="resource-portal-body">
+<div class="app">
+  <aside class="sidebar resource-portal-sidebar">
+    <div class="sidebar-brand">
+      <div class="b-name">RetodoOps</div>
+      <div class="b-sub">Resource Portal</div>
+    </div>
+    <nav class="nav" aria-label="Resource portal navigation">
+      <a class="nav-item active" href="resource-dashboard.html#myJobs">My Jobs</a>
+      <a class="nav-item" href="resource-dashboard.html#myPurchaseOrders">My Purchase Orders</a>
+      <hr class="nav-divider">
+      <a class="nav-item" href="#" onclick="signOut();return false">Sign Out</a>
+    </nav>
+  </aside>
+
+  <main class="main resource-portal-main">
+    <header class="module-header resource-portal-header">
+      <div>
+        <div class="eyebrow">External Resource workspace</div>
+        <h1>My work</h1>
+        <p><span id="portalResourceName">Loading…</span><span class="portal-identity-separator">·</span><span id="portalResourceNumber"></span></p>
+      </div>
+      <span id="portalMode" class="pill">Read only</span>
+    </header>
+
+    <p id="portalError" class="error-msg hidden" role="alert"></p>
+    <div id="financialOnlyBanner" class="portal-notice hidden" role="status">
+      Financial-only access is active. Assigned Job details and files are unavailable; your immutable Supplier PO history remains accessible.
+    </div>
+
+    <section class="portal-summary" aria-label="Workspace summary">
+      <div><span>Assigned Jobs</span><strong id="portalJobCount">—</strong></div>
+      <div><span>Purchase Orders</span><strong id="portalPoCount">—</strong></div>
+      <div><span>Access</span><strong id="portalAccessLabel">—</strong></div>
+    </section>
+
+    <section id="myJobs" class="section-card table-card portal-section">
+      <div class="section-card-heading">
+        <div><h2>My assigned Jobs</h2><p>Only Jobs currently assigned to this Resource account are shown.</p></div>
+        <input id="jobSearch" class="portal-search" type="search" placeholder="Search my Jobs…" aria-label="Search my Jobs">
+      </div>
+      <div class="table-wrap">
+        <table class="module-table portal-table">
+          <thead><tr><th>Job</th><th>Project / Scoop</th><th>Service</th><th>Language pair</th><th>Deadline</th><th>Status</th><th>Supplier PO</th></tr></thead>
+          <tbody id="portalJobsTbody"><tr class="state-row"><td colspan="7">Loading assigned Jobs…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="myPurchaseOrders" class="section-card table-card portal-section">
+      <div class="section-card-heading">
+        <div><h2>My Supplier Purchase Orders</h2><p>Issued, revised and historical POs belonging to this Resource account.</p></div>
+        <input id="poSearch" class="portal-search" type="search" placeholder="Search my POs…" aria-label="Search my purchase orders">
+      </div>
+      <div class="table-wrap">
+        <table class="module-table portal-table">
+          <thead><tr><th>Purchase Order</th><th>Job</th><th>Project / Scoop</th><th>Status</th><th>Version</th><th>Total</th><th>Issued</th></tr></thead>
+          <tbody id="portalPosTbody"><tr class="state-row"><td colspan="7">Loading purchase orders…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=036"></script>
+<script src="auth.js?v=039"></script>
+<script src="resource-portal.js?v=039"></script>
+<script src="resource-dashboard.js?v=039"></script>
+</body>
+</html>

@@ -4,27 +4,115 @@ This document records the workflow decisions approved during the module review.
 The database and interface must preserve these distinctions rather than
 collapsing commercial, production and financial states into one status.
 
+## TMS3 canonical baseline
+
+This section is the current architecture authority for the implemented TMS
+core. Older descriptions elsewhere in this document remain useful historical
+context, but they must not reintroduce Project-level pricing, Project-level
+delivery deadlines or editable Project Financials.
+
+### Canonical hierarchy
+
+`Client → Client Account → Project → Scoop → Job → Resource / Supplier PO → Financials`
+
+- **Client** owns Accounts, contacts, billing entities and client-side rate
+  cards.
+- **Account** supplies account-specific specializations, instructions and
+  pricing context. Account is optional and may be `Non-defined`.
+- **Project** owns the client/work context, project manager, QA, coordinator,
+  references and overall production context. A Project may contain multiple
+  Scoops.
+- **Scoop** is the independent language/pricing unit inside a Project. It has
+  its own source language, target language, mandatory deadline, client price,
+  financial lines, status and differentiator (`S01`, `S02`, …). A Scoop may
+  contain multiple Jobs.
+- **Job** is the assignable production task. It inherits Scoop languages on
+  creation but Source and Target remain editable in Job Overview. Each Job has
+  its own Resource assignment, supplier cost, PO and production status.
+- **Supplier PO** is the supplier-cost and assignment snapshot. Its issued
+  versions are immutable; later changes create a new version.
+- **Project Financials** is a consolidated read-only view. Client price and
+  detailed financial rows are edited only inside the owning Scoop.
+
+### TMS3 commercial invariants
+
+- Project creation does not request a Client price. Price is defined while a
+  Scoop is created or edited.
+- Project creation does not request a Project deadline. Scoop creation
+  requires deadline date and time.
+- Project Financials lists each Scoop once as its owning financial group; CAT
+  breakdown rows must not repeat the Scoop name on every row.
+- Client and Supplier rate matching uses language pair, Service and
+  Specialization. Unit is selected after a rate card is selected and is not a
+  reason to reject an otherwise matching card.
+- If no approved matching Supplier rate card exists, an eligible Resource may
+  still be assigned with a manually entered `Fixed fee`. That exception keeps
+  the PO and audit workflow but has no rate-card provenance.
+- CAT payment grids have no zero-quantity visibility selector. The full
+  breakdown is displayed when the grid is shown, including zero-quantity rows.
+- Source and Target edits on a Scoop propagate to connected operational fields
+  and Dashboard views according to the existing history rules. Issued PO
+  versions remain immutable snapshots.
+- An External Resource signs into a dedicated read-only workspace. It sees only
+  its currently assigned Jobs, minimum technical Project/Scoop references,
+  production terms/instructions, own Job files/issues and its own immutable
+  Supplier PO history. Client/Account identity, Client price, profit, margin,
+  other Jobs/Resources, Settings and company actions are excluded.
+
+### Current naming authority
+
+- Project: `YYMMDD-N_CLIENTCODE_TARGET_CLIENTREF`, where `N` is the sequence
+  of the Project on that date. `NOREF` is used when the Client reference is
+  blank.
+- Scoop: `<project-number>-S01`, `<project-number>-S02`, …
+- Job: `<scoop-number>-<service-code>_J01`, `<scoop-number>-<service-code>_J02`, …
+- Supplier PO number: contextual format such as
+  `PO-260906-1_S01-TRA_J01`.
+- PO display title: the PO number and version only, for example
+  `PO-260906-1_S01-TRA_J01 · V1`; the Project or Job name is not prepended.
+
+### Current status authority
+
+- Project/Scoop production flow: `Assign → Ongoing → Ready for QA → Waiting →
+  Ready to Deliver → Delivered to Client → Approved`.
+- A Scoop becomes `Ongoing` when a connected Job is assigned. A Job reaching
+  `Delivered` moves the Scoop to `Ready for QA`; it does not move the Scoop
+  directly to `Delivered to Client`.
+- Scoop status is automatic from Jobs unless the user selects Manual status
+  override. Manual override may return a Scoop to an earlier step when an
+  operational correction requires it.
+- Job flow: `Unassigned → Assigned → In Progress → Delivered → Revision
+  Required → Approved`; `Cancelled` is the terminal outcome.
+- Resource readiness requires lifecycle `Active`, status `Assignable`,
+  `Proven` or `Preferred`, and a valid email address.
+
 ## Core record flow
 
-Inquiry → Quote → Client confirmation → Project → Jobs → Client invoice → Payment
+Inquiry → Quote → Client confirmation → Project → Scoop(s) → Job(s) → Client invoice → Payment
 
 - A Quote may contain several target languages.
 - Acceptance creates one linked Project per target language.
 - A confirmed client PO/email assignment may create a Project without a Quote.
-- A Project may contain several sequential or parallel Jobs.
+- A Project may contain several independent Scoops. Each Scoop may contain
+  several sequential or parallel Jobs.
 
 ## Numbering and names
 
-- Project display name: `YYMMDD_CLIENTCODE_TARGET_CLIENTREF`.
+- Project display name: `YYMMDD-N_CLIENTCODE_TARGET_CLIENTREF`, where `N` is the
+  daily Project sequence.
 - Missing client reference uses `NOREF`.
-- Duplicate names receive `_02`, `_03`, and so on.
-- Example: `260828_RWS_SV_1GX12151`.
+- Example: `260906-12_TEST_NB_NOREF`.
+- Scoop names append `-S01`, `-S02`, and so on. Job names append the compact
+  Service code and Job sequence, for example
+  `260906-12_TEST_NB_NOREF-S01-TRA_J01`.
 - Project display names are immutable after creation. If a Client reference is
   supplied later, a Project originally named with `NOREF` keeps that name,
   folder path and external links. The later reference is stored separately,
   remains visible/searchable and records its first receipt time and updater.
 - Official Bulgarian invoice numbers are ten digits and are assigned at issue,
   not while the invoice is still a draft.
+- Project creation does not request a Project deadline. The Scoop deadline
+  date and time are mandatory and are entered when the Scoop is created.
 
 ## Separate lifecycles
 
@@ -74,31 +162,33 @@ Not Ready → Ready to Invoice → Invoiced → Partially Paid → Paid
 
 Additional states: Overdue, Disputed, Cancelled, Credited.
 
-The Project tab is named **Financials**. A Project may use either a single
-manual/fixed Client price or detailed financial lines. Once financial lines
-exist, their sum is authoritative and the total Client price is calculated
-automatically.
+The Project tab is named **Financials**. It is a consolidated read-only view;
+the owning Scoop is the only place where Client price, quantities and detailed
+rate-card rows may be edited. Once financial lines exist, their sum is
+authoritative and the Scoop Client price is calculated automatically.
 
 For CAT work, the operator may load an eligible Account/Client rate card or a
-blank zero-price grid. The grid always starts with all standard rows — New
+blank zero-price grid inside a Scoop. The grid always starts with all standard rows — New
 words, 50–74%, 75–84%, 85–94%, 95–99%, 100% and Repetitions — and quantity 0.
 Each Client rate-card group stores one base price; its CAT rows store discount
-percentages and are recalculated automatically. The Project grid inherits its
+percentages and are recalculated automatically. The Scoop grid inherits its
 Service and Specialization from the Project rather than asking for them again.
-Quantities are typed directly in the grid and the bold Project total at the
+Quantities are typed directly in the grid and the bold Scoop total at the
 bottom recalculates immediately. Individual rows may be removed when they do
 not apply. A rate-card line keeps
-the exact Client rate-item link plus a Project snapshot, so a later rate-card
-change does not rewrite historical Project pricing.
+the exact Client rate-item link plus a Scoop snapshot, so a later rate-card
+change does not rewrite historical Scoop pricing.
 
-Detailed Project financial rows use the same inline table pattern as Supplier
+Detailed Scoop financial rows use the same inline table pattern as Supplier
 PO lines: Description, Quantity, Unit, Unit price, Rate source, Adjustment and
-Amount. Manual rows are added directly in the table; linked Client/Account rate
-rows retain their provenance and allow quantity-only edits. Discount, Credit,
+Amount. Manual rows are added directly in the Scoop table without requiring a
+reason; linked Client/Account rate rows retain their provenance and allow
+quantity-only edits. Discount, Credit,
 Surcharge and Minimum fee adjustments are explicit rather than encoded as
-unlabelled positive or negative values. The Project result remains visible
-beside the line grid and shows Client price, current Supplier expense, Profit
-and Profit margin together. Fixed-price Projects use the same calculation path.
+unlabelled positive or negative values. The Project Financials result remains
+visible as a read-only consolidated summary and shows Client price, current
+Supplier expense, Profit and Profit margin together. Fixed-price Scoops use the
+same calculation path.
 
 ### Post-delivery issue
 
@@ -240,9 +330,10 @@ the derived repetition, context-match, exact-match and fuzzy-match prices.
 Validity dates are not used in the operational interface: approval status and
 commercial version history control whether a rate may be selected.
 
-Client rates load from Client/Account rate cards. Supplier expenses load only
-from an approved base Supplier rate-card row matching the Job's language
-pair, service, unit and specialization. The selected rate-row ID remains linked
+Client rates load from Client/Account rate cards. Supplier expenses load from
+an approved base Supplier rate-card row matching the Job's language pair,
+Service and Specialization. Unit is inherited from the selected rate-card row
+after selection and is not a matching blocker. The selected rate-row ID remains linked
 to the assignment snapshot and Job for provenance, while the agreed rate, currency, quantity
 and amount are retained as immutable commercial snapshots. Fixed/manual Client
 pricing remains available with an override reason; an assignment cannot use a
@@ -268,9 +359,12 @@ PO is issued. There is no intermediate Draft or Resource-acceptance step:
 version 1 is issued immediately and any later correction creates a new
 immutable version.
 Discounts, credits, surcharges and minimum-fee adjustments are supported.
-Supplier PO numbers use `PO-YYYY-NNNN`. Only the Administrator may issue or
-revise a PO. Client and Account identity remain hidden from the Resource by
-default; disclosure is an explicit Administrator action.
+Supplier PO numbers use the contextual Project/Scoop/Service/Job format, such
+as `PO-260906-1_S01-TRA_J01`. The PO display title contains only that number
+and its version. Automatic issue through an allowed Resource-assignment flow
+remains available to operational roles; only Administrator may manually issue
+an existing Draft PO; Administrator and PM may create an immutable revision.
+Client and Account identity remain hidden from the External Resource.
 
 ## Invoices
 
@@ -353,29 +447,43 @@ show original currency and converted EUR values.
 ## Roles
 
 - Administrator: full control and final approvals.
+- Project Manager: operational access; may add new active catalogue entries
+  and create Supplier PO revisions, but may not alter existing catalogue
+  entries or link an External Resource Authentication account.
 - Client Relations/Operations (Eli): full financial visibility; may manage
   Clients, Accounts, Quotes, Projects, Jobs, assignments, email and document
   drafts.
+- QA: company read-only access. Operational form controls and write actions are
+  disabled, and database write boundaries remain authoritative.
 - Only Administrator may issue/annul official invoices, approve supplier
   invoices/payments/rates, override compliance, apply Do not use or manage
   users/security.
-- Freelancer: own profile, assigned Jobs, files, POs, invoices and
-  payments only.
+- External Resource: dedicated read-only portal for own assigned Jobs,
+  technical work context, own Job files/issues and own issued Supplier PO
+  versions. No Client identity or Client economics.
+- Generic `user`: no TMS workspace. It is not a fallback Resource role.
 
 ## Editable work records and Supplier PO versions
 
 - `project_number` and `job_number` are permanent technical references. The
   Project display name and every operational Project/Job field are edited
   directly in their Overview forms and committed with **Save**.
+- A Project has one or more independent Scoops, and each Scoop has one or more
+  independent Jobs. Creating another Job always inserts a new immutable
+  identity and the next per-Scoop sequence (`_J02`, `_J03`, …); it never edits
+  or replaces an existing Job. Each Job owns its Resource assignment,
+  Supplier PO and version history, Supplier cost and production status.
 - A Supplier rate card stores sets of Source and Target languages and covers
   their configured cross-product. Existing one-pair cards are migrated as
   one-element sets.
 - A Client base rate uses the same multi-language model. Empty Source or Target
-  sets mean Any language; otherwise the rate covers the cross-product of all
-  selected Source and Target languages. Project CAT grids link only to a real
-  base row matching the Project service, specialization, unit and direction.
+sets mean Any language; otherwise the rate covers the cross-product of all
+selected Source and Target languages. Scoop CAT grids link only to a real
+base row matching the Scoop Service, Specialization and direction; Unit is
+inherited after selection.
 - A newly matching Approved Supplier rate is required before an assigned Job
-  can save changed commercial terms.
+  can save changed commercial terms unless the Job explicitly uses the manual
+  Fixed fee exception.
 - Assignment records per-band Supplier CAT quantities and amounts from the
   selected approved rate card. These rows become the issued PO lines.
 - PO-facing Job changes create the next immutable PO version and snapshot both
@@ -391,11 +499,11 @@ show original currency and converted EUR values.
   email address. Legacy eligibility, classification, assignment approval and
   compliance fields do not trigger an Administrator override.
 - A new or reassigned Job Supplier CAT grid inherits quantities from matching
-  Project CAT bands. It is hidden after an active PO exists because later
-  Supplier price changes are made in the versioned PO workspace.
-- The Job financial summary calculates Client value from the matching Project
-  CAT price rows and the Job's editable quantities. When a Project has one
-  active Job, the Project's full current Client price is authoritative so
+  Scoop CAT bands. The grid has no zero-quantity visibility selector; when it
+  is shown, the complete CAT breakdown is visible.
+- The Job financial summary calculates Client value from the matching Scoop
+  CAT price rows and the Job's editable quantities. When a Scoop has one
+  active Job, the Scoop's full current Client price is authoritative so
   manual lines and adjustments are reflected in the Job margin. Once a
   Supplier PO exists, its latest immutable version supplies the displayed
   Supplier cost; changing editable Job terms switches the preview to the
@@ -403,6 +511,9 @@ show original currency and converted EUR values.
   Profit and Profit margin are shown together. A margin is not shown when the
   Client and Supplier currencies differ until a currency-conversion model is
   configured.
+- Project Supplier expense is the sum of the current active PO total for every
+  non-cancelled Job, falling back to that Job's saved Supplier amount when it
+  has no PO. Project Profit and Profit margin use this combined expense.
 
 ## Navigation and readability
 
@@ -413,5 +524,6 @@ shortcut `/` focuses it. Forms and data tables use higher-
 contrast labels, larger controls, clearer focus states and stronger totals.
 
 MFA and sensitive-action reauthentication are deferred. Sessions must persist
-reliably. Backups run daily. Direct AI integration is deferred until the
+reliably. Until scheduled Supabase backups are enabled, a manual logical backup
+is required before migrations. Direct AI integration is deferred until the
 operational modules are tested and working.

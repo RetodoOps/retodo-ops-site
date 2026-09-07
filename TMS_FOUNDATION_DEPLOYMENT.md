@@ -63,10 +63,12 @@ during the module review.
 23. Run `tms/migrations/020_supplier_po_gmail_delivery.sql` once.
 24. Run `tms/migrations/021_po_version_email_and_project_line_editor.sql` once.
 25. Run `tms/migrations/022_project_profit_and_po_cost_sync.sql` once.
-26. Commit/push the updated repository files so Netlify deploys them.
+26. Run `tms/migrations/023_multiple_project_jobs.sql` once.
+27. Commit/push the updated repository files so Netlify deploys them.
 
 Update 025 is a front-end history and financial-display update and does not
 require a database migration.
+Update 026 requires migration 023 before **Create Job** is used.
 
 ## Verification
 
@@ -101,7 +103,8 @@ require a database migration.
     CAT quantities, then choose **Assign Resource & Send PO**. Confirm the Job
     moves to Assigned, the Project moves from Assign to Ongoing, the supplier
     amount rolls into Project expense/margin and Supplier PO version 1 is
-    immediately Issued with a `PO-YYYY-NNNN` number. Confirm an outbound email
+    immediately Issued with a contextual number such as
+    `PO-260906-1_S01-TRA_J01`. Confirm an outbound email
     queue record is created; no Resource acceptance step should appear.
 14. Select another Resource and confirm a reassignment reason is required. On
     confirmation, verify the old PO becomes Cancelled with its history intact,
@@ -185,32 +188,33 @@ require a database migration.
     Edit Project and Job operational fields directly and save them. With a
     PO-facing Job field, save, and confirm the next PO version appears with the
     earlier version retained.
-35. In Project Financials, type quantities directly into several CAT rows
-    without opening the financial-line modal. Confirm line amounts update while
-    typing, the bold Project CAT total remains at the bottom, and Save persists
-    every changed quantity.
+35. Open a Scoop Financials editor and type quantities directly into several
+    CAT rows without opening a separate financial-line modal. Confirm line
+    amounts update while typing, the bold Scoop total remains at the bottom,
+    and Save persists every changed quantity. Confirm Project Financials is
+    read-only and lists each Scoop once.
 36. Use the top quick search to open a Project and a Job. Focus it again and
     confirm both appear under Recently visited; search by number/name and test
     `/`. Confirm labels, fields, focus outlines, tables and
     totals remain clearly readable on desktop and narrow screens.
-37. Edit a Project CAT quantity and Save. Confirm no `record "new" has no field
-    "updated_at"` error appears, the line Amount, bottom CAT total and top Client
-    price update, and the value persists after refresh. Select a non-matching
-    Client rate card and confirm the mismatch is reported instead of silently
-    creating zero-price rows.
+37. Edit a Scoop CAT quantity and Save. Confirm no `record "new" has no field
+    "updated_at"` error appears, the line Amount, bottom Scoop total and
+    Project Financials Client price update, and the value persists after
+    refresh. Select a non-matching Client rate card and confirm the mismatch is
+    reported instead of silently creating zero-price rows.
 38. Edit a Client base rate and select several Source and Target languages.
-    Confirm the same base/CAT prices can be loaded by Projects for every selected
+    Confirm the same base/CAT prices can be loaded by Scoops for every selected
     language combination. Leave a language side empty and confirm it behaves as
-    Any language. Existing Project price snapshots must remain unchanged until
+    Any language. Existing Scoop price snapshots must remain unchanged until
     their CAT grid is explicitly reloaded.
-39. Confirm Client and Project totals always display two decimal places, while
+39. Confirm Client and Scoop/Project totals always display two decimal places, while
     word rates display four. For a rate of 0.0850, verify each line Amount is
-    rounded to cents first and the Project total equals the sum of those visible
+    rounded to cents first and the Scoop total equals the sum of those visible
     line amounts without a one-cent discrepancy.
 40. In a Resource profile, confirm `Assignable`, `Proven` and `Preferred` cannot
     be saved without an email address and that email cannot be removed while one
     of these statuses is active. In a Job, select a Supplier rate and confirm CAT
-    quantities are inherited by band from the Project, remain editable, and each
+    quantities are inherited by band from the Scoop, remain editable, and each
     row has a delete action. Issue the PO without an informational confirmation
     dialog; if another readiness rule blocks assignment, confirm the error names
     the exact failing field.
@@ -219,25 +223,66 @@ require a database migration.
     the email body/total come from the immutable Version 2 snapshot. Send V2
     again and confirm it creates another email audit attempt without changing
     either PO version.
-42. In Project Financials, add a manual line directly in the PO-style table.
+42. In Scoop Financials, add a manual line directly in the PO-style table.
     Confirm Description, Quantity, Unit, Unit price, Rate source, Adjustment and
-    Amount are visible together, adjustments use the correct sign, Save persists
-    the row, and a linked Client/Account row allows quantity-only editing.
+    Amount are visible together, adjustments use the correct sign, no reason is
+    required for the new line, Save persists the row, and a linked Client/
+    Account row allows quantity-only editing.
 43. Revise an issued Supplier PO by adding an adjustment. Confirm the latest PO
     total appears as Supplier cost in the Job and Project Jobs overview, Project
     expense is refreshed, and both the Profit value and Profit margin percentage
-    recalculate. Add or remove a Project financial line and confirm Client price,
-    Profit and Profit margin update live together at the bottom of the grid.
+    recalculate. Add or remove a Scoop financial line and confirm the
+    consolidated Project Financials Client price, Profit and Profit margin
+    update live.
 44. Create Supplier PO versions 2 and 3. Confirm both appear as dated events in
     Assignment history. In Supplier PO, confirm there is no separate PO history,
     the consolidated Version history is at the bottom, every row shows its PO
     value, and selecting V1/V2/V3 opens the correct immutable lines and total.
-    With one active Job, add or remove a Project financial line and confirm the
-    Job Client value, Profit and Profit margin use the updated Project price.
-    Confirm Supplier CAT analysis is hidden for the assigned Job and reappears
-    only while preparing an initial assignment or reassignment.
+    With one active Job, add or remove a Scoop financial line and confirm the
+    Job Client value, Profit and Profit margin use the updated Scoop price.
+    Confirm the Supplier payment grid has no zero-quantity visibility selector
+    and displays its complete breakdown when shown.
+45. In one Project, create a Translation Job and then create a Proofreading Job.
+    Confirm the first Job remains unchanged, the second receives a different UUID
+    and the next per-Scoop `_J02` number, and both appear in the Scoop Jobs
+    table. Assign
+    a different Resource and issue a separate PO for each Job. Confirm every Job
+    retains its own Supplier cost, PO and history, while Project Supplier expense
+    equals the sum of both current Job costs and Project Profit/margin use that
+    combined expense. Create a third Job and confirm it receives `_J03`.
 
 The `client_relations` role may be assigned to Eli after the Client and Account
 screens are deployed and tested. It permits operational work and financial
 visibility, while Administrator-only triggers retain invoice issue/annulment,
 payment, rate approval, assignment approval and blacklist controls.
+
+## Current TMS3 manual deployment checkpoint
+
+The historical verification list above records earlier foundation behavior.
+For the current Project → Scoop → Job architecture, use the following rules
+for the next deployment:
+
+1. Apply migrations 023 through 038 in sequence if they are not already
+   present in Supabase. If the P1.1 live checks for migrations 036 and 037 are
+   already complete, apply only the new migration 038 from Update 039.
+2. Migration 034 covers Internal Resources, mandatory Scoop deadlines, daily
+   Project sequence numbers, contextual PO numbers and the current Scoop
+   workflow corrections.
+3. Migration 035 adds manual flat-fee assignment when no matching approved
+   Supplier rate card exists and normalizes PO display labels to the PO number.
+4. Project Financials is read-only. Edit financial rows only in the owning
+   Scoop; the Project view must aggregate each Scoop once.
+5. Job Source and Target are inherited from the Scoop but remain editable.
+   Supplier rate matching uses language pair, Service and Specialization; Unit
+   is inherited after rate-card selection.
+6. The CAT payment grid has no zero-quantity visibility selector and displays
+   the complete breakdown when it is shown.
+7. A Job with a passed deadline is not a substitute for a Project/Scoop status
+   change: Job `Delivered` moves its Scoop to `Ready for QA`, not `Delivered to
+   Client`, unless a manual Scoop override is selected.
+8. Update 039 adds the dedicated read-only External Resource portal and its
+   role boundaries. Follow `P1_2_EXTERNAL_RESOURCE_PORTAL_HANDOFF.md` and run
+   audit 004 before the live account test.
+9. Codex does not upload or push these updates. The user copies the manual
+   package to the repository, deploys it, hard-refreshes the application and
+   reports the smoke-test results.

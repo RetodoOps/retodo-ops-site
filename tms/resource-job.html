@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assigned Job — RetodoOps Resource Portal</title>
+  <link rel="stylesheet" href="style.css?v=039">
+</head>
+<body class="resource-portal-body">
+<div class="app">
+  <aside class="sidebar resource-portal-sidebar">
+    <div class="sidebar-brand"><div class="b-name">RetodoOps</div><div class="b-sub">Resource Portal</div></div>
+    <nav class="nav" aria-label="Resource portal navigation">
+      <a class="nav-item active" href="resource-dashboard.html#myJobs">My Jobs</a>
+      <a class="nav-item" href="resource-dashboard.html#myPurchaseOrders">My Purchase Orders</a>
+      <hr class="nav-divider">
+      <a class="nav-item" href="#" onclick="signOut();return false">Sign Out</a>
+    </nav>
+  </aside>
+
+  <main class="main resource-portal-main">
+    <header class="module-header resource-portal-header">
+      <div>
+        <div class="breadcrumbs"><a href="resource-dashboard.html#myJobs">My Jobs</a><span>/</span><span id="jobBreadcrumb">Loading…</span></div>
+        <h1 id="jobTitle">Loading assigned Job…</h1>
+        <p><span id="portalResourceName"></span><span class="portal-identity-separator">·</span><span id="portalResourceNumber"></span></p>
+      </div>
+      <span id="jobStatus" class="pill">Loading</span>
+    </header>
+
+    <p id="portalError" class="error-msg hidden" role="alert"></p>
+
+    <section id="jobContext" class="portal-job-context hidden" aria-label="Job context">
+      <div><span>Project reference</span><strong id="projectNumber">—</strong></div>
+      <div><span>Scoop reference</span><strong id="scoopNumber">—</strong></div>
+      <div><span>Resource deadline</span><strong id="jobDeadline">—</strong></div>
+    </section>
+
+    <section id="jobDetailsCard" class="section-card portal-section hidden">
+      <div class="section-card-heading"><div><h2>Production task</h2><p>Read-only scope and instructions for this assigned Job.</p></div></div>
+      <dl class="portal-detail-grid">
+        <div><dt>Service</dt><dd id="jobService">—</dd></div>
+        <div><dt>Specialization</dt><dd id="jobSpecialization">—</dd></div>
+        <div><dt>Language pair</dt><dd id="jobLanguages">—</dd></div>
+        <div><dt>Quantity</dt><dd id="jobQuantity">—</dd></div>
+      </dl>
+      <div class="portal-instructions">
+        <span>Instructions / notes</span>
+        <p id="jobInstructions">No instructions recorded.</p>
+      </div>
+    </section>
+
+    <section id="jobPoCard" class="section-card table-card portal-section hidden">
+      <div class="section-card-heading"><div><h2>Supplier Purchase Orders</h2><p>Only POs issued to this Resource account for this Job.</p></div></div>
+      <div class="table-wrap"><table class="module-table portal-table"><thead><tr><th>PO</th><th>Status</th><th>Version</th><th>Total</th><th>Issued</th><th>Acknowledged</th></tr></thead><tbody id="jobPosTbody"></tbody></table></div>
+    </section>
+
+    <section id="jobFilesCard" class="section-card table-card portal-section hidden">
+      <div class="section-card-heading"><div><h2>Job files</h2><p>Opening a file creates an immutable access-log entry.</p></div></div>
+      <div class="table-wrap"><table class="module-table portal-table"><thead><tr><th>File</th><th>Role</th><th>Type</th><th>Size</th><th>Added</th><th>Access</th></tr></thead><tbody id="jobFilesTbody"></tbody></table></div>
+    </section>
+
+    <section id="jobIssuesCard" class="section-card table-card portal-section hidden">
+      <div class="section-card-heading"><div><h2>Delivery & issues</h2><p>Operational issue details for this assigned Job; internal financial impact is not exposed.</p></div></div>
+      <div class="table-wrap"><table class="module-table portal-table"><thead><tr><th>Status</th><th>Severity</th><th>Description</th><th>Reported</th><th>Resolution</th></tr></thead><tbody id="jobIssuesTbody"></tbody></table></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=036"></script>
+<script src="auth.js?v=039"></script>
+<script src="resource-portal.js?v=039"></script>
+<script src="resource-job.js?v=039"></script>
+</body>
+</html>

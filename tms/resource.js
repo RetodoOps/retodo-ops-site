@@ -1,4 +1,4 @@
-let resourceId, resource, appRole = 'user', cvData = null;
+let resourceId, resource, appRole = 'user', cvData = null, portalLinkStatus = null;
 let pairs=[], services=[], specializations=[], resourceSpecializations=[], rates=[], tests=[], accountQualifications=[], accounts=[], education=[], documents=[], history=[], availability=[], privateNotes=[], accountSpecializationDefaults=[];
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const el=id=>document.getElementById(id), val=id=>el(id).value.trim(), nullable=id=>val(id)||null;
@@ -29,11 +29,70 @@ function populateOverview(){
     if(resource.resource_type==='Internal')return populateInternalOverview();
     const name=resource.legal_name||resource.company_name||resource.internal_number;document.title=`${name} — RetodoOps TMS`;el('resourceTitle').textContent=name;el('resourceBreadcrumb').textContent=resource.internal_number;el('resourceSubtitle').textContent=`${resource.internal_number} · ${resource.resource_type} · ${resource.resource_status}`;
     const fields={'r-number':resource.internal_number,'r-legacy':resource.legacy_id,'r-type':resource.resource_type,'r-name':resource.legal_name,'r-initials':resource.initials,'r-company':resource.company_name,'r-nationality':resource.nationality,'r-country':resource.country_of_residence,'r-city':resource.city,'r-native':resource.native_language,'r-timezone':resource.timezone,'r-email':resource.email,'r-phone':resource.phone,'r-website':resource.website,'r-linkedin':resource.linkedin_url,'r-linkedin-confidence':resource.linkedin_match_confidence,'r-linkedin-status':resource.linkedin_connection_status,'r-lifecycle':resource.lifecycle_status||'Active','r-status':resource.resource_status||'New contact','r-compliance':resource.compliance_status,'r-compliance-expiry':resource.compliance_expiry,'r-quality':resource.quality_rating,'r-restrictions':resource.operational_restrictions||resource.restriction_reason,'r-quality-evidence':resource.quality_evidence,'r-notes':resource.notes,'r-portal':resource.portal_status,'r-financial-until':resource.financial_access_until,'r-payment-days':resource.payment_terms_days,'r-invoice-cycle':resource.invoice_cycle,'r-tax':resource.tax_id,'r-cv-status':resource.blind_cv_status};Object.entries(fields).forEach(([id,value])=>el(id).value=value??'');
+    ['r-portal','r-financial-until'].forEach(id=>{el(id).disabled=appRole!=='admin';el(id).title=appRole==='admin'?'':'Administrator access required'});
     const currentAvailability=availability.find(row=>new Date(row.starts_at)<=new Date()&&(!row.ends_at||new Date(row.ends_at)>=new Date()));
     el('resourceSummary').innerHTML=`<div><span>Resource status</span><strong>${esc(resource.resource_status)}</strong><small>${resource.lifecycle_status||'Active'} lifecycle</small></div><div><span>Availability</span><strong>${esc(currentAvailability?.status||'Unknown')}</strong><small>${currentAvailability?.ends_at?`Until ${fmtDate(currentAvailability.ends_at)}`:'No current end date'}</small></div><div><span>Last recorded work</span><strong>${fmtDate(resource.last_recorded_job)}</strong><small>${history.length} history record${history.length===1?'':'s'}</small></div><div><span>Blind CV</span><strong>${esc(resource.blind_cv_status||'Not ready')}</strong><small>${education.length} education record${education.length===1?'':'s'}</small></div>`;
 }
 
 async function saveOverview(){if(resource?.resource_type==='Internal')return saveInternalOverview();const readyStatuses=['Assignable','Proven','Preferred'];if(readyStatuses.includes(val('r-status'))&&!val('r-email'))return showError(`Add an email address before setting the Resource to ${val('r-status')}.`);const payload={resource_type:val('r-type'),lifecycle_status:val('r-lifecycle'),resource_status:val('r-status'),legal_name:nullable('r-name'),company_name:nullable('r-company'),initials:nullable('r-initials'),nationality:nullable('r-nationality'),country_of_residence:nullable('r-country'),city:nullable('r-city'),native_language:nullable('r-native'),timezone:nullable('r-timezone'),email:nullable('r-email'),phone:nullable('r-phone'),website:nullable('r-website'),linkedin_url:nullable('r-linkedin'),linkedin_match_confidence:nullable('r-linkedin-confidence'),linkedin_connection_status:nullable('r-linkedin-status'),compliance_status:val('r-compliance'),compliance_expiry:val('r-compliance-expiry')||null,quality_rating:val('r-quality')===''?null:Number(val('r-quality')),operational_restrictions:nullable('r-restrictions'),quality_evidence:nullable('r-quality-evidence'),notes:nullable('r-notes'),portal_status:val('r-portal'),financial_access_until:val('r-financial-until')||null,payment_terms_days:Number(val('r-payment-days')||60),invoice_cycle:nullable('r-invoice-cycle'),tax_id:nullable('r-tax'),blind_cv_status:val('r-cv-status')};const {error}=await _sb.from('resources').update(payload).eq('id',resourceId);if(error)return showError(error.message);await loadResource();setStatus('Saved ✓')}
+
+function renderPortalLinkState(message,tone=''){
+    const card=el('portalLinkCard'),state=el('portalLinkState');
+    if(!card||!state)return;
+    card.classList.remove('portal-link-ready','portal-link-warning','portal-link-error');
+    if(tone)card.classList.add(`portal-link-${tone}`);
+    state.textContent=message;
+}
+function portalLinkFailure(message){
+    const error=el('portalLinkError');
+    if(error){error.textContent=message;error.classList.remove('hidden')}
+    renderPortalLinkState('Portal link status could not be verified.','error');
+}
+async function loadPortalLinkStatus(){
+    const card=el('portalLinkCard'),button=el('activatePortalBtn'),error=el('portalLinkError');
+    if(!card||!button||!resource)return;
+    if(resource.resource_type==='Internal'){card.classList.add('hidden');return}
+    card.classList.remove('hidden');
+    if(error){error.textContent='';error.classList.add('hidden')}
+    button.disabled=true;button.textContent='Activate portal login';
+    if(appRole!=='admin'){
+        renderPortalLinkState(resource.profile_id
+            ?`Authentication account linked · portal ${resource.portal_status||'Not invited'}. Only an Administrator can change the link.`
+            :'No Authentication account is linked. Administrator access is required.');
+        button.textContent='Administrator required';
+        return;
+    }
+    renderPortalLinkState('Checking the Resource email…');
+    const {data,error:rpcError}=await _sb.rpc('external_resource_portal_link_status',{p_resource_id:resourceId});
+    if(rpcError){portalLinkFailure(rpcError.message);return}
+    portalLinkStatus=data||{};
+    const status=portalLinkStatus;
+    if(!status.resource_email_present){renderPortalLinkState('Add and save the Resource email first.','warning');return}
+    if(status.resource_has_other_profile_link){renderPortalLinkState('This Resource is already linked to a different Authentication account.','error');return}
+    if(status.linked_to_another_resource){renderPortalLinkState('The matching Authentication account is already linked to another Resource.','error');return}
+    if(status.auth_user_exists&&status.profile_role&&!['user','resource'].includes(status.profile_role)){
+        renderPortalLinkState(`The matching Authentication account has company role “${status.profile_role}” and cannot be used here.`,'error');return;
+    }
+    if(status.linked_to_this_resource&&status.profile_role==='resource'&&['Active','Read-only','Financial only'].includes(status.portal_status)){
+        renderPortalLinkState(`Linked and ready · portal ${status.portal_status}.`,'ready');button.textContent='Portal login active';return;
+    }
+    if(!status.auth_user_exists){
+        renderPortalLinkState(`No Supabase Authentication user matches ${resource.email}. Create that user first, then check again.`,'warning');button.textContent='Authentication user required';return;
+    }
+    renderPortalLinkState(status.linked_to_this_resource
+        ?'The account is linked but portal access is not active.'
+        :'Matching Authentication user found and ready to link.','warning');
+    button.disabled=false;button.textContent=status.linked_to_this_resource?'Reactivate portal login':'Activate portal login';
+}
+async function activateResourcePortal(){
+    if(appRole!=='admin'||!portalLinkStatus?.auth_user_exists)return;
+    const email=resource?.email||'the matching email';
+    if(!confirm(`Link the Supabase Authentication user ${email} to this External Resource and activate portal access?`))return;
+    const button=el('activatePortalBtn');button.disabled=true;button.textContent='Activating…';
+    const {error}=await _sb.rpc('activate_external_resource_portal',{p_resource_id:resourceId});
+    if(error){portalLinkFailure(error.message);button.textContent='Try again';button.disabled=false;return}
+    await loadResource();setStatus('External Resource portal activated ✓');
+}
 
 function renderPairs(){el('pairsList').innerHTML=pairs.length?pairs.map(pair=>`<div class="data-card"><div><strong>${esc(pair.source_language)} → ${esc(pair.target_language)}</strong><small>${pair.native_target?'Native target · ':''}${esc(pair.notes||'')}</small></div><div class="table-actions"><span class="pill pill-green">Capability</span><button class="table-action danger" onclick="removePair('${pair.id}')">Remove</button></div></div>`).join(''):'<div class="empty-compact">No language pairs.</div>'}
 function openPairModal(){el('pair-source').innerHTML=languageOptions();el('pair-target').innerHTML=languageOptions();el('pair-notes').value='';el('pair-native').checked=false;el('pairModal').classList.remove('hidden')}
@@ -157,7 +216,7 @@ async function saveRate(){
     const {error}=await _sb.rpc('save_scoped_resource_rate_card',{p_payload:payload});if(error)return modalError('rateError',error.message);closeModal('rateModal');await loadResource();setStatus(baseId?'Supplier rate card updated ✓':'Supplier rate card added ✓');
 }
 const loadResourceWithoutAccountDefaults=loadResource;
-loadResource=async function(){await loadResourceWithoutAccountDefaults();const result=await _sb.from('client_account_specializations').select('account_id,specialization_id,is_default');accountSpecializationDefaults=result.data||[];renderRates()};
+loadResource=async function(){await loadResourceWithoutAccountDefaults();const result=await _sb.from('client_account_specializations').select('account_id,specialization_id,is_default');accountSpecializationDefaults=result.data||[];renderRates();await loadPortalLinkStatus()};
 document.querySelectorAll('.record-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t===tab));document.querySelectorAll('.record-pane').forEach(pane=>pane.classList.toggle('active',pane.id===`pane-${tab.dataset.tab}`))}));
 el('r-name').addEventListener('input',event=>{el('r-initials').value=initialsFromName(event.target.value)});
 document.querySelectorAll('#r-internal-positions input').forEach(input=>input.addEventListener('change',updateInternalPositionsSummary));
