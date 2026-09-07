@@ -68,12 +68,12 @@ exports.handler = async event => {
         const redirect = encodeURIComponent(new URL('/reset-password.html',site).href);
         if (!invitation.confirmed) {
             // Supabase invites new or still-unconfirmed accounts; it does not set a password.
-            await api(`/auth/v1/invite?redirect_to=${redirect}`,{email:invitation.email,data:{full_name:invitation.name}});
+          await api('/auth/v1/invite',{email:invitation.email,data:{full_name:invitation.name},redirect_to:new URL('/reset-password.html',site).href});
             await rpc('link_invite',{},attemptId);
         } else {
             // Existing verified users retain their password and role. Send a recovery link.
             await rpc('link_invite',{},attemptId);
-            await api(`/auth/v1/recover?redirect_to=${redirect}`,{email:invitation.email});
+           await api('/auth/v1/recover',{email:invitation.email,redirect_to:new URL('/reset-password.html',site).href});
         }
         await rpc('invite_sent',{},attemptId);
         return reply(200,{resource_id:resourceId,invitation_requested:true});
