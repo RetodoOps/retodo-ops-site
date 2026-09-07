@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Register — RetodoOps TMS</title><link rel="stylesheet" href="style.css?v=040"></head>
+<body class="login-body"><main class="login-card">
+<div class="login-brand"><h1>Join RetodoOps</h1><p>External linguist registration</p></div>
+<form id="registrationForm">
+<div class="field"><label for="registrationName">Full name</label><input id="registrationName" required maxlength="200" autocomplete="name"></div>
+<div class="field"><label for="registrationEmail">Email</label><input id="registrationEmail" required type="email" autocomplete="email"></div>
+<div class="field"><label for="registrationPassword">Password</label><input id="registrationPassword" required type="password" minlength="12" autocomplete="new-password"><small>Use at least 12 characters.</small></div>
+<div class="field"><label for="registrationConfirm">Confirm password</label><input id="registrationConfirm" required type="password" minlength="12" autocomplete="new-password"></div>
+<button class="btn-primary btn-full" id="registerBtn">Create account</button></form>
+<p id="registrationMessage" role="status" aria-live="polite"></p>
+<p>Confirm your email to complete registration. Portal access requires Administrator approval.</p>
+<button type="button" class="btn-secondary" id="registrationSignIn">Sign in to finish registration</button>
+<p><a href="index.html">Go to TMS sign in</a></p>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="auth.js?v=039"></script><script src="onboarding.js?v=040"></script>
+<script src="register.js?v=040"></script></body></html>
