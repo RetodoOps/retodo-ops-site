@@ -22,7 +22,7 @@ function qualificationPill(status){const css=status==='Approved'?'pill-green':st
 function languageOptions(selected='',empty='Select…'){return `<option value="">${empty}</option>`+TMS_REF.languages.map(language=>`<option value="${esc(language)}" ${language===selected?'selected':''}>${esc(language)}</option>`).join('')}
 function selectedInternalPositions(){return [...document.querySelectorAll('#r-internal-positions input:checked')].map(input=>input.value)}
 function updateInternalPositionsSummary(){const positions=selectedInternalPositions();document.querySelector('#r-internal-positions summary').textContent=positions.length?positions.join(', '):'Select one or more positions…'}
-function populateInternalOverview(){const name=resource.legal_name||resource.internal_number;document.title=`${name} — RetodoOps TMS`;el('resourceTitle').textContent=name;el('resourceBreadcrumb').textContent=resource.internal_number;document.body.classList.add('internal-resource-mode');el('internalOverviewCard').classList.remove('hidden');el('blindCvButton').classList.add('hidden');const breadcrumb=el('resourcesBreadcrumbLink');breadcrumb.href='resources.html?type=internal';breadcrumb.textContent='Internal Resources';el('r-internal-name').value=resource.legal_name||'';el('r-internal-number').value=resource.internal_number||'';el('r-internal-email').value=resource.email||'';el('r-internal-gender').value=resource.gender||'';el('r-internal-status').value=resource.lifecycle_status||'Active';document.querySelectorAll('#r-internal-positions input').forEach(input=>input.checked=(resource.internal_positions||[]).includes(input.value));updateInternalPositionsSummary();const state=el('internalAccessState'),active=resource.lifecycle_status==='Active';state.textContent=active?'Access active':resource.lifecycle_status==='On leave'?'On leave':'Access disabled';state.className=`pill ${active?'pill-green':resource.lifecycle_status==='On leave'?'pill-amber':'pill-red'}`;el('resourceSubtitle').textContent=`${resource.internal_number} · Internal Resource · ${resource.lifecycle_status||'Active'}`}
+function populateInternalOverview(){const name=resource.legal_name||resource.internal_number;document.title=`${name} — RetodoOps TMS`;el('resourceTitle').textContent=name;el('resourceBreadcrumb').textContent=resource.internal_number;document.body.classList.add('internal-resource-mode');el('internalOverviewCard').classList.remove('hidden');el('blindCvButton').classList.add('hidden');const breadcrumb=el('resourcesBreadcrumbLink');breadcrumb.href='resources.html?type=internal';breadcrumb.textContent='Internal Resources';el('r-internal-name').value=resource.legal_name||'';el('r-internal-number').value=resource.internal_number||'';el('r-internal-email').value=resource.email||'';el('r-internal-gender').value=resource.gender||'';el('r-internal-status').value=resource.lifecycle_status||'Active';document.querySelectorAll('#r-internal-positions input').forEach(input=>input.checked=(resource.internal_positions||[]).includes(input.value));updateInternalPositionsSummary();const state=el('internalAccessState'),active=resource.lifecycle_status==='Active';state.textContent=!resource.profile_id?'Invitation needed':active?'Account linked':resource.lifecycle_status==='On leave'?'On leave':'Access disabled';state.className=`pill ${active?'pill-green':resource.lifecycle_status==='On leave'?'pill-amber':'pill-red'}`;el('resourceSubtitle').textContent=`${resource.internal_number} · Internal Resource · ${resource.lifecycle_status||'Active'}`}
 async function saveInternalOverview(){const name=val('r-internal-name'),email=val('r-internal-email'),positions=selectedInternalPositions();if(!name||!email||!positions.length)return showError('Name, Email and at least one Position are required.');const {error}=await _sb.rpc('update_internal_resource_profile',{p_resource_id:resourceId,p_payload:{name,email,positions,gender:nullable('r-internal-gender'),status:val('r-internal-status')}});if(error)return showError(error.message);await loadResource();setStatus('Saved ✓')}
 
 function populateOverview(){
@@ -51,10 +51,11 @@ function portalLinkFailure(message){
 async function loadPortalLinkStatus(){
     const card=el('portalLinkCard'),button=el('activatePortalBtn'),error=el('portalLinkError');
     if(!card||!button||!resource)return;
-    if(resource.resource_type==='Internal'){card.classList.add('hidden');return}
+    if(resource.resource_type==='Internal'){card.classList.add('hidden');renderAccessInvitation();return}
+    renderAccessInvitation();
     card.classList.remove('hidden');
     if(error){error.textContent='';error.classList.add('hidden')}
-    button.disabled=true;button.textContent='Activate portal login';
+    button.disabled=true;button.textContent='Approve portal access';
     if(appRole!=='admin'){
         renderPortalLinkState(resource.profile_id
             ?`Authentication account linked · portal ${resource.portal_status||'Not invited'}. Only an Administrator can change the link.`
@@ -77,17 +78,17 @@ async function loadPortalLinkStatus(){
         renderPortalLinkState(`Linked and ready · portal ${status.portal_status}.`,'ready');button.textContent='Portal login active';return;
     }
     if(!status.auth_user_exists){
-        renderPortalLinkState(`No Supabase Authentication user matches ${resource.email}. Create that user first, then check again.`,'warning');button.textContent='Authentication user required';return;
+        renderPortalLinkState(`No login account yet. Use Send access invitation to create it. Portal approval is a separate step.`,'warning');button.textContent='Invite the resource first';return;
     }
     renderPortalLinkState(status.linked_to_this_resource
         ?'The account is linked but portal access is not active.'
         :'Matching Authentication user found and ready to link.','warning');
-    button.disabled=false;button.textContent=status.linked_to_this_resource?'Reactivate portal login':'Activate portal login';
+    button.disabled=false;button.textContent=status.linked_to_this_resource?'Restore portal access':'Approve portal access';
 }
 async function activateResourcePortal(){
     if(appRole!=='admin'||!portalLinkStatus?.auth_user_exists)return;
     const email=resource?.email||'the matching email';
-    if(!confirm(`Link the Supabase Authentication user ${email} to this External Resource and activate portal access?`))return;
+    if(!confirm(`Link the Supabase Authentication user ${email} to this External Resource and approve portal access?`))return;
     const button=el('activatePortalBtn');button.disabled=true;button.textContent='Activating…';
     const {error}=await _sb.rpc('activate_external_resource_portal',{p_resource_id:resourceId});
     if(error){portalLinkFailure(error.message);button.textContent='Try again';button.disabled=false;return}
