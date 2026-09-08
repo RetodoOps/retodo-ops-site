@@ -232,3 +232,4 @@ async function signOut() {
     await _sb.auth.signOut();
     window.location.href = 'index.html';
 }
+

@@ -22,13 +22,14 @@ async function copyResourceRegistrationLink() {
 
 async function sendResourceAccessInvitation() {
     if (!resource?.email) return showError('Save an email address first.');
-    if (!confirm(`Send a password setup link to ${resource.email}? External portal approval remains separate.`)) return;
+    const workspaceName = resource.resource_type === 'Internal' ? 'company TMS workspace' : 'Resource Portal';
+    if (!confirm(`Send an access invitation to ${resource.email}? The recipient will choose a password and then open the ${workspaceName}.`)) return;
     const button = document.getElementById('sendAccessInvitationBtn');
     if (button) button.disabled = true;
     try {
         await resourceOnboarding({action:'invite',resource_id:resourceId});
         await loadResource();
-        alert('Invitation request accepted by the email service. Ask the recipient to check their inbox.');
+        alert(`Access invitation sent. Ask the recipient to open the newest email, choose a password and continue to the ${workspaceName}.`);
     } catch (error) { showError(error.message); }
     finally { if (button) button.disabled = false; }
 }
@@ -47,8 +48,9 @@ function renderAccessInvitation() {
     const allowed = internal ? ['admin','pm','client_relations'].includes(appRole) : appRole === 'admin';
     block.classList.toggle('hidden',!allowed);
     const description = document.getElementById('accessInvitationDescription');
+    const workspaceName = internal ? 'company TMS workspace' : 'Resource Portal';
     description.textContent = resource.profile_id
-        ? `Account linked. Send a new password setup link to ${resource.email}.`
-        : `No account yet. The invitation creates a login for ${resource.email || 'the saved email'}.`;
+        ? `Account linked. A new invitation lets ${resource.email} choose a password and open the ${workspaceName}.`
+        : `The invitation creates a login for ${resource.email || 'the saved email'}, then opens the ${workspaceName} after password setup.`;
     document.getElementById('sendAccessInvitationBtn').disabled = !resource.email || resource.lifecycle_status === 'Inactive' || resource.portal_status === 'Closed';
 }
