@@ -1,8 +1,12 @@
+const _isPasswordCallbackPage = /\/reset-password\.html$/.test(window.location.pathname);
+
 const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        // The reset page validates and installs the callback session explicitly so
+        // an existing company session can never be used to change the wrong account.
+        detectSessionInUrl: !_isPasswordCallbackPage,
     },
 });
 
