@@ -87,88 +87,16 @@
         </div>
 
         <div class="contact-form">
-          <h3>Translator Application</h3>
-          <p>Fill in your details below. We will contact shortlisted applicants when their profile matches an active or upcoming need.</p>
+          <h3>Join the Resource Portal</h3>
+          <p>Create a secure Resource Portal account to introduce your profile, languages and areas of expertise to Retodo Ops.</p>
 
-          <form action="mailto:ops@retodo-ops.com?subject=Translator%20Application" method="post" enctype="text/plain">
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="fname">First Name *</label>
-                <input type="text" id="fname" name="first_name" placeholder="Erik" required />
-              </div>
-              <div class="form-group">
-                <label for="lname">Last Name *</label>
-                <input type="text" id="lname" name="last_name" placeholder="Lindqvist" required />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="email">Email Address *</label>
-                <input type="email" id="email" name="email" placeholder="you@email.com" required />
-              </div>
-              <div class="form-group">
-                <label for="native_lang">Native Language *</label>
-                <input type="text" id="native_lang" name="native_language" placeholder="e.g. Norwegian" required />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="lang_pairs">Language Pair(s) *</label>
-              <input type="text" id="lang_pairs" name="language_pairs" placeholder="e.g. English → Norwegian, English → Swedish" required />
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="specialization">Primary Specialization *</label>
-                <select id="specialization" name="specialization" required>
-                  <option value="" disabled selected>Select&hellip;</option>
-                  <option>Legal</option>
-                  <option>Medical / Healthcare</option>
-                  <option>Technical / Engineering</option>
-                  <option>Software / IT / Localization</option>
-                  <option>Finance / Banking</option>
-                  <option>Marketing / Creative</option>
-                  <option>General / Commercial</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="experience">Years of Experience</label>
-                <select id="experience" name="experience">
-                  <option value="" disabled selected>Select&hellip;</option>
-                  <option>Less than 1 year</option>
-                  <option>1&ndash;3 years</option>
-                  <option>3&ndash;5 years</option>
-                  <option>5&ndash;10 years</option>
-                  <option>10+ years</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="cat_tools">CAT Tools You Use *</label>
-              <input type="text" id="cat_tools" name="cat_tools" placeholder="e.g. SDL Trados Studio, memoQ, Phrase, Crowdin" required />
-            </div>
-
-            <div class="form-group">
-              <label for="portfolio">CV / Portfolio URL</label>
-              <input type="url" id="portfolio" name="portfolio_url" placeholder="https://your-portfolio.com or LinkedIn URL" />
-            </div>
-
-            <div class="form-group">
-              <label for="background">Professional Background *</label>
-              <textarea id="background" name="background" placeholder="Tell us about your translation experience, qualifications, relevant domains, and any certifications you hold&hellip;" required></textarea>
-            </div>
-
-            <div class="form-group" style="display:flex;align-items:flex-start;gap:12px;background:var(--bg);padding:16px;border-radius:10px;border:1px solid var(--border);">
-              <input type="checkbox" id="test_agree" name="test_agreement" value="yes" required style="margin-top:3px;flex-shrink:0;width:16px;height:16px;accent-color:var(--accent);" />
-              <label for="test_agree" style="font-weight:400;font-size:14px;line-height:1.5;cursor:pointer;color:var(--text);">I understand that Retodo Ops may verify my qualifications and references and may request a short qualification test before approving my profile. Approval does not guarantee assignments. *</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary form-submit">Submit My Application &rarr;</button>
-          </form>
+          <div class="application-portal-card">
+            <div class="application-portal-step"><span>01</span><div><strong>Create your account</strong><p>Register with your name, email address and password.</p></div></div>
+            <div class="application-portal-step"><span>02</span><div><strong>Confirm your email</strong><p>Use the confirmation email to finish creating your account.</p></div></div>
+            <div class="application-portal-step"><span>03</span><div><strong>Await review</strong><p>An Administrator reviews new registrations before portal access is approved.</p></div></div>
+            <a class="btn btn-primary form-submit" href="https://tms.retodo-ops.com/register.html">Create Resource Portal Account &rarr;</a>
+            <p class="form-privacy-note">By registering, you acknowledge our <a href="privacy.html">Privacy Policy</a>. Approval does not guarantee assignments.</p>
+          </div>
         </div>
 
       </div>
@@ -212,8 +140,8 @@
       <div class="footer-bottom">
         <div>&copy; <span id="year"></span> Retodo Ops. Services invoiced by Retodo EOOD, Bulgaria.</div>
         <div>
-          <a href="#">Privacy Policy</a> &middot;
-          <a href="#">Terms of Service</a> &middot;
+          <a href="privacy.html">Privacy Policy</a> &middot;
+          <a href="terms.html">Terms of Website Use</a> &middot;
           <a href="mailto:ops@retodo-ops.com">ops@retodo-ops.com</a>
         </div>
       </div>
@@ -223,10 +151,9 @@
   <!-- COOKIE BANNER -->
   <div class="cookie-banner hidden" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
     <div class="cookie-inner">
-      <p>We use cookies to improve your experience and analyse site usage. See our <a href="#">Privacy Policy</a> for details.</p>
+      <p>This site stores only your cookie-notice preference in your browser. See our <a href="privacy.html">Privacy Policy</a> for details.</p>
       <div class="cookie-actions">
-        <button class="btn btn-outline btn-sm" id="cookieDecline">Decline</button>
-        <button class="btn btn-primary btn-sm" id="cookieAccept">Accept All</button>
+        <button class="btn btn-primary btn-sm" id="cookieAccept">Close</button>
       </div>
     </div>
   </div>

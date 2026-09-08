@@ -61,6 +61,69 @@
     if (declineBtn) declineBtn.addEventListener('click', function () { localStorage.setItem('cookieConsent', 'declined'); cookieBanner.classList.add('hidden'); });
   }
 
+  /* ── Project enquiry form ─────────────────────────────────── */
+  var enquiryForm = document.querySelector('[data-enquiry-form]');
+  if (enquiryForm) {
+    var enquiryStatus = document.getElementById('projectEnquiryStatus');
+    var enquiryButton = enquiryForm.querySelector('button[type="submit"]');
+    var enquiryEndpoint = enquiryForm.getAttribute('data-endpoint') || enquiryForm.getAttribute('action');
+    var defaultButtonText = enquiryButton ? enquiryButton.textContent : '';
+
+    function setEnquiryStatus(type, message) {
+      if (!enquiryStatus) return;
+      enquiryStatus.hidden = false;
+      enquiryStatus.className = 'form-status is-' + type;
+      enquiryStatus.textContent = message;
+    }
+
+    function setEnquirySubmitting(isSubmitting) {
+      if (!enquiryButton) return;
+      enquiryButton.disabled = isSubmitting;
+      enquiryButton.textContent = isSubmitting ? 'Sending enquiry…' : defaultButtonText;
+    }
+
+    var submittedParams = new URLSearchParams(window.location.search);
+    if (submittedParams.get('submitted') === '1') {
+      setEnquiryStatus('success', 'Thank you. Your enquiry has been sent. We will review it and reply from ops@retodo-ops.com.');
+      submittedParams.delete('submitted');
+      var cleanQuery = submittedParams.toString();
+      window.history.replaceState({}, document.title, window.location.pathname + (cleanQuery ? '?' + cleanQuery : '') + window.location.hash);
+    }
+
+    enquiryForm.addEventListener('submit', function (event) {
+      if (!window.fetch || !enquiryEndpoint || enquiryForm.dataset.submitting === 'true') return;
+      event.preventDefault();
+      enquiryForm.dataset.submitting = 'true';
+      setEnquirySubmitting(true);
+      if (enquiryStatus) enquiryStatus.hidden = true;
+
+      var formData = new FormData(enquiryForm);
+      var payload = {};
+      formData.forEach(function (value, key) { payload[key] = value; });
+
+      fetch(enquiryEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (response) {
+        return response.text().then(function (text) {
+          var result = null;
+          try { result = text ? JSON.parse(text) : null; } catch (error) { result = null; }
+          if (!response.ok || !result || !result.ok) throw new Error('Project enquiry request failed');
+          return result;
+        });
+      }).then(function () {
+        enquiryForm.reset();
+        setEnquiryStatus('success', 'Thank you. Your enquiry has been sent. We will review it and reply from ops@retodo-ops.com.');
+      }).catch(function () {
+        setEnquiryStatus('error', 'We could not send your enquiry just now. Please email ops@retodo-ops.com directly.');
+      }).finally(function () {
+        enquiryForm.dataset.submitting = '';
+        setEnquirySubmitting(false);
+      });
+    });
+  }
+
   /* ── Logo strip marquee — duplicate for seamless loop ───── */
   var strip = document.querySelector('.clients-strip');
   if (strip) {

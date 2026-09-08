@@ -484,6 +484,33 @@ ul { list-style: none; }
 .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,233,.1); }
 .form-group textarea { resize: vertical; min-height: 120px; }
 .form-submit { width: 100%; justify-content: center; padding: 14px; font-size: 16px; }
+.form-submit[disabled] { cursor: wait; opacity: .72; transform: none; }
+.form-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.form-notice { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 2px 0 10px; }
+.form-privacy-note { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0 0 18px; }
+.form-privacy-note a { color: var(--accent-dark); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.form-status { margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.5; }
+.form-status.is-success { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+.form-status.is-error { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
+
+.application-portal-card { display: flex; flex-direction: column; gap: 16px; }
+.application-portal-step { display: flex; gap: 14px; align-items: flex-start; padding: 15px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+.application-portal-step > span { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%; background: rgba(14,165,233,.12); color: var(--accent-dark); font-size: 12px; font-weight: 800; }
+.application-portal-step strong { display: block; font-size: 14px; color: var(--text); margin-bottom: 2px; }
+.application-portal-step p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+/* ─── Legal pages ────────────────────────────────────────────── */
+.legal-section { padding: 72px 0 88px; background: var(--bg); }
+.legal-layout { max-width: 920px; }
+.legal-content { background: var(--white); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 8px 30px rgba(10,22,40,.06); padding: 48px 52px; }
+.legal-meta { color: var(--muted); font-size: 13px; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.legal-content h2 { color: var(--navy); font-size: 20px; line-height: 1.3; margin: 34px 0 12px; }
+.legal-content h2:first-of-type { margin-top: 0; }
+.legal-content p, .legal-content li { color: var(--muted); font-size: 15px; line-height: 1.75; }
+.legal-content p + p { margin-top: 14px; }
+.legal-content ul { list-style: disc; padding-left: 22px; margin: 14px 0; }
+.legal-content li + li { margin-top: 7px; }
+.legal-content a { color: var(--accent-dark); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 
 /* ─── Animations ─────────────────────────────────────────────── */
 .fade-in { opacity: 0; transform: translateY(20px); transition: opacity .5s, transform .5s; }
@@ -523,6 +550,8 @@ ul { list-style: none; }
   .certs-grid { grid-template-columns: 1fr; }
   .team-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-form { padding: 28px 20px; }
+  .legal-section { padding: 48px 0 64px; }
+  .legal-content { padding: 32px 24px; border-radius: 14px; }
 }
 
 /* ─── Client Logo Strip ──────────────────────────────────────── */

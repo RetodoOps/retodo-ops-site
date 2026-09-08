@@ -91,7 +91,11 @@
           <h3>Project Enquiry</h3>
           <p>Share enough detail for us to assess the right specialist and production route.</p>
 
-          <form action="mailto:ops@retodo-ops.com" method="post" enctype="text/plain">
+          <form action="https://tms.retodo-ops.com/.netlify/functions/submit-project-enquiry" method="post" data-enquiry-form data-endpoint="https://tms.retodo-ops.com/.netlify/functions/submit-project-enquiry">
+            <div class="form-honeypot" aria-hidden="true">
+              <label for="project-website">Leave this field blank</label>
+              <input type="text" id="project-website" name="website" tabindex="-1" autocomplete="off" />
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="fname">First Name *</label>
@@ -164,7 +168,10 @@
               <textarea id="message" name="message" placeholder="Tell us about your project, subject matter, any special requirements, and how you found us&hellip;" required></textarea>
             </div>
 
+            <p class="form-notice">Please do not include client files, passwords or confidential source content here. We will arrange a secure transfer channel if needed.</p>
+            <p class="form-privacy-note">By sending this enquiry, you acknowledge our <a href="privacy.html">Privacy Policy</a>.</p>
             <button type="submit" class="btn btn-primary form-submit">Send Project Enquiry &rarr;</button>
+            <div class="form-status" id="projectEnquiryStatus" role="status" aria-live="polite" hidden></div>
           </form>
         </div>
 
@@ -210,8 +217,8 @@
       <div class="footer-bottom">
         <div>&copy; <span id="year"></span> Retodo Ops. Services invoiced by Retodo EOOD, Bulgaria.</div>
         <div>
-          <a href="#">Privacy Policy</a> &middot;
-          <a href="#">Terms of Service</a> &middot;
+          <a href="privacy.html">Privacy Policy</a> &middot;
+          <a href="terms.html">Terms of Website Use</a> &middot;
           <a href="mailto:ops@retodo-ops.com">ops@retodo-ops.com</a>
         </div>
       </div>
@@ -221,10 +228,9 @@
   <!-- COOKIE BANNER -->
   <div class="cookie-banner hidden" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
     <div class="cookie-inner">
-      <p>We use cookies to improve your experience and analyse site usage. See our <a href="#">Privacy Policy</a> for details.</p>
+      <p>This site stores only your cookie-notice preference in your browser. See our <a href="privacy.html">Privacy Policy</a> for details.</p>
       <div class="cookie-actions">
-        <button class="btn btn-outline btn-sm" id="cookieDecline">Decline</button>
-        <button class="btn btn-primary btn-sm" id="cookieAccept">Accept All</button>
+        <button class="btn btn-primary btn-sm" id="cookieAccept">Close</button>
       </div>
     </div>
   </div>
