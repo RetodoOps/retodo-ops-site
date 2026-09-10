@@ -1,6 +1,17 @@
 let portalPoData = null;
 let selectedPortalPoVersion = 0;
 
+function latestPortalPoVersionNumber() {
+    return Math.max(0, ...(portalPoData?.versions || []).map(version => Number(version.version_number || 0)));
+}
+
+function portalPoVersionStatus(version) {
+    if (!version) return 'Version';
+    return Number(version.version_number || 0) < latestPortalPoVersionNumber()
+        ? 'Superseded'
+        : (version.document_status || portalPoData?.purchase_order?.status || 'Version');
+}
+
 function renderPortalPoVersion(index) {
     const version = portalPoData?.versions?.[index];
     if (!version) return;
@@ -13,11 +24,12 @@ function renderPortalPoVersion(index) {
     const po = portalPoData.purchase_order;
     const job = version.job || {};
     const currency = version.currency || po.currency || 'EUR';
+    const displayStatus = portalPoVersionStatus(version);
     document.getElementById('documentPoNumber').textContent = po.po_number;
-    document.getElementById('documentVersion').textContent = `Version ${Number(version.version_number || 0)} · ${version.document_status || po.status}`;
+    document.getElementById('documentVersion').textContent = `Version ${Number(version.version_number || 0)} · ${displayStatus}`;
     document.getElementById('documentTotal').textContent = portalMoneyText(version.total, currency);
     document.getElementById('documentJob').textContent = job.job_number || '—';
-    document.getElementById('documentStatus').textContent = version.document_status || po.status || '—';
+    document.getElementById('documentStatus').textContent = displayStatus;
     document.getElementById('documentService').textContent = job.service_type || '—';
     document.getElementById('documentLanguages').textContent = `${job.source_language || '—'} → ${job.target_language || '—'}`;
     document.getElementById('documentDeadline').textContent = portalDateTime(job.deadline);
@@ -53,7 +65,7 @@ function renderPortalPo(data) {
     document.getElementById('portalPoVersions').innerHTML = data.versions.map((version, index) => `
       <button type="button" onclick="renderPortalPoVersion(${index})">
         <strong>V${Number(version.version_number || 0)}</strong>
-        <span>${portalEsc(version.document_status || 'Version')}</span>
+        <span>${portalEsc(portalPoVersionStatus(version))}</span>
         <small>${portalDateTime(version.created_at)}</small>
         <b>${portalMoney(version.total, version.currency || po.currency)}</b>
       </button>`).join('');

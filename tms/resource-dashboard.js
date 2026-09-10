@@ -82,3 +82,4 @@ async function loadPortalDashboard() {
 document.getElementById('jobSearch').addEventListener('input', renderPortalJobs);
 document.getElementById('poSearch').addEventListener('input', renderPortalPurchaseOrders);
 loadPortalDashboard();
+

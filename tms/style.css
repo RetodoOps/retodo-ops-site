@@ -862,6 +862,35 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .inherited-value { min-height: 42px; border-color: #a78bfa; background: #f5f3ff; color: #4c1d95; font-size: 14px; }
 .notes-field { max-width: 100%; }
 .notes-field textarea { width: 100%; min-height: 96px; resize: vertical; }
+.job-operations-form {
+    display: grid;
+    grid-template-columns: 180px minmax(260px,1fr) minmax(220px,1fr) auto;
+    gap: 16px;
+    align-items: end;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #faf9ff;
+}
+.job-operations-form .field { min-width: 0; }
+.job-operations-form .field input,
+.job-operations-form .field select,
+.job-operations-form .field textarea { width: 100%; }
+.job-operations-form .job-file-picker { grid-column: span 2; }
+.job-operations-form .job-issue-description,
+.job-operations-form .job-issue-resolution { align-self: stretch; }
+.job-operations-form .job-issue-description textarea,
+.job-operations-form .job-issue-resolution textarea { min-height: 82px; resize: vertical; }
+.job-issue-form { grid-template-columns: 180px 180px minmax(240px,1fr) minmax(240px,1fr); align-items: start; }
+.job-issue-form .job-form-actions { grid-column: 1 / -1; }
+.job-form-actions { display: flex; justify-content: flex-end; gap: 8px; align-items: center; padding-bottom: 1px; }
+#pane-delivery > .section-card { margin-bottom: 16px; }
+#pane-delivery .table-card > .pane-toolbar {
+    margin: 0;
+    padding: 17px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+#pane-delivery .table-card > .pane-toolbar h2 { font-size: 16px; }
+#pane-delivery .table-card > .pane-toolbar p { max-width: 760px; }
 
 .modal-subtitle { margin-top: 3px; color: #64748b; font-size: 12px; }
 .rate-card-modal { width: min(1040px,calc(100vw - 32px)); max-height: calc(100vh - 32px); }
@@ -911,6 +940,9 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     .rate-language-grid { grid-template-columns: 1fr 1fr; }
     .rate-account-field { grid-column: 1 / -1; max-width: 360px; }
     .rate-pricing-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .job-operations-form { grid-template-columns: 1fr 1fr; }
+    .job-issue-form { grid-template-columns: 1fr 1fr; }
+    .job-operations-form .job-file-picker { grid-column: span 1; }
 }
 @media (max-width: 780px) {
     #pane-overview { max-width: none; }
@@ -927,6 +959,10 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     .settings-nav { position: static; display: grid; grid-template-columns: 1fr 1fr; }
     .settings-nav-item { border-right: 1px solid #e2e8f0; }
     .settings-panel-head { align-items: flex-start; flex-direction: column; }
+    .job-operations-form { grid-template-columns: 1fr; }
+    .job-issue-form { grid-template-columns: 1fr; }
+    .job-operations-form .job-file-picker { grid-column: span 1; }
+    .job-form-actions { justify-content: flex-start; }
 }
 
 /* Update 030: Project → Scoops → Jobs hierarchy. */
@@ -1211,3 +1247,17 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .internal-resource-mode #internalOverviewCard { display: block; }
 .internal-resource-filters .resource-filter-row:first-child { grid-template-columns: minmax(280px, 520px); }
 .internal-resource-filters .resource-search { width: 100%; max-width: 520px; }
+
+/* Update 045 — private R2 file lifecycle and retention controls. */
+.job-file-lifecycle { margin: 0 20px 16px; align-items: flex-start; }
+.job-file-lifecycle span { min-width: 0; overflow-wrap: anywhere; }
+.file-state-error { max-width: 360px; margin-top: 4px; color: #b91c1c; }
+#file-retention .settings-table td:nth-child(2),
+#file-retention .settings-table td:nth-child(3) { min-width: 180px; }
+#rp-hold-reason { resize: vertical; }
+
+@media (max-width: 780px) {
+    #pane-delivery .pane-toolbar .header-actions { width: 100%; }
+    #pane-delivery .pane-toolbar .header-actions button { flex: 1 1 150px; }
+    .job-file-lifecycle { margin: 0 14px 14px; flex-direction: column; }
+}

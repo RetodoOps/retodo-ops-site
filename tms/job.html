@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Job — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=039">
+  <link rel="stylesheet" href="style.css?v=045">
 </head>
 <body>
 <div class="app">
@@ -27,14 +27,14 @@
         <h1 id="jobTitle">Loading Job…</h1>
         <p id="jobSubtitle"></p>
       </div>
-      <div class="header-actions"><span id="saveStatus" class="save-message"></span><a id="openResourceLink" class="btn-secondary hidden">Open Resource</a><button class="btn-primary" onclick="saveJob()">Save Job</button></div>
+      <div class="header-actions"><span id="saveStatus" class="save-message"></span><a id="openResourceLink" class="btn-secondary hidden">Open Resource</a><button class="btn-primary" type="button" onclick="saveJob()">Save Job</button></div>
     </div>
 
     <div class="record-tabs">
-      <button class="record-tab active" data-tab="overview">Overview</button>
-      <button class="record-tab" data-tab="offers">Assignment history <span class="tab-badge" id="offerCount">0</span></button>
-      <button class="record-tab" data-tab="po">Supplier PO <span class="tab-badge" id="poBadge">0</span></button>
-      <button class="record-tab" data-tab="delivery">Delivery & Issues</button>
+      <button class="record-tab active" type="button" data-tab="overview">Overview</button>
+      <button class="record-tab" type="button" data-tab="offers">Assignment history <span class="tab-badge" id="offerCount">0</span></button>
+      <button class="record-tab" type="button" data-tab="po">Supplier PO <span class="tab-badge" id="poBadge">0</span></button>
+      <button class="record-tab" type="button" data-tab="delivery">Delivery, files &amp; issues</button>
     </div>
 
     <div class="record-body">
@@ -54,7 +54,7 @@
             <fieldset class="job-fieldset">
               <legend>Workflow and deadline</legend>
               <div class="job-field-grid job-field-grid-4">
-                <div class="field"><label for="j-number">Job number</label><input id="j-number" readonly></div>
+                <div class="field"><label for="j-number">Job number</label><input id="j-number" type="text" readonly></div>
                 <div class="field"><label for="j-status">Status</label><select id="j-status"><option>Unassigned</option><option>Assigned</option><option>In Progress</option><option>Delivered</option><option>Revision Required</option><option>Approved</option><option>Cancelled</option></select></div>
                 <div class="field"><label for="j-deadline-date">Resource deadline date</label><input id="j-deadline-date" type="date"></div>
                 <div class="field"><label for="j-deadline-time">Resource deadline time</label><input id="j-deadline-time" type="time" step="60"></div>
@@ -64,8 +64,8 @@
               <legend>Scope and language pair</legend>
               <div class="job-field-grid job-field-grid-3">
                 <div class="field"><label for="j-service">Service</label><select id="j-service"></select></div>
-                <div class="field"><label for="j-source">Source language</label><input id="j-source" list="tms-language-options"></div>
-                <div class="field"><label for="j-target">Target language</label><input id="j-target" list="tms-language-options"></div>
+                <div class="field"><label for="j-source">Source language</label><input id="j-source" type="text" list="tms-language-options"></div>
+                <div class="field"><label for="j-target">Target language</label><input id="j-target" type="text" list="tms-language-options"></div>
                 <div class="field"><label>Project specialization</label><input id="j-specialization" type="hidden"><div id="j-specialization-display" class="inherited-value">Inherited from Project</div><small class="field-help">Inherited automatically from the Project.</small></div>
                 <div class="field"><label for="j-quantity">Quantity</label><input id="j-quantity" type="number" min="0" step="0.001"></div>
               </div>
@@ -76,10 +76,10 @@
                 <div class="field assignment-resource"><label for="j-candidate">Resource</label><select id="j-candidate"></select><small class="field-help">Replacing an assigned Resource cancels its current PO and preserves the history. <a href="resources.html?type=external">Open External Resources</a>.</small></div>
                 <div class="field assignment-rate"><label for="j-rate-select">Approved supplier rate</label><select id="j-rate-select"></select><small id="j-rate-help" class="field-help"></small></div>
                 <div id="j-flat-fee-wrap" class="field hidden"><label for="j-flat-fee">Manual flat fee</label><div class="input-inline"><input id="j-flat-fee" type="number" min="0.01" step="0.01" placeholder="0.00"><select id="j-flat-fee-currency" aria-label="Manual flat fee currency"><option value="EUR">EUR</option><option value="USD">USD</option><option value="GBP">GBP</option><option value="NOK">NOK</option><option value="SEK">SEK</option><option value="DKK">DKK</option><option value="CHF">CHF</option></select></div><small id="j-flat-fee-help" class="field-help">Use this when no approved Supplier rate card matches the selected Resource.</small></div>
-                <div class="field"><label for="j-rate">Current supplier rate</label><input id="j-rate" readonly></div>
-                <div class="field"><label for="j-amount">Supplier amount</label><input id="j-amount" readonly></div>
+                <div class="field"><label for="j-rate">Current supplier rate</label><input id="j-rate" type="text" readonly></div>
+                <div class="field"><label for="j-amount">Supplier amount</label><input id="j-amount" type="text" readonly></div>
                 <div class="field po-required-field"><label>Purchase order</label><label class="checkbox-row"><input id="j-po-required" type="checkbox"> Supplier PO required</label></div>
-                <div class="field assignment-action"><label>Assignment action</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource & Send PO</button></div>
+                <div class="field assignment-action"><label>Assignment action</label><button id="j-create-offer" class="btn-primary" type="button" onclick="assignResourceAndIssuePO()">Assign Resource &amp; Send PO</button></div>
               </div>
             </fieldset>
             <fieldset class="job-fieldset">
@@ -104,11 +104,11 @@
       <section class="record-pane" id="pane-po">
         <div id="poEmpty" class="section-card"><div class="empty-compact">Select a Resource and Approved supplier rate in Overview, enter CAT quantities and send the PO to assign the Job.</div></div>
         <div id="poWorkspace" class="hidden">
-          <div class="pane-toolbar"><div><h2 id="poTitle">Supplier PO</h2><p id="poMeta"></p></div><div class="header-actions"><button id="sendPoBtn" class="btn-primary" onclick="sendCurrentPOEmail()">Send PO email</button><button class="btn-secondary" onclick="printPO()">Print / Save PDF</button><button id="savePoBtn" class="btn-secondary" onclick="savePO()">Create Revision</button><button id="issuePoBtn" class="btn-primary" onclick="issuePO()">Issue legacy Draft</button><button id="cancelPoBtn" class="btn-danger" onclick="cancelCurrentPO()">Cancel PO</button></div></div>
+          <div class="pane-toolbar"><div><h2 id="poTitle">Supplier PO</h2><p id="poMeta"></p></div><div class="header-actions"><button id="sendPoBtn" class="btn-primary" type="button" onclick="sendCurrentPOEmail()">Send PO email</button><button class="btn-secondary" type="button" onclick="printPO()">Print / Save PDF</button><button id="savePoBtn" class="btn-secondary" type="button" onclick="savePO()">Create Revision</button><button id="issuePoBtn" class="btn-primary" type="button" onclick="issuePO()">Issue legacy Draft</button><button id="cancelPoBtn" class="btn-danger" type="button" onclick="cancelCurrentPO()">Cancel PO</button></div></div>
           <div id="poEmailStatus" class="po-email-status email-pending"></div>
-          <div class="section-card table-card"><table class="module-table po-lines-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Rate source</th><th>Adjustment</th><th>Amount</th><th></th></tr></thead><tbody id="poLinesTbody"></tbody></table><button class="add-line-btn" onclick="addPOLine()">+ Add line</button></div>
+          <div class="section-card table-card"><table class="module-table po-lines-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Rate source</th><th>Adjustment</th><th>Amount</th><th></th></tr></thead><tbody id="poLinesTbody"></tbody></table><button class="add-line-btn" type="button" onclick="addPOLine()">+ Add line</button></div>
           <div class="po-totals"><div><span>Subtotal</span><strong id="poSubtotal">0.00</strong></div><div><span>Adjustments</span><strong id="poAdjustments">0.00</strong></div><div><span>Total</span><strong id="poTotal">0.00</strong></div></div>
-          <div id="revisionReasonWrap" class="section-card hidden"><div class="field"><label>Administrator revision reason *</label><input id="poRevisionReason" placeholder="What changed and why?"></div></div>
+          <div id="revisionReasonWrap" class="section-card hidden"><div class="field"><label>Administrator revision reason *</label><input id="poRevisionReason" type="text" placeholder="What changed and why?"></div></div>
           <div id="poPrintArea" class="po-document"></div>
         </div>
         <div id="poVersionHistoryCard" class="section-card hidden">
@@ -121,13 +121,40 @@
 
       <section class="record-pane" id="pane-delivery">
         <div class="section-card"><div class="section-title">Delivery control</div><p class="muted">Use <strong>Delivered</strong> when the Resource has delivered to Retodo Ops; use <strong>Approved</strong> after internal acceptance. Post-delivery problems are recorded separately and do not overwrite the Job history.</p></div>
-        <div class="section-card table-card"><table class="module-table"><thead><tr><th>Status</th><th>Severity</th><th>Description</th><th>Reported</th><th>Resolution</th></tr></thead><tbody id="issuesTbody"></tbody></table></div>
+        <div class="section-card table-card">
+          <div class="pane-toolbar">
+            <div><h2>Job files</h2><p>Private Cloudflare R2 files are visible only to the External Resource currently assigned to this Job. Every open/download is logged.</p></div>
+            <div class="header-actions"><button id="projectFileHoldBtn" class="btn-secondary hidden" type="button" onclick="toggleProjectFileHold()">Set Retention Hold</button><button id="restoreJobFilesBtn" class="btn-secondary hidden" type="button" onclick="queueJobFileRestore()">Restore archive</button><button id="archiveJobFilesBtn" class="btn-secondary hidden" type="button" onclick="queueJobFileArchive()">Archive Job files</button><button id="addJobFileBtn" class="btn-primary" type="button" onclick="toggleJobFileForm()">Add Job file</button></div>
+          </div>
+          <div class="settings-info job-file-lifecycle" role="status"><strong>File lifecycle</strong><span id="jobFileLifecycleSummary">Loading retention state…</span></div>
+          <div id="jobFileForm" class="job-operations-form hidden">
+            <div class="field"><label for="jobFileRole">File role</label><select id="jobFileRole"><option>Source</option><option>Reference</option><option>Instructions</option><option>Delivery</option><option>Other</option></select></div>
+            <div class="field job-file-picker"><label for="jobFileInput">Private file</label><input id="jobFileInput" type="file"><small class="field-help">Stored in private Cloudflare R2; the browser receives only a short-lived upload URL.</small></div>
+            <div class="job-form-actions"><button class="btn-secondary" type="button" onclick="toggleJobFileForm(false)">Cancel</button><button id="uploadJobFileBtn" class="btn-primary" type="button" onclick="uploadJobFile()">Upload file</button></div>
+          </div>
+          <div class="table-wrap"><table class="module-table"><thead><tr><th>File</th><th>Role</th><th>Status</th><th>Size</th><th>Added</th><th>Resource access</th><th>Actions</th></tr></thead><tbody id="jobFilesTbody"></tbody></table></div>
+        </div>
+        <div class="section-card table-card">
+          <div class="pane-toolbar">
+            <div><h2>Delivery &amp; issues</h2><p>Operational issue details are visible to the assigned Resource; internal financial impact remains hidden.</p></div>
+            <button id="addJobIssueBtn" class="btn-primary" type="button" onclick="openJobIssueForm()">Add issue</button>
+          </div>
+          <div id="jobIssueForm" class="job-operations-form job-issue-form hidden">
+            <input id="jobIssueId" type="hidden">
+            <div class="field"><label for="jobIssueStatus">Status</label><select id="jobIssueStatus"><option>Issue Reported</option><option>Investigating</option><option>Correction Requested</option><option>Corrected</option><option>Resolved</option></select></div>
+            <div class="field"><label for="jobIssueSeverity">Severity</label><select id="jobIssueSeverity"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div>
+            <div class="field job-issue-description"><label for="jobIssueDescription">Description</label><textarea id="jobIssueDescription" maxlength="4000"></textarea></div>
+            <div class="field job-issue-resolution"><label for="jobIssueResolution">Resolution</label><textarea id="jobIssueResolution" maxlength="4000" placeholder="Required when status is Resolved"></textarea></div>
+            <div class="job-form-actions"><button class="btn-secondary" type="button" onclick="closeJobIssueForm()">Cancel</button><button id="saveJobIssueBtn" class="btn-primary" type="button" onclick="saveJobIssue()">Save issue</button></div>
+          </div>
+          <div class="table-wrap"><table class="module-table"><thead><tr><th>Status</th><th>Severity</th><th>Description</th><th>Reported</th><th>Resolution</th><th>Actions</th></tr></thead><tbody id="issuesTbody"></tbody></table></div>
+        </div>
       </section>
     </div>
   </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=036"></script><script src="auth.js?v=039"></script><script src="reference-data.js?v=036"></script><script src="quick-nav.js?v=036"></script><script src="job.js?v=039"></script>
+  <script src="config.js?v=036"></script><script src="auth.js?v=039"></script><script src="reference-data.js?v=036"></script><script src="quick-nav.js?v=036"></script><script src="file-hash.js?v=045"></script><script src="job.js?v=045"></script>
 </body>
 </html>

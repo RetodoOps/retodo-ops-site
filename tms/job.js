@@ -1,5 +1,7 @@
 let jobId, job, project, scoop, assignedResource, offers = [], offerResources = new Map();
 let specializations = [], projectSpecializations = [], issues = [], purchaseOrders = [], purchaseOrder, poLines = [], poVersions = [], allPOVersions = [], poEmails = [];
+let jobFiles = [], fileAccessLogs = [];
+let fileLifecycle = null;
 let currentUser, currentRole = 'user';
 let overviewCandidates = [], resourceRates = [];
 let projectScopeLines = [], projectJobs = [];
@@ -23,6 +25,16 @@ const combineDateTime = (dateId,timeId) => {const date=val(dateId);return date?`
 const localDateValue = (date=new Date()) => {const p=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`};
 const deadlineIsPast = () => {const value=combineDateTime('j-deadline-date','j-deadline-time');return value&&new Date(value)<new Date()};
 const fourHoursFromNow = () => new Date(Date.now()+4*60*60*1000).toISOString();
+const canManageOperations = () => ['admin','pm','client_relations'].includes(currentRole);
+const formatBytes = size => {
+  const bytes=Number(size);
+  if(!Number.isFinite(bytes)||bytes<0)return '—';
+  if(bytes<1024)return `${bytes} B`;
+  const units=['KB','MB','GB'];let value=bytes/1024,index=0;
+  while(value>=1024&&index<units.length-1){value/=1024;index++}
+  return `${value.toFixed(value>=10?1:2)} ${units[index]}`;
+};
+const formatDateTime = value => value?new Date(value).toLocaleString('en-GB'):'—';
 
 function closeModal(id){document.getElementById(id).classList.add('hidden')}
 function showError(message,id='jobError'){const el=document.getElementById(id);el.textContent=message;el.classList.remove('hidden');el.scrollIntoView({behavior:'smooth',block:'nearest'})}
@@ -175,8 +187,8 @@ function renderOffers(){
   });
   allPOVersions.forEach(versionRow=>{
     const po=purchaseOrders.find(row=>row.id===versionRow.purchase_order_id),snapshot=versionRow.snapshot||{},resourceId=po?.resource_id||snapshot.resource_id,resource=offerResources.get(resourceId),lines=Array.isArray(snapshot.lines)?snapshot.lines:[],currency=snapshot.currency||po?.currency||job.supplier_currency||'EUR',total=snapshot.total??po?.total??0;
-    const terms=`${lines.length} PO line${lines.length===1?'':'s'}`,supplierLabel=resource?resourceName(resource):(snapshot.supplier?.legal_name||snapshot.supplier?.company_name||snapshot.supplier?.internal_number||'Resource'),supplierNumber=resource?.internal_number||snapshot.supplier?.internal_number||'—';
-    events.push({createdAt:versionRow.created_at,html:`<tr class="history-version-row"><td>${esc(po?.po_number||snapshot.po_number||'PO')} · V${Number(versionRow.version_number)}</td><td>${resourceId?`<a class="table-link" href="resource.html?id=${resourceId}">${esc(supplierNumber)} · ${esc(supplierLabel)}</a>`:esc(supplierLabel)}</td><td><span class="pill ${versionRow.document_status==='Issued'?'pill-green':'pill-blue'}">PO ${esc(versionRow.document_status||'Version')}</span></td><td>${new Date(versionRow.created_at).toLocaleString('en-GB')}</td><td>${terms}<div class="customer-sub"><strong>${money(total,currency)}</strong></div></td><td>${snapshot.client_identity_disclosed?'<span class="pill pill-amber">Disclosed</span>':'Hidden'}</td><td><button class="table-action" onclick="openPOVersion('${versionRow.purchase_order_id}',${Number(versionRow.version_number)})">View version</button></td></tr>`});
+    const terms=`${lines.length} PO line${lines.length===1?'':'s'}`,supplierLabel=resource?resourceName(resource):(snapshot.supplier?.legal_name||snapshot.supplier?.company_name||snapshot.supplier?.internal_number||'Resource'),supplierNumber=resource?.internal_number||snapshot.supplier?.internal_number||'—',displayStatus=poVersionDisplayStatus(versionRow);
+    events.push({createdAt:versionRow.created_at,html:`<tr class="history-version-row"><td>${esc(po?.po_number||snapshot.po_number||'PO')} · V${Number(versionRow.version_number)}</td><td>${resourceId?`<a class="table-link" href="resource.html?id=${resourceId}">${esc(supplierNumber)} · ${esc(supplierLabel)}</a>`:esc(supplierLabel)}</td><td><span class="pill ${poVersionStatusClass(versionRow)}">PO ${esc(displayStatus)}</span></td><td>${new Date(versionRow.created_at).toLocaleString('en-GB')}</td><td>${terms}<div class="customer-sub"><strong>${money(total,currency)}</strong></div></td><td>${snapshot.client_identity_disclosed?'<span class="pill pill-amber">Disclosed</span>':'Hidden'}</td><td><button class="table-action" onclick="openPOVersion('${versionRow.purchase_order_id}',${Number(versionRow.version_number)})">View version</button></td></tr>`});
   });
   body.innerHTML=events.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).map(event=>event.html).join('');
 }
@@ -194,16 +206,27 @@ function currentPOVersion(){return purchaseOrder?Math.max(expectedPOVersion,Numb
 function currentPOEmail(){const version=currentPOVersion();return purchaseOrder?poEmails.find(record=>record.purchase_order_id===purchaseOrder.id&&Number(record.po_version||1)===version):null}
 function poVersionKey(poId,versionNumber){return `${poId}:${Number(versionNumber)}`}
 function poForVersion(versionRow){return purchaseOrders.find(row=>row.id===versionRow.purchase_order_id)}
+function latestPOVersionNumber(poId){return Math.max(0,...allPOVersions.filter(row=>row.purchase_order_id===poId).map(row=>Number(row.version_number||0)))}
+function poVersionDisplayStatus(versionRow){
+  if(!versionRow)return 'Version';
+  return Number(versionRow.version_number||0)<latestPOVersionNumber(versionRow.purchase_order_id)
+    ? 'Superseded'
+    : (versionRow.document_status||poForVersion(versionRow)?.status||'Version');
+}
+function poVersionStatusClass(versionRow){
+  const status=poVersionDisplayStatus(versionRow);
+  return status==='Superseded'?'pill-amber':status==='Issued'?'pill-green':'pill-blue';
+}
 function renderPOVersionPreview(){
   const preview=document.getElementById('poVersionPreview'),versionRow=allPOVersions.find(row=>poVersionKey(row.purchase_order_id,row.version_number)===selectedPOVersionKey);
   if(!versionRow){preview.classList.add('hidden');preview.innerHTML='';return}
-  const po=poForVersion(versionRow),snapshot=versionRow.snapshot||{},currency=snapshot.currency||po?.currency||'EUR',lines=Array.isArray(snapshot.lines)?snapshot.lines:[],subtotal=snapshot.subtotal??lines.filter(line=>!line.adjustment_type).reduce((sum,line)=>sum+Number(line.amount||0),0),adjustments=snapshot.adjustment_amount??lines.filter(line=>line.adjustment_type).reduce((sum,line)=>sum+Number(line.amount||0),0),total=snapshot.total??Number(subtotal)+Number(adjustments);
-  preview.innerHTML=`<div class="po-version-preview-head"><div><span>Selected immutable version</span><strong>${esc(po?.po_number||snapshot.po_number||'Supplier PO')} · V${Number(versionRow.version_number)}</strong></div><div><span>PO value</span><strong>${money(total,currency)}</strong></div></div><table class="module-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Adjustment</th><th>Amount</th></tr></thead><tbody>${lines.map(line=>`<tr><td>${esc(line.description||'—')}</td><td>${esc(line.quantity??'—')}</td><td>${esc(line.unit||'—')}</td><td>${unitMoney(line.unit_price,currency)}</td><td>${esc(line.adjustment_type||'—')}</td><td class="number-cell">${money(line.amount,currency)}</td></tr>`).join('')||'<tr class="state-row"><td colspan="6">No lines stored in this version.</td></tr>'}</tbody></table><div class="po-version-preview-total"><span>Subtotal ${money(subtotal,currency)}</span><span>Adjustments ${money(adjustments,currency)}</span><strong>Total ${money(total,currency)}</strong></div>`;
+  const po=poForVersion(versionRow),snapshot=versionRow.snapshot||{},currency=snapshot.currency||po?.currency||'EUR',lines=Array.isArray(snapshot.lines)?snapshot.lines:[],subtotal=snapshot.subtotal??lines.filter(line=>!line.adjustment_type).reduce((sum,line)=>sum+Number(line.amount||0),0),adjustments=snapshot.adjustment_amount??lines.filter(line=>line.adjustment_type).reduce((sum,line)=>sum+Number(line.amount||0),0),total=snapshot.total??Number(subtotal)+Number(adjustments),displayStatus=poVersionDisplayStatus(versionRow);
+  preview.innerHTML=`<div class="po-version-preview-head"><div><span>Selected immutable version</span><strong>${esc(po?.po_number||snapshot.po_number||'Supplier PO')} · V${Number(versionRow.version_number)}</strong><span class="pill ${poVersionStatusClass(versionRow)}">${esc(displayStatus)}</span></div><div><span>PO value</span><strong>${money(total,currency)}</strong></div></div><table class="module-table"><thead><tr><th>Description</th><th>Quantity</th><th>Unit</th><th>Unit price</th><th>Adjustment</th><th>Amount</th></tr></thead><tbody>${lines.map(line=>`<tr><td>${esc(line.description||'—')}</td><td>${esc(line.quantity??'—')}</td><td>${esc(line.unit||'—')}</td><td>${unitMoney(line.unit_price,currency)}</td><td>${esc(line.adjustment_type||'—')}</td><td class="number-cell">${money(line.amount,currency)}</td></tr>`).join('')||'<tr class="state-row"><td colspan="6">No lines stored in this version.</td></tr>'}</tbody></table><div class="po-version-preview-total"><span>Subtotal ${money(subtotal,currency)}</span><span>Adjustments ${money(adjustments,currency)}</span><strong>Total ${money(total,currency)}</strong></div>`;
   preview.classList.remove('hidden');
 }
 function renderVersionHistory(){
   const card=document.getElementById('poVersionHistoryCard'),list=document.getElementById('poVersions');card.classList.toggle('hidden',!allPOVersions.length);if(!allPOVersions.length){list.innerHTML='';renderPOVersionPreview();return}
-  list.innerHTML=[...allPOVersions].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)||Number(b.version_number)-Number(a.version_number)).map(versionRow=>{const po=poForVersion(versionRow),snapshot=versionRow.snapshot||{},currency=snapshot.currency||po?.currency||'EUR',total=snapshot.total??po?.total??0,email=poEmails.find(record=>record.purchase_order_id===versionRow.purchase_order_id&&Number(record.po_version||1)===Number(versionRow.version_number)),emailState=email?.status==='Sent'?'Email sent':email?.status==='Failed'?'Email failed':'Not sent',key=poVersionKey(versionRow.purchase_order_id,versionRow.version_number),selected=key===selectedPOVersionKey;return `<button type="button" class="version-row version-row-button${selected?' selected':''}" onclick="openPOVersion('${versionRow.purchase_order_id}',${Number(versionRow.version_number)})" aria-expanded="${selected?'true':'false'}"><strong>${esc(po?.po_number||snapshot.po_number||'Supplier PO')} · V${Number(versionRow.version_number)}</strong><span><strong>${money(total,currency)}</strong> · ${esc(versionRow.document_status)} · ${emailState}</span><span>${new Date(versionRow.created_at).toLocaleString('en-GB')} · ${esc(versionRow.change_reason||'Initial issue')}</span></button>`}).join('');
+  list.innerHTML=[...allPOVersions].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)||Number(b.version_number)-Number(a.version_number)).map(versionRow=>{const po=poForVersion(versionRow),snapshot=versionRow.snapshot||{},currency=snapshot.currency||po?.currency||'EUR',total=snapshot.total??po?.total??0,email=poEmails.find(record=>record.purchase_order_id===versionRow.purchase_order_id&&Number(record.po_version||1)===Number(versionRow.version_number)),emailState=email?.status==='Sent'?'Email sent':email?.status==='Failed'?'Email failed':'Not sent',key=poVersionKey(versionRow.purchase_order_id,versionRow.version_number),selected=key===selectedPOVersionKey,displayStatus=poVersionDisplayStatus(versionRow);return `<button type="button" class="version-row version-row-button${selected?' selected':''}" onclick="openPOVersion('${versionRow.purchase_order_id}',${Number(versionRow.version_number)})" aria-expanded="${selected?'true':'false'}"><strong>${esc(po?.po_number||snapshot.po_number||'Supplier PO')} · V${Number(versionRow.version_number)}</strong><span><strong>${money(total,currency)}</strong> · ${esc(displayStatus)} · ${emailState}</span><span>${new Date(versionRow.created_at).toLocaleString('en-GB')} · ${esc(versionRow.change_reason||'Initial issue')}</span></button>`}).join('');
   renderPOVersionPreview();
 }
 function openPOVersion(poId,versionNumber){
@@ -246,16 +269,213 @@ function renderPOPrint(lines=collectPOLines(),subtotal=Number(purchaseOrder?.sub
 }
 function printPO(){renderPOPrint();document.body.classList.add('printing-po');window.print();setTimeout(()=>document.body.classList.remove('printing-po'),300)}
 
-function renderIssues(){const body=document.getElementById('issuesTbody');if(!issues.length){body.innerHTML='<tr class="state-row"><td colspan="5">No delivery issues.</td></tr>';return}body.innerHTML=issues.map(issue=>`<tr><td><span class="pill ${statusClass(issue.status)}">${esc(issue.status)}</span></td><td>${esc(issue.severity||'—')}</td><td>${esc(issue.description)}</td><td>${new Date(issue.reported_at).toLocaleString('en-GB')}</td><td>${esc(issue.resolution||'—')}</td></tr>`).join('')}
+function renderDeliveryControls(){
+  const operations=canManageOperations(),fileButton=document.getElementById('addJobFileBtn'),issueButton=document.getElementById('addJobIssueBtn');
+  fileButton.classList.toggle('hidden',!operations);
+  issueButton.classList.toggle('hidden',!operations);
+  fileButton.disabled=!job?.resource_id;
+  fileButton.title=job?.resource_id?'':'Assign an External Resource before adding a Job file';
+  if(!operations){toggleJobFileForm(false);closeJobIssueForm()}
+}
+
+function toggleJobFileForm(force){
+  const form=document.getElementById('jobFileForm');
+  const show=force===undefined?form.classList.contains('hidden'):!!force;
+  if(show&&(!canManageOperations()||!job?.resource_id))return;
+  form.classList.toggle('hidden',!show);
+  if(!show){document.getElementById('jobFileInput').value=''}
+}
+
+async function fileApi(action,payload={}){
+  const {data:{session}}=await _sb.auth.getSession();
+  if(!session?.access_token)throw new Error('Session expired. Sign in again.');
+  const response=await fetch('/.netlify/functions/job-files',{
+    method:'POST',
+    headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
+    body:JSON.stringify({action,...payload})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||`File request failed (HTTP ${response.status}).`);
+  return result;
+}
+
+function openPrivateUrl(url,filename=''){
+  const link=document.createElement('a');link.href=url;link.rel='noopener noreferrer';
+  if(filename)link.download=filename;else link.target='_blank';
+  document.body.appendChild(link);link.click();link.remove();
+}
+
+async function uploadJobFile(){
+  clearError();
+  if(!canManageOperations())return showError('Operational access required.');
+  if(!job?.resource_id)return showError('Assign an External Resource before adding a Job file.');
+  const input=document.getElementById('jobFileInput'),file=input.files?.[0];
+  if(!file)return showError('Choose a file to upload.');
+  const button=document.getElementById('uploadJobFileBtn');button.disabled=true;button.textContent='Preparing…';
+  let prepared=null;
+  try{
+    if(!globalThis.TMS_FILE_HASH?.sha256Hex)throw new Error('The secure file hasher is unavailable. Refresh the page.');
+    button.textContent='Checking 0%';
+    const checksum=await TMS_FILE_HASH.sha256Hex(file,(processed,total)=>{
+      const percent=total?Math.min(100,Math.round(processed/total*100)):100;
+      button.textContent=`Checking ${percent}%`;
+    });
+    button.textContent='Preparing…';
+    prepared=await fileApi('prepare_upload',{
+      job_id:jobId,original_filename:file.name,
+      mime_type:file.type||'application/octet-stream',size_bytes:file.size,
+      file_role:val('jobFileRole'),checksum_sha256:checksum
+    });
+    if(!prepared.file_id||!prepared.upload_url)throw new Error('The private R2 upload ticket is incomplete.');
+    button.textContent='Uploading…';
+    const uploaded=await fetch(prepared.upload_url,{
+      method:'PUT',headers:prepared.upload_headers||{},body:file
+    });
+    if(!uploaded.ok)throw new Error(`Cloudflare R2 rejected the upload (HTTP ${uploaded.status}).`);
+    button.textContent='Verifying…';
+    await fileApi('complete_upload',{file_id:prepared.file_id});
+    toggleJobFileForm(false);await loadJob();setStatus(`${file.name} uploaded privately ✓`);
+  }catch(error){
+    if(prepared?.file_id)await fileApi('discard_upload',{file_id:prepared.file_id}).catch(()=>{});
+    await loadJob();showError(`Job file was not published: ${error.message}`);
+  }finally{
+    button.disabled=false;button.textContent='Upload file';
+  }
+}
+
+function latestResourceFileAccess(fileId){
+  return fileAccessLogs.find(log=>log.file_record_id===fileId&&['View','Download'].includes(log.action));
+}
+
+function renderJobFiles(){
+  const body=document.getElementById('jobFilesTbody');
+  if(!jobFiles.length){body.innerHTML='<tr class="state-row"><td colspan="7">No files are linked to this Job.</td></tr>';renderDeliveryControls();renderFileLifecycle();return}
+  body.innerHTML=jobFiles.map(file=>{
+    const status=file.upload_status||(file.archived_at?'Archived':'Ready'),access=latestResourceFileAccess(file.id),actions=[];
+    if(status==='Ready'&&['Cloudflare R2','Supabase'].includes(file.storage_provider)){
+      actions.push(`<button class="table-action" type="button" onclick="openStaffJobFile('${file.id}','View')">Open</button>`);
+      actions.push(`<button class="table-action" type="button" onclick="openStaffJobFile('${file.id}','Download')">Download</button>`);
+    }
+    if(status==='Pending'&&canManageOperations())actions.push(`<button class="table-action danger" type="button" onclick="discardPendingJobFile('${file.id}')">Discard</button>`);
+    const accessText=access?`${esc(access.action)} · ${formatDateTime(access.occurred_at)}`:'Not accessed';
+    const stateClass=status==='Ready'?'pill-green':['Pending','Archiving','Restoring'].includes(status)?'pill-amber':status==='Failed'?'pill-red':'';
+    const problem=file.storage_error?`<div class="customer-sub file-state-error">${esc(file.storage_error)}</div>`:'';
+    return `<tr><td><strong>${esc(file.original_filename)}</strong>${problem}</td><td>${esc(file.file_role||'—')}</td><td><span class="pill ${stateClass}">${esc(status)}</span></td><td>${formatBytes(file.size_bytes)}</td><td>${formatDateTime(file.created_at)}</td><td>${accessText}</td><td><div class="table-actions">${actions.join('')||'—'}</div></td></tr>`;
+  }).join('');
+  renderDeliveryControls();renderFileLifecycle();
+}
+
+async function openStaffJobFile(fileId,action='View'){
+  clearError();const file=jobFiles.find(row=>row.id===fileId);
+  if(!file)return showError('The Job file is unavailable.');
+  if(file.storage_provider==='Cloudflare R2'){
+    try{const result=await fileApi('download',{file_id:file.id,file_action:action});openPrivateUrl(result.download_url,action==='Download'?file.original_filename:'')}catch(error){showError(error.message)}
+    return;
+  }
+  if(file.storage_provider!=='Supabase'||!file.bucket_name||!file.object_key)return showError('The private file path is unavailable.');
+  const options=action==='Download'?{download:file.original_filename||true}:{};
+  const {data,error}=await _sb.storage.from(file.bucket_name).createSignedUrl(file.object_key,60,options);
+  if(error||!data?.signedUrl)return showError(error?.message||'The private file link could not be created.');
+  openPrivateUrl(data.signedUrl,action==='Download'?file.original_filename:'');
+}
+
+async function discardPendingJobFile(fileId){
+  const file=jobFiles.find(row=>row.id===fileId);
+  if(!file)return;
+  if(!confirm(`Discard the incomplete upload ${file.original_filename}?`))return;
+  clearError();try{await fileApi('discard_upload',{file_id:fileId});await loadJob();setStatus('Pending Job file discarded ✓')}catch(error){showError(error.message)}
+}
+
+function renderFileLifecycle(){
+  const summary=document.getElementById('jobFileLifecycleSummary'),archiveButton=document.getElementById('archiveJobFilesBtn'),restoreButton=document.getElementById('restoreJobFilesBtn'),holdButton=document.getElementById('projectFileHoldBtn');
+  if(!summary)return;
+  const archive=fileLifecycle?.archive,hold=!!fileLifecycle?.retention_hold,active=jobFiles.filter(file=>file.storage_provider==='Cloudflare R2'&&file.upload_status==='Ready').length;
+  let text=`Automatic archive: ${fileLifecycle?.archive_after_months??3} months after Project approval · permanent deletion: ${fileLifecycle?.delete_after_months??24} continuous archived months.`;
+  if(fileLifecycle?.archive_due_at)text+=` Next archive check: ${formatDateTime(fileLifecycle.archive_due_at)}.`;
+  if(archive?.state==='Archived')text+=` Archived ${formatDateTime(archive.archived_at)} (${archive.strategy==='zip'?'verified ZIP':'R2 Infrequent Access'}); restore is available until ${formatDateTime(archive.delete_due_at)}.`;
+  else if(archive&&['Queued','Archiving','Restoring'].includes(archive.state))text+=` Current lifecycle state: ${archive.state}.`;
+  if(hold)text+=` Retention Hold: ${fileLifecycle.hold_reason||'enabled'}.`;
+  summary.textContent=text;
+  archiveButton.classList.toggle('hidden',!canManageOperations());archiveButton.disabled=!active||hold||!!archive&&['Queued','Archiving','Archived','Restoring'].includes(archive.state);
+  restoreButton.classList.toggle('hidden',!canManageOperations()||archive?.state!=='Archived');
+  holdButton.classList.toggle('hidden',currentRole!=='admin');holdButton.textContent=hold?'Remove Retention Hold':'Set Retention Hold';
+}
+
+async function queueJobFileArchive(){
+  if(!confirm('Archive all active R2 files for this Job? Resource access will pause until a staff restore.'))return;
+  clearError();try{await fileApi('archive_job',{job_id:jobId});await loadJob();setStatus('Job-file archive queued ✓')}catch(error){showError(error.message)}
+}
+
+async function queueJobFileRestore(){
+  if(!confirm('Restore this Job archive to active R2 storage and restore Resource access?'))return;
+  clearError();try{await fileApi('restore_job',{job_id:jobId});await loadJob();setStatus('Job-file restore queued ✓')}catch(error){showError(error.message)}
+}
+
+async function toggleProjectFileHold(){
+  if(currentRole!=='admin')return;
+  const enabling=!fileLifecycle?.retention_hold,reason=enabling?prompt('Reason for Retention Hold:'):null;
+  if(enabling&&!reason?.trim())return;
+  const {error}=await _sb.rpc('admin_set_project_file_hold_044',{p_project_id:project.id,p_retention_hold:enabling,p_hold_reason:reason?.trim()||null});
+  if(error)return showError(error.message);await loadJob();setStatus(enabling?'Retention Hold enabled ✓':'Retention Hold removed ✓');
+}
+
+function openJobIssueForm(issueId=null){
+  if(!canManageOperations())return;
+  const issue=issues.find(row=>row.id===issueId);
+  document.getElementById('jobIssueId').value=issue?.id||'';
+  document.getElementById('jobIssueStatus').value=issue?.status||'Issue Reported';
+  document.getElementById('jobIssueStatus').disabled=!issue;
+  document.getElementById('jobIssueSeverity').value=issue?.severity||'Medium';
+  document.getElementById('jobIssueDescription').value=issue?.description||'';
+  document.getElementById('jobIssueResolution').value=issue?.resolution||'';
+  document.getElementById('saveJobIssueBtn').textContent=issue?'Save changes':'Add issue';
+  document.getElementById('jobIssueForm').classList.remove('hidden');
+}
+
+function closeJobIssueForm(){
+  const form=document.getElementById('jobIssueForm');
+  form.classList.add('hidden');document.getElementById('jobIssueId').value='';
+}
+
+function issueStatusClass(issue){
+  if(['Resolved','Corrected'].includes(issue.status))return 'pill-green';
+  if(issue.severity==='Critical')return 'pill-red';
+  if(['Issue Reported','Investigating','Correction Requested'].includes(issue.status))return 'pill-amber';
+  return 'pill-blue';
+}
+
+async function saveJobIssue(){
+  clearError();
+  if(!canManageOperations())return showError('Operational access required.');
+  const issueId=val('jobIssueId'),description=val('jobIssueDescription'),severity=val('jobIssueSeverity'),status=val('jobIssueStatus'),resolution=nullable('jobIssueResolution');
+  if(!description)return showError('Issue description is required.');
+  const button=document.getElementById('saveJobIssueBtn');button.disabled=true;
+  const result=issueId
+    ? await _sb.rpc('staff_update_job_issue',{p_issue_id:issueId,p_status:status,p_severity:severity,p_description:description,p_resolution:resolution})
+    : await _sb.rpc('staff_create_job_issue',{p_job_id:jobId,p_severity:severity,p_description:description});
+  button.disabled=false;
+  if(result.error)return showError(result.error.message);
+  closeJobIssueForm();await loadJob();setStatus(issueId?'Job issue updated ✓':'Job issue added ✓');
+}
+
+function renderIssues(){
+  const body=document.getElementById('issuesTbody');
+  if(!issues.length){body.innerHTML='<tr class="state-row"><td colspan="6">No delivery issues.</td></tr>';renderDeliveryControls();return}
+  body.innerHTML=issues.map(issue=>`<tr><td><span class="pill ${issueStatusClass(issue)}">${esc(issue.status)}</span></td><td>${esc(issue.severity||'—')}</td><td>${esc(issue.description)}</td><td>${formatDateTime(issue.reported_at)}</td><td>${esc(issue.resolution||'—')}</td><td>${canManageOperations()?`<button class="table-action" type="button" onclick="openJobIssueForm('${issue.id}')">Edit</button>`:'—'}</td></tr>`).join('');
+  renderDeliveryControls();
+}
 
 async function loadJob(){
   clearError();supplierTermsDirty=false;const jobResult=await _sb.from('project_jobs').select('*').eq('id',jobId).single();if(jobResult.error)return showError(jobResult.error.message);job=jobResult.data;
-  const [projectResult,scoopResult,specResult,projectSpecResult,offerResult,poResult,issueResult,scopeResult,emailResult,projectJobsResult]=await Promise.all([_sb.from('projects').select('*, client_accounts(name)').eq('id',job.project_id).single(),_sb.from('project_scoops').select('*').eq('id',job.project_scoop_id).maybeSingle(),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('project_specializations').select('*').eq('project_id',job.project_id).order('created_at'),_sb.from('job_offers').select('*').eq('job_id',jobId).order('sequence_number'),_sb.from('supplier_purchase_orders').select('*').eq('job_id',jobId).order('created_at',{ascending:false}),_sb.from('job_issues').select('*').eq('job_id',jobId).order('reported_at',{ascending:false}),_sb.from('scope_items').select('project_scoop_id,service_type,specialization_id,price_unit,cat_band,quantity,unit_price,price,adjustment_type').eq('project_id',job.project_id),_sb.from('email_records').select('*').eq('job_id',jobId).eq('direction','Outgoing').order('created_at',{ascending:false}),_sb.from('project_jobs').select('id,project_scoop_id,status').eq('project_id',job.project_id)]);
-  if(projectResult.error)return showError(projectResult.error.message);if(scoopResult.error)return showError(scoopResult.error.message);if(scopeResult.error)return showError(scopeResult.error.message);if(emailResult.error)return showError(emailResult.error.message);if(projectJobsResult.error)return showError(projectJobsResult.error.message);project=projectResult.data;scoop=scoopResult.data;specializations=specResult.data||[];projectSpecializations=projectSpecResult.data||[];offers=offerResult.data||[];purchaseOrders=poResult.data||[];purchaseOrder=purchaseOrders.find(po=>!['Cancelled','Superseded'].includes(po.status))||null;issues=issueResult.data||[];projectScopeLines=scopeResult.data||[];projectJobs=projectJobsResult.data||[];poEmails=emailResult.data||[];resourceRates=[];
+  const [projectResult,scoopResult,specResult,projectSpecResult,offerResult,poResult,issueResult,fileResult,scopeResult,emailResult,projectJobsResult,lifecycleResult]=await Promise.all([_sb.from('projects').select('*, client_accounts(name)').eq('id',job.project_id).single(),_sb.from('project_scoops').select('*').eq('id',job.project_scoop_id).maybeSingle(),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('project_specializations').select('*').eq('project_id',job.project_id).order('created_at'),_sb.from('job_offers').select('*').eq('job_id',jobId).order('sequence_number'),_sb.from('supplier_purchase_orders').select('*').eq('job_id',jobId).order('created_at',{ascending:false}),_sb.from('job_issues').select('*').eq('job_id',jobId).order('reported_at',{ascending:false}),_sb.from('file_records').select('id,storage_provider,bucket_name,object_key,original_filename,mime_type,size_bytes,file_role,upload_status,archived_at,created_at,storage_error,archive_id').eq('job_id',jobId).order('created_at',{ascending:false}),_sb.from('scope_items').select('project_scoop_id,service_type,specialization_id,price_unit,cat_band,quantity,unit_price,price,adjustment_type').eq('project_id',job.project_id),_sb.from('email_records').select('*').eq('job_id',jobId).eq('direction','Outgoing').order('created_at',{ascending:false}),_sb.from('project_jobs').select('id,project_scoop_id,status').eq('project_id',job.project_id),_sb.rpc('staff_job_file_lifecycle_044',{p_job_id:jobId})]);
+  const relatedResults=[projectResult,scoopResult,specResult,projectSpecResult,offerResult,poResult,issueResult,fileResult,scopeResult,emailResult,projectJobsResult,lifecycleResult];
+  const relatedError=relatedResults.find(result=>result.error)?.error;
+  if(relatedError)return showError(relatedError.message);
+  project=projectResult.data;scoop=scoopResult.data;specializations=specResult.data||[];projectSpecializations=projectSpecResult.data||[];offers=offerResult.data||[];purchaseOrders=poResult.data||[];purchaseOrder=purchaseOrders.find(po=>!['Cancelled','Superseded'].includes(po.status))||null;issues=issueResult.data||[];jobFiles=fileResult.data||[];fileLifecycle=lifecycleResult.data||null;projectScopeLines=scopeResult.data||[];projectJobs=projectJobsResult.data||[];poEmails=emailResult.data||[];resourceRates=[];
   const resourceIds=[...new Set([job.resource_id,...offers.map(x=>x.resource_id),...purchaseOrders.map(x=>x.resource_id)].filter(Boolean))];offerResources=new Map();if(resourceIds.length){const {data}=await _sb.from('resources').select('*').in('id',resourceIds);(data||[]).forEach(resource=>offerResources.set(resource.id,resource))}assignedResource=job.resource_id?offerResources.get(job.resource_id):null;
-  const poIds=purchaseOrders.map(po=>po.id),[lineResult,versionResult]=await Promise.all([purchaseOrder?_sb.from('supplier_po_lines').select('*').eq('purchase_order_id',purchaseOrder.id).order('sort_order'):Promise.resolve({data:[]}),poIds.length?_sb.from('supplier_po_versions').select('*').in('purchase_order_id',poIds).order('created_at',{ascending:false}):Promise.resolve({data:[]})]);
-  if(lineResult.error)return showError(lineResult.error.message);if(versionResult.error)return showError(versionResult.error.message);allPOVersions=versionResult.data||[];poVersions=purchaseOrder?allPOVersions.filter(version=>version.purchase_order_id===purchaseOrder.id).sort((a,b)=>Number(b.version_number)-Number(a.version_number)):[];if(purchaseOrder){const latestVersion=poVersions[0],snapshotLines=latestVersion?.snapshot?.lines,observedVersion=Math.max(Number(purchaseOrder.current_version||0),...poVersions.map(version=>Number(version.version_number||0)));poLines=Array.isArray(snapshotLines)?snapshotLines:(lineResult.data||[]);purchaseOrder.current_version=observedVersion;if(observedVersion>=expectedPOVersion)expectedPOVersion=0}else{poLines=[];expectedPOVersion=0}
-  populateHeader();populateOverview();renderOffers();renderPO();renderIssues();window.TMS_QUICK_NAV?.recordVisit('Job',job.id,job.job_number,[project.display_name,job.service_type,job.status].filter(Boolean).join(' · '));await loadOverviewCandidates();
+  const poIds=purchaseOrders.map(po=>po.id),fileIds=jobFiles.map(file=>file.id),[lineResult,versionResult,accessResult]=await Promise.all([purchaseOrder?_sb.from('supplier_po_lines').select('*').eq('purchase_order_id',purchaseOrder.id).order('sort_order'):Promise.resolve({data:[]}),poIds.length?_sb.from('supplier_po_versions').select('*').in('purchase_order_id',poIds).order('created_at',{ascending:false}):Promise.resolve({data:[]}),fileIds.length?_sb.from('file_access_logs').select('file_record_id,action,occurred_at').in('file_record_id',fileIds).in('action',['View','Download']).order('occurred_at',{ascending:false}):Promise.resolve({data:[]})]);
+  if(lineResult.error)return showError(lineResult.error.message);if(versionResult.error)return showError(versionResult.error.message);if(accessResult.error)return showError(accessResult.error.message);allPOVersions=versionResult.data||[];fileAccessLogs=accessResult.data||[];poVersions=purchaseOrder?allPOVersions.filter(version=>version.purchase_order_id===purchaseOrder.id).sort((a,b)=>Number(b.version_number)-Number(a.version_number)):[];if(purchaseOrder){const latestVersion=poVersions[0],snapshotLines=latestVersion?.snapshot?.lines,observedVersion=Math.max(Number(purchaseOrder.current_version||0),...poVersions.map(version=>Number(version.version_number||0)));poLines=Array.isArray(snapshotLines)?snapshotLines:(lineResult.data||[]);purchaseOrder.current_version=observedVersion;if(observedVersion>=expectedPOVersion)expectedPOVersion=0}else{poLines=[];expectedPOVersion=0}
+  populateHeader();populateOverview();renderOffers();renderPO();renderJobFiles();renderIssues();window.TMS_QUICK_NAV?.recordVisit('Job',job.id,job.job_number,[project.display_name,job.service_type,job.status].filter(Boolean).join(' · '));await loadOverviewCandidates();
 }
 
 // Update 038: the Supplier payment grid is returned to its previous state;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Settings — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=039">
+  <link rel="stylesheet" href="style.css?v=045">
 </head>
 <body>
 <div class="app">
@@ -31,6 +31,7 @@
         <a class="settings-nav-item active" href="#services" aria-current="page"><strong>Services</strong><span>Shared operational catalog</span></a>
         <a class="settings-nav-item" href="#languages"><strong>Languages</strong><span>Source and target catalog</span></a>
         <a class="settings-nav-item" href="#specializations"><strong>Specializations</strong><span>Domain catalog</span></a>
+        <a class="settings-nav-item" href="#file-retention"><strong>File retention</strong><span>R2 archive, deletion and holds</span></a>
         <div class="settings-nav-item future" aria-disabled="true"><strong>Units</strong><span>Future setting</span></div>
         <div class="settings-nav-item future" aria-disabled="true"><strong>Currencies</strong><span>Future setting</span></div>
         <div class="settings-nav-item future" aria-disabled="true"><strong>Workflow</strong><span>Future setting</span></div>
@@ -54,27 +55,33 @@
       <section id="languages" class="settings-content" aria-labelledby="languages-title">
         <div class="settings-panel-head"><div><h2 id="languages-title">Language catalog</h2><p>Source and Target dropdowns throughout the TMS use this list.</p></div><button id="addLanguageBtn" class="btn-primary" type="button" onclick="openCatalogSetting('language')">+ Add language</button></div>
         <div class="settings-info" role="note"><strong>Shared catalogue</strong><span>Deactivating a language removes it from new selections while preserving historical records.</span></div>
-        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th>Order</th><th>Language</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead><tbody id="languagesTbody"><tr class="state-row"><td colspan="5">Loading languages…</td></tr></tbody></table></div>
+        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th scope="col">Order</th><th scope="col">Language</th><th scope="col">Code</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody id="languagesTbody"><tr class="state-row"><td colspan="5">Loading languages…</td></tr></tbody></table></div>
       </section>
 
       <section id="specializations" class="settings-content" aria-labelledby="specializations-title">
         <div class="settings-panel-head"><div><h2 id="specializations-title">Specialization catalog</h2><p>Projects, Scoops, Jobs and rate cards use this shared list.</p></div><button id="addSpecializationBtn" class="btn-primary" type="button" onclick="openCatalogSetting('specialization')">+ Add specialization</button></div>
         <div class="settings-info" role="note"><strong>Shared catalogue</strong><span>Inactive specializations remain attached to historical work.</span></div>
-        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th>Specialization</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead><tbody id="specializationsTbody"><tr class="state-row"><td colspan="4">Loading specializations…</td></tr></tbody></table></div>
+        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th scope="col">Specialization</th><th scope="col">Code</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody id="specializationsTbody"><tr class="state-row"><td colspan="4">Loading specializations…</td></tr></tbody></table></div>
+      </section>
+
+      <section id="file-retention" class="settings-content" aria-labelledby="file-retention-title">
+        <div class="settings-panel-head"><div><h2 id="file-retention-title">File retention</h2><p>Default 3-month archive and 24-month permanent deletion, with Client/Account overrides.</p></div><button id="addRetentionPolicyBtn" class="btn-primary hidden" type="button" onclick="openRetentionPolicy()">+ Add override</button></div>
+        <div class="settings-info" role="note"><strong>Reversible archive</strong><span>Approval starts the archive clock. Leaving Approved cancels it. Restore returns the Job files to Standard storage and resets the clock. Retention Hold pauses automatic archive and deletion.</span></div>
+        <div class="table-wrap settings-table-wrap"><table class="module-table settings-table"><thead><tr><th scope="col">Scope</th><th scope="col">Archive</th><th scope="col">Permanent deletion</th><th scope="col">Mode</th><th scope="col">Actions</th></tr></thead><tbody id="retentionPoliciesTbody"><tr class="state-row"><td colspan="5">Loading retention policies…</td></tr></tbody></table></div>
       </section>
       </div>
     </div>
   </main>
 </div>
 
-<div id="catalogSettingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="catalogSettingTitle"><div class="modal modal-small settings-modal"><div class="modal-header"><h3 id="catalogSettingTitle">Add catalogue value</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeCatalogSetting()">×</button></div><div class="modal-body"><input id="cs-kind" type="hidden"><input id="cs-id" type="hidden"><div class="form-grid"><div class="field field-full"><label for="cs-name">Name *</label><input id="cs-name" autocomplete="off"></div><div class="field"><label for="cs-code">Code *</label><input id="cs-code" maxlength="8" autocomplete="off"></div><div id="cs-order-field" class="field"><label for="cs-order">Display order</label><input id="cs-order" type="number" step="10" min="0"></div><div class="field field-full"><label class="checkbox-row"><input id="cs-active" type="checkbox" checked> Active for new records</label></div></div><p id="catalogSettingError" class="error-msg hidden" role="alert"></p></div><div class="modal-footer"><button class="btn-secondary" type="button" onclick="closeCatalogSetting()">Cancel</button><button id="saveCatalogSettingBtn" class="btn-primary" type="button" onclick="saveCatalogSetting()">Save</button></div></div></div>
+<div id="catalogSettingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="catalogSettingTitle"><div class="modal modal-small settings-modal"><div class="modal-header"><h3 id="catalogSettingTitle">Add catalogue value</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeCatalogSetting()">×</button></div><div class="modal-body"><input id="cs-kind" type="hidden"><input id="cs-id" type="hidden"><div class="form-grid"><div class="field field-full"><label for="cs-name">Name *</label><input id="cs-name" type="text" autocomplete="off"></div><div class="field"><label for="cs-code">Code *</label><input id="cs-code" type="text" maxlength="8" autocomplete="off"></div><div id="cs-order-field" class="field"><label for="cs-order">Display order</label><input id="cs-order" type="number" step="10" min="0"></div><div class="field field-full"><label class="checkbox-row"><input id="cs-active" type="checkbox" checked> Active for new records</label></div></div><p id="catalogSettingError" class="error-msg hidden" role="alert"></p></div><div class="modal-footer"><button class="btn-secondary" type="button" onclick="closeCatalogSetting()">Cancel</button><button id="saveCatalogSettingBtn" class="btn-primary" type="button" onclick="saveCatalogSetting()">Save</button></div></div></div>
 
 <div id="serviceSettingModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="serviceSettingTitle">
   <div class="modal modal-small settings-modal">
     <div class="modal-header"><h3 id="serviceSettingTitle">Add service</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeServiceSetting()">×</button></div>
     <div class="modal-body"><input id="ss-id" type="hidden"><div class="form-grid">
-      <div class="field field-full"><label for="ss-name">Service name *</label><input id="ss-name" autocomplete="off"><small class="field-help">Displayed consistently throughout the TMS.</small></div>
-      <div class="field"><label for="ss-code">Job code *</label><input id="ss-code" maxlength="8" autocomplete="off" placeholder="e.g. TRA"><small class="field-help">2–8 letters or numbers.</small></div>
+      <div class="field field-full"><label for="ss-name">Service name *</label><input id="ss-name" type="text" autocomplete="off"><small class="field-help">Displayed consistently throughout the TMS.</small></div>
+      <div class="field"><label for="ss-code">Job code *</label><input id="ss-code" type="text" maxlength="8" autocomplete="off" placeholder="e.g. TRA"><small class="field-help">2–8 letters or numbers.</small></div>
       <div class="field"><label for="ss-order">Display order</label><input id="ss-order" type="number" step="10" min="0"></div>
       <div class="field field-full"><label for="ss-description">Description</label><textarea id="ss-description" rows="3"></textarea></div>
       <div class="field field-full"><label class="checkbox-row"><input id="ss-active" type="checkbox" checked> Active for new records</label></div>
@@ -83,7 +90,9 @@
   </div>
 </div>
 
+<div id="retentionPolicyModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="retentionPolicyTitle"><div class="modal modal-small settings-modal"><div class="modal-header"><h3 id="retentionPolicyTitle">Add retention override</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeRetentionPolicy()">×</button></div><div class="modal-body"><input id="rp-id" type="hidden"><div class="form-grid"><div class="field"><label for="rp-scope-type">Scope</label><select id="rp-scope-type"><option>Default</option><option selected>Client</option><option>Account</option></select></div><div class="field"><label for="rp-scope-id">Client / Account</label><select id="rp-scope-id"></select></div><div class="field"><label for="rp-archive-months">Archive after approval (months)</label><input id="rp-archive-months" type="number" min="1" max="120" step="1" value="3"></div><div class="field"><label for="rp-delete-months">Permanent deletion after archive (months)</label><input id="rp-delete-months" type="number" min="2" max="240" step="1" value="24"></div><div class="field field-full"><label class="checkbox-row"><input id="rp-hold" type="checkbox"> Retention Hold — pause automatic archive and deletion</label></div><div id="rp-hold-reason-wrap" class="field field-full hidden"><label for="rp-hold-reason">Hold reason *</label><textarea id="rp-hold-reason" rows="3" maxlength="500"></textarea></div></div><p id="retentionPolicyError" class="error-msg hidden" role="alert"></p></div><div class="modal-footer"><button class="btn-secondary" type="button" onclick="closeRetentionPolicy()">Cancel</button><button id="saveRetentionPolicyBtn" class="btn-primary" type="button" onclick="saveRetentionPolicy()">Save policy</button></div></div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=019"></script><script src="auth.js?v=039"></script><script src="reference-data.js?v=033"></script><script src="settings.js?v=039"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=039"></script><script src="reference-data.js?v=033"></script><script src="settings.js?v=045"></script>
 </body>
 </html>

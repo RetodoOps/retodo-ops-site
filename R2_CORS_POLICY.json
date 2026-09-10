@@ -1,0 +1,22 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://tms.retodo-ops.com"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "PUT",
+      "HEAD"
+    ],
+    "AllowedHeaders": [
+      "content-type",
+      "x-amz-meta-fileid",
+      "x-amz-meta-sha256"
+    ],
+    "ExposeHeaders": [
+      "ETag",
+      "Content-Length"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]

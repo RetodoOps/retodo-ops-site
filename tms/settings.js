@@ -1,6 +1,7 @@
 let serviceSettings = [];
 let languageSettings = [];
 let specializationSettings = [];
+let retentionSettings = {policies: [], clients: [], accounts: []};
 let settingsRole = 'user';
 
 const canAddSetting = () => settingsRole === 'admin' || settingsRole === 'pm';
@@ -63,6 +64,89 @@ async function loadCatalogSettings() {
 }
 
 function closeCatalogSetting() { settingsEl('catalogSettingModal').classList.add('hidden'); }
+
+function retentionScopeName(policy) { return policy.scope_name || policy.scope_type; }
+function renderRetentionSettings() {
+  const body = settingsEl('retentionPoliciesTbody'); if (!body) return;
+  settingsEl('addRetentionPolicyBtn').classList.toggle('hidden', !canManageSetting());
+  const rows = retentionSettings.policies || [];
+  body.innerHTML = rows.length ? rows.map(policy => `<tr>
+    <td><strong>${settingsEsc(retentionScopeName(policy))}</strong><div class="customer-sub">${settingsEsc(policy.scope_type)}</div></td>
+    <td>${Number(policy.archive_after_months)} months after latest Project approval</td>
+    <td>${Number(policy.delete_after_months)} continuous archived months</td>
+    <td><span class="pill ${policy.retention_hold ? 'pill-amber' : 'pill-green'}">${policy.retention_hold ? 'Hold' : 'Automatic'}</span>${policy.hold_reason ? `<div class="customer-sub">${settingsEsc(policy.hold_reason)}</div>` : ''}</td>
+    <td><div class="table-actions"><button class="table-action" type="button" onclick="openRetentionPolicy('${policy.id}')" ${canManageSetting() ? '' : 'disabled'}>Edit</button>${policy.scope_type === 'Default' ? '' : `<button class="table-action danger" type="button" onclick="deleteRetentionPolicy('${policy.id}')" ${canManageSetting() ? '' : 'disabled'}>Delete override</button>`}</div></td>
+  </tr>`).join('') : '<tr class="state-row"><td colspan="5">No retention policies are available.</td></tr>';
+}
+
+async function loadRetentionSettings() {
+  const {data, error} = await _sb.rpc('file_retention_settings_044');
+  if (error) return settingsError(error.message);
+  retentionSettings = data || {policies: [], clients: [], accounts: []};
+  renderRetentionSettings();
+}
+
+function retentionScopeChanged() {
+  const type = settingsEl('rp-scope-type').value, target = settingsEl('rp-scope-id');
+  const rows = type === 'Client' ? retentionSettings.clients : type === 'Account' ? retentionSettings.accounts : [];
+  target.innerHTML = type === 'Default' ? '<option value="">All Clients</option>' : '<option value="">Select…</option>' + rows.map(row => `<option value="${row.id}">${settingsEsc(row.name)}</option>`).join('');
+  target.disabled = type === 'Default' || !!settingsEl('rp-id').value;
+}
+
+function retentionHoldChanged() {
+  const hold = settingsEl('rp-hold').checked;
+  settingsEl('rp-hold-reason-wrap').classList.toggle('hidden', !hold);
+  settingsEl('rp-hold-reason').required = hold;
+}
+
+function closeRetentionPolicy() { settingsEl('retentionPolicyModal').classList.add('hidden'); }
+function openRetentionPolicy(id = null) {
+  if (!canManageSetting()) return settingsError('Only the Administrator can manage file retention.');
+  const policy = retentionSettings.policies.find(row => row.id === id);
+  settingsEl('rp-id').value = policy?.id || '';
+  settingsEl('retentionPolicyTitle').textContent = policy ? 'Edit retention policy' : 'Add retention override';
+  settingsEl('rp-scope-type').value = policy?.scope_type || 'Client';
+  settingsEl('rp-scope-type').disabled = !!policy;
+  retentionScopeChanged();
+  settingsEl('rp-scope-id').value = policy?.scope_id || '';
+  settingsEl('rp-archive-months').value = Number(policy?.archive_after_months ?? 3);
+  settingsEl('rp-delete-months').value = Number(policy?.delete_after_months ?? 24);
+  settingsEl('rp-hold').checked = !!policy?.retention_hold;
+  settingsEl('rp-hold-reason').value = policy?.hold_reason || '';
+  retentionHoldChanged(); clearSettingsError('retentionPolicyError');
+  settingsEl('retentionPolicyModal').classList.remove('hidden');
+}
+
+async function saveRetentionPolicy() {
+  clearSettingsError('retentionPolicyError');
+  if (!canManageSetting()) return settingsError('Administrator access required.', 'retentionPolicyError');
+  const scopeType = settingsEl('rp-scope-type').value;
+  const scopeId = settingsEl('rp-scope-id').value || null;
+  const archiveMonths = Number(settingsEl('rp-archive-months').value);
+  const deleteMonths = Number(settingsEl('rp-delete-months').value);
+  const hold = settingsEl('rp-hold').checked;
+  const reason = settingsEl('rp-hold-reason').value.trim() || null;
+  if (scopeType !== 'Default' && !scopeId) return settingsError('Select a Client or Account.', 'retentionPolicyError');
+  if (!Number.isInteger(archiveMonths) || archiveMonths < 1 || !Number.isInteger(deleteMonths) || deleteMonths <= archiveMonths) return settingsError('Permanent deletion must be later than archive.', 'retentionPolicyError');
+  if (hold && !reason) return settingsError('Enter a reason for Retention Hold.', 'retentionPolicyError');
+  const button = settingsEl('saveRetentionPolicyBtn'); button.disabled = true;
+  const {error} = await _sb.rpc('admin_save_file_retention_policy_044', {
+    p_scope_type: scopeType, p_scope_id: scopeId,
+    p_archive_after_months: archiveMonths, p_delete_after_months: deleteMonths,
+    p_retention_hold: hold, p_hold_reason: reason,
+  });
+  button.disabled = false;
+  if (error) return settingsError(error.message, 'retentionPolicyError');
+  closeRetentionPolicy(); await loadRetentionSettings();
+}
+
+async function deleteRetentionPolicy(id) {
+  const policy = retentionSettings.policies.find(row => row.id === id);
+  if (!policy || policy.scope_type === 'Default' || !canManageSetting()) return;
+  if (!confirm(`Delete the ${retentionScopeName(policy)} override? The next broader policy will apply.`)) return;
+  const {error} = await _sb.rpc('admin_delete_file_retention_policy_044', {p_policy_id: id});
+  if (error) return settingsError(error.message); await loadRetentionSettings();
+}
 function openCatalogSetting(kind, id = null) {
   const rows = kind === 'language' ? languageSettings : specializationSettings;
   const row = rows.find(item => item.id === id);
@@ -152,6 +236,9 @@ async function toggleServiceSetting(id) {
 settingsEl('ss-code').addEventListener('input', event => { event.target.value = normalizeServiceCode(event.target.value); });
 settingsEl('serviceSettingModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeServiceSetting(); });
 settingsEl('catalogSettingModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeCatalogSetting(); });
+settingsEl('retentionPolicyModal').addEventListener('click', event => { if (event.target === event.currentTarget) closeRetentionPolicy(); });
+settingsEl('rp-scope-type').addEventListener('change', retentionScopeChanged);
+settingsEl('rp-hold').addEventListener('change', retentionHoldChanged);
 
 function activateSettingsSection() {
   const hash = location.hash || '#services';
@@ -170,5 +257,5 @@ activateSettingsSection();
 (async () => {
   const user = await requireAuth(); if (!user) return;
   const { data } = await _sb.rpc('current_app_role'); settingsRole = data || 'user';
-  await Promise.all([loadServiceSettings(), loadCatalogSettings()]);
+  await Promise.all([loadServiceSettings(), loadCatalogSettings(), loadRetentionSettings()]);
 })();

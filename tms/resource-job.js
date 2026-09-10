@@ -38,11 +38,10 @@ function renderAssignedJob(data) {
     assignedJobFiles = data.files || [];
     document.getElementById('jobFilesTbody').innerHTML = assignedJobFiles.length
         ? assignedJobFiles.map(file => {
-            const canOpen = file.storage_provider === 'Supabase'
-                ? file.bucket_name && file.object_key
-                : !!safePortalUrl(file.external_url);
+            const canOpen = file.storage_provider === 'Cloudflare R2'
+                || (file.storage_provider === 'Supabase' ? file.bucket_name && file.object_key : !!safePortalUrl(file.external_url));
             const actions = canOpen
-                ? `<button class="table-action" type="button" onclick="openAssignedJobFile('${file.id}','View')">Open</button>${file.storage_provider === 'Supabase' ? `<button class="table-action" type="button" onclick="openAssignedJobFile('${file.id}','Download')">Download</button>` : ''}`
+                ? `<button class="table-action" type="button" onclick="openAssignedJobFile('${file.id}','View')">Open</button>${['Supabase','Cloudflare R2'].includes(file.storage_provider) ? `<button class="table-action" type="button" onclick="openAssignedJobFile('${file.id}','Download')">Download</button>` : ''}`
                 : '<span class="customer-sub">Link unavailable</span>';
             return `<tr><td><strong>${portalEsc(file.filename)}</strong></td><td>${portalEsc(file.file_role || '—')}</td><td>${portalEsc(file.mime_type || file.storage_provider || '—')}</td><td>${portalBytes(file.size_bytes)}</td><td>${portalDateTime(file.created_at)}</td><td><div class="table-actions">${actions}</div></td></tr>`;
         }).join('')
@@ -63,13 +62,33 @@ function renderAssignedJob(data) {
     document.getElementById('jobIssuesCard').classList.remove('hidden');
 }
 
+async function resourceFileApi(action, payload = {}) {
+    const {data: {session}} = await _sb.auth.getSession();
+    if (!session?.access_token) throw new Error('Session expired. Sign in again.');
+    const response = await fetch('/.netlify/functions/job-files', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`},
+        body: JSON.stringify({action, ...payload}),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `File request failed (HTTP ${response.status}).`);
+    return result;
+}
+
 async function openAssignedJobFile(fileId, action) {
     portalClearError();
     const file = assignedJobFiles.find(row => row.id === fileId);
     if (!file) return portalShowError('This Job file is no longer available.');
 
     let targetUrl = null;
-    if (file.storage_provider === 'Supabase') {
+    if (file.storage_provider === 'Cloudflare R2') {
+        try {
+            const result = await resourceFileApi('download', {file_id: file.id, file_action: action});
+            targetUrl = result.download_url;
+        } catch (error) {
+            return portalShowError(error.message);
+        }
+    } else if (file.storage_provider === 'Supabase') {
         if (!file.bucket_name || !file.object_key) return portalShowError('The stored file path is incomplete.');
         const options = action === 'Download' ? {download: file.filename || true} : {};
         const {data, error} = await _sb.storage
@@ -82,11 +101,13 @@ async function openAssignedJobFile(fileId, action) {
         if (!targetUrl) return portalShowError('The external file link is invalid or unavailable.');
     }
 
-    const logResult = await _sb.rpc('record_resource_file_access', {
-        p_file_record_id: file.id,
-        p_action: action,
-    });
-    if (logResult.error) return portalShowError(`The file was not opened because access could not be logged: ${logResult.error.message}`);
+    if (file.storage_provider !== 'Cloudflare R2') {
+        const logResult = await _sb.rpc('record_resource_file_access', {
+            p_file_record_id: file.id,
+            p_action: action,
+        });
+        if (logResult.error) return portalShowError(`The file was not opened because access could not be logged: ${logResult.error.message}`);
+    }
     triggerPortalDownload(targetUrl, action === 'Download' ? file.filename : '');
 }
 

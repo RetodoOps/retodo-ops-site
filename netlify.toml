@@ -4,6 +4,12 @@
 [functions]
   directory = "netlify/functions"
 
+[functions."file-lifecycle-scheduler"]
+  schedule = "@daily"
+
+[functions."file-lifecycle-worker-background"]
+  background = true
+
 [[headers]]
   for = "/*"
   [headers.values]
