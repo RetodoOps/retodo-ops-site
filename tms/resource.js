@@ -34,7 +34,40 @@ function populateOverview(){
     el('resourceSummary').innerHTML=`<div><span>Resource status</span><strong>${esc(resource.resource_status)}</strong><small>${resource.lifecycle_status||'Active'} lifecycle</small></div><div><span>Availability</span><strong>${esc(currentAvailability?.status||'Unknown')}</strong><small>${currentAvailability?.ends_at?`Until ${fmtDate(currentAvailability.ends_at)}`:'No current end date'}</small></div><div><span>Last recorded work</span><strong>${fmtDate(resource.last_recorded_job)}</strong><small>${history.length} history record${history.length===1?'':'s'}</small></div><div><span>Blind CV</span><strong>${esc(resource.blind_cv_status||'Not ready')}</strong><small>${education.length} education record${education.length===1?'':'s'}</small></div>`;
 }
 
-async function saveOverview(){if(resource?.resource_type==='Internal')return saveInternalOverview();const readyStatuses=['Assignable','Proven','Preferred'];if(readyStatuses.includes(val('r-status'))&&!val('r-email'))return showError(`Add an email address before setting the Resource to ${val('r-status')}.`);const payload={resource_type:val('r-type'),lifecycle_status:val('r-lifecycle'),resource_status:val('r-status'),legal_name:nullable('r-name'),company_name:nullable('r-company'),initials:nullable('r-initials'),nationality:nullable('r-nationality'),country_of_residence:nullable('r-country'),city:nullable('r-city'),native_language:nullable('r-native'),timezone:nullable('r-timezone'),email:nullable('r-email'),phone:nullable('r-phone'),website:nullable('r-website'),linkedin_url:nullable('r-linkedin'),linkedin_match_confidence:nullable('r-linkedin-confidence'),linkedin_connection_status:nullable('r-linkedin-status'),compliance_status:val('r-compliance'),compliance_expiry:val('r-compliance-expiry')||null,quality_rating:val('r-quality')===''?null:Number(val('r-quality')),operational_restrictions:nullable('r-restrictions'),quality_evidence:nullable('r-quality-evidence'),notes:nullable('r-notes'),portal_status:val('r-portal'),financial_access_until:val('r-financial-until')||null,payment_terms_days:Number(val('r-payment-days')||60),invoice_cycle:nullable('r-invoice-cycle'),tax_id:nullable('r-tax'),blind_cv_status:val('r-cv-status')};const {error}=await _sb.from('resources').update(payload).eq('id',resourceId);if(error)return showError(error.message);await loadResource();setStatus('Saved ✓')}
+async function saveOverview(){
+    if(resource?.resource_type==='Internal')return saveInternalOverview();
+    el('resourceError').classList.add('hidden');
+    const readyStatuses=['Assignable','Proven','Preferred'];
+    if(readyStatuses.includes(val('r-status'))&&!val('r-email'))return showError(`Add an email address before setting the Resource to ${val('r-status')}.`);
+    const payload={resource_type:val('r-type'),lifecycle_status:val('r-lifecycle'),resource_status:val('r-status'),legal_name:nullable('r-name'),company_name:nullable('r-company'),initials:nullable('r-initials'),nationality:nullable('r-nationality'),country_of_residence:nullable('r-country'),city:nullable('r-city'),native_language:nullable('r-native'),timezone:nullable('r-timezone'),email:nullable('r-email'),phone:nullable('r-phone'),website:nullable('r-website'),linkedin_url:nullable('r-linkedin'),linkedin_match_confidence:nullable('r-linkedin-confidence'),linkedin_connection_status:nullable('r-linkedin-status'),compliance_status:val('r-compliance'),compliance_expiry:val('r-compliance-expiry')||null,quality_rating:val('r-quality')===''?null:Number(val('r-quality')),operational_restrictions:nullable('r-restrictions'),quality_evidence:nullable('r-quality-evidence'),notes:nullable('r-notes'),portal_status:val('r-portal'),financial_access_until:val('r-financial-until')||null,payment_terms_days:Number(val('r-payment-days')||60),invoice_cycle:nullable('r-invoice-cycle'),tax_id:nullable('r-tax'),blind_cv_status:val('r-cv-status')};
+    const currentEmail=normalizeInvitationEmail(resource.email),newEmail=normalizeInvitationEmail(payload.email);
+    const linkedEmailChange=!!resource.profile_id&&newEmail!==currentEmail;
+    if(linkedEmailChange){
+        if(appRole!=='admin')return showError('Only an Administrator can correct a linked login email.');
+        let confirmedEmail;
+        try{
+            confirmedEmail=requestExactEmailConfirmation(newEmail,
+                `Correct the linked login from ${currentEmail} to ${newEmail} and send a replacement access invitation? This is allowed only if the account has never signed in.`);
+        }catch(error){return showError(error.message)}
+        if(!confirmedEmail)return;
+        try{
+            await resourceOnboarding({action:'correct_email',resource_id:resourceId,new_email:newEmail,confirmed_email:confirmedEmail,request_id:crypto.randomUUID()});
+        }catch(error){
+            await loadResource();
+            if(error.emailCorrected)return showError(`The login email was corrected, but the replacement invitation was not sent: ${error.message}`);
+            if(error.emailCorrectionPending){el('r-email').value=newEmail;return showError('The login email correction is incomplete. Retry Save changes to finish it safely.')}
+            return showError(error.message);
+        }
+        const {email,portal_status,resource_type,...profilePayload}=payload;
+        profilePayload.resource_type=resource.resource_type;
+        const saved=await _sb.from('resources').update(profilePayload).eq('id',resourceId);
+        if(saved.error){await loadResource();return showError(`The login email was corrected and the replacement invitation was sent, but other profile changes were not saved: ${saved.error.message}`)}
+        await loadResource();setStatus('Login email corrected · replacement invitation sent ✓');return;
+    }
+    const {error}=await _sb.from('resources').update(payload).eq('id',resourceId);
+    if(error)return showError(error.message);
+    await loadResource();setStatus('Saved ✓');
+}
 
 function renderPortalLinkState(message,tone=''){
     const card=el('portalLinkCard'),state=el('portalLinkState');
@@ -78,7 +111,7 @@ async function loadPortalLinkStatus(){
         renderPortalLinkState(`Linked and ready · portal ${status.portal_status}.`,'ready');button.textContent='Portal login active';return;
     }
     if(!status.auth_user_exists){
-        renderPortalLinkState(`No login account yet. Use Send access invitation to create it. Portal approval is a separate step.`,'warning');button.textContent='Invite the resource first';return;
+        renderPortalLinkState('No login account yet. Sending an access invitation creates it and approves portal access.','warning');button.textContent='Invite the resource first';return;
     }
     renderPortalLinkState(status.linked_to_this_resource
         ?'The account is linked but portal access is not active.'

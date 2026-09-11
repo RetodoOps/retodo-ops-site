@@ -347,8 +347,15 @@ function latestResourceFileAccess(fileId){
   return fileAccessLogs.find(log=>log.file_record_id===fileId&&['View','Download'].includes(log.action));
 }
 
+function updateDeliveryFileBadge(){
+  const badge=document.getElementById('deliveryFileCount');if(!badge)return;
+  const readyCount=jobFiles.filter(file=>(file.upload_status||(file.archived_at?'Archived':'Ready'))==='Ready').length;
+  badge.textContent=readyCount;badge.classList.toggle('hidden',readyCount===0);
+}
+
 function renderJobFiles(){
   const body=document.getElementById('jobFilesTbody');
+  updateDeliveryFileBadge();
   if(!jobFiles.length){body.innerHTML='<tr class="state-row"><td colspan="7">No files are linked to this Job.</td></tr>';renderDeliveryControls();renderFileLifecycle();return}
   body.innerHTML=jobFiles.map(file=>{
     const status=file.upload_status||(file.archived_at?'Archived':'Ready'),access=latestResourceFileAccess(file.id),actions=[];

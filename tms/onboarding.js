@@ -9,9 +9,38 @@ async function resourceOnboarding(payload) {
     if (!response.ok) {
         const error = new Error(result.error || 'Onboarding failed.');
         error.resourceId = result.resource_id;
+        error.emailCorrected = result.email_corrected === true;
+        error.emailCorrectionPending = result.email_correction_pending === true;
         throw error;
     }
     return result;
+}
+
+const invitationEmailDomainTypos = new Map([
+    ['gmai.com','gmail.com'],['gmial.com','gmail.com'],['gamil.com','gmail.com'],
+    ['gmail.con','gmail.com'],['hotnail.com','hotmail.com'],
+    ['outlok.com','outlook.com'],['yaho.com','yahoo.com']
+]);
+const normalizeInvitationEmail = value => String(value ?? '').trim().toLowerCase();
+function invitationEmailProblem(value) {
+    const email = normalizeInvitationEmail(value);
+    if (!email || email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return 'Enter a valid recipient email address.';
+    }
+    const domain = email.slice(email.lastIndexOf('@') + 1);
+    const suggestion = invitationEmailDomainTypos.get(domain);
+    return suggestion ? `The email domain “${domain}” looks mistyped. Did you mean “${suggestion}”?` : '';
+}
+function requestExactEmailConfirmation(email, purpose) {
+    const normalized = normalizeInvitationEmail(email);
+    const problem = invitationEmailProblem(normalized);
+    if (problem) throw new Error(problem);
+    const confirmation = prompt(`${purpose}\n\nType the full recipient email address to confirm:\n${normalized}`);
+    if (confirmation === null) return null;
+    if (normalizeInvitationEmail(confirmation) !== normalized) {
+        throw new Error('The confirmation did not exactly match the recipient email. Nothing was sent.');
+    }
+    return normalized;
 }
 
 async function copyResourceRegistrationLink() {
@@ -23,11 +52,16 @@ async function copyResourceRegistrationLink() {
 async function sendResourceAccessInvitation() {
     if (!resource?.email) return showError('Save an email address first.');
     const workspaceName = resource.resource_type === 'Internal' ? 'company TMS workspace' : 'Resource Portal';
-    if (!confirm(`Send an access invitation to ${resource.email}? The recipient will choose a password and then open the ${workspaceName}.`)) return;
+    let confirmedEmail;
+    try {
+        confirmedEmail = requestExactEmailConfirmation(resource.email,
+            `Send an access invitation to this address? The recipient will choose a password and then open the ${workspaceName}.`);
+    } catch (error) { return showError(error.message); }
+    if (!confirmedEmail) return;
     const button = document.getElementById('sendAccessInvitationBtn');
     if (button) button.disabled = true;
     try {
-        await resourceOnboarding({action:'invite',resource_id:resourceId});
+        await resourceOnboarding({action:'invite',resource_id:resourceId,confirmed_email:confirmedEmail});
         await loadResource();
         alert(`Access invitation sent. Ask the recipient to open the newest email, choose a password and continue to the ${workspaceName}.`);
     } catch (error) { showError(error.message); }

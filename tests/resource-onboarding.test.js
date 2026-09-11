@@ -15,23 +15,33 @@ process.env.GOOGLE_REFRESH_TOKEN = 'unit-test-placeholder';
 process.env.GMAIL_FROM_EMAIL = 'ops@retodo-ops.com';
 test.after(()=>{global.fetch=originalFetch;});
 function event(body, overrides={}) { return {httpMethod:'POST',headers:{authorization:'Bearer user-token',origin:process.env.TMS_SITE_URL},body:JSON.stringify(body),...overrides}; }
-function mock({confirmed=false,denyPrepare=false,failMail=false,failAuth=false,failLink=false,unauthorized=false,badLink=false}={}) {
+function mock({confirmed=false,denyPrepare=false,failMail=false,failAuth=false,failLink=false,unauthorized=false,badLink=false,correctionSignedIn=false,failAuthUpdate=false,invitationEmail='recipient@example.test'}={}) {
     const calls=[];
+    let currentInvitationEmail=invitationEmail;
     global.fetch=async (url,options)=>{
         const payload=options.body && String(options.headers?.['Content-Type'] || '').includes('application/json')
             ? JSON.parse(options.body) : options.body || null;
         calls.push({url,options,payload});
         let value={};let status=200;
         if(url.endsWith('/user')) {value={id:actor};if(unauthorized)status=401;}
-        else if(url.includes('/rpc/')) {
+        else if(url.endsWith('/rest/v1/rpc/resource_email_correction_046')) {
+            assert.equal(payload.p_actor_id,actor,'correction actor must come from verified token');
+            if(payload.p_action==='prepare'){
+                if(correctionSignedIn){status=400;value={message:'This login has already been used'};}
+                else value={request_id:request,auth_user_id:resource,auth_update_required:true,completed:false};
+            }else if(payload.p_action==='complete')value={request_id:request,resource_id:resource,completed:true};
+        } else if(url.includes('/rpc/')) {
             assert.equal(payload.p_actor_id,actor,'actor must come from verified token');
             if(payload.p_action==='create_internal') value={resource_id:resource};
             if(payload.p_action==='prepare_invite') {
-                value={email:'recipient@example.test',confirmed,name:'Test',user_id:confirmed?request:null};
+                value={email:currentInvitationEmail,confirmed,name:'Test',user_id:confirmed?request:null};
                 if(denyPrepare){status=403;value={message:'Operational access required'};}
             }
             if(payload.p_action==='link_invite'&&failLink){status=400;value={message:'Resource and login email do not match'};}
             if(payload.p_action==='register') value={registered:true,pending_approval:true};
+        } else if(url.includes('/auth/v1/admin/users/')) {
+            if(failAuthUpdate){status=422;value={message:'provider-private-detail'};}
+            else{currentInvitationEmail=payload.email;value={id:resource,email:payload.email};}
         } else if(url.endsWith('/auth/v1/admin/generate_link')) {
             value={action_link:badLink ? 'https://evil.test/steal' :
                 `https://test.supabase.co/auth/v1/verify?token=unit-test-token&type=${payload.type}&redirect_to=${encodeURIComponent(payload.redirect_to)}`};
@@ -51,19 +61,36 @@ test('missing authentication never reaches the privileged API',async()=>{
     assert.equal(response.statusCode,401);assert.equal(calls.length,0);
 });
 test('invalid token cannot reach RPC or mail',async()=>{
-    const calls=mock({unauthorized:true});const response=await handler(event({action:'invite',resource_id:resource}));
+    const calls=mock({unauthorized:true});const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test'}));
     assert.equal(response.statusCode,401);assert.equal(calls.length,1);
 });
 test('cross-origin requests are refused',async()=>{
     const calls=mock();const response=await handler(event({action:'invite'},{headers:{authorization:'Bearer token',origin:'https://evil.test'}}));
     assert.equal(response.statusCode,403);assert.equal(calls.length,0);
 });
+test('an invitation requires the operator to confirm the exact recipient address',async()=>{
+    const calls=mock();const response=await handler(event({action:'invite',resource_id:resource}));
+    assert.equal(response.statusCode,400);assert.equal(calls.length,0);
+    assert.match(JSON.parse(response.body).error,/valid recipient email/i);
+});
+test('an obvious provider-domain typo is blocked before any privileged call',async()=>{
+    const calls=mock();const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'vlavla845@gmai.com'}));
+    assert.equal(response.statusCode,400);assert.equal(calls.length,0);
+    assert.match(JSON.parse(response.body).error,/gmail\.com/);
+});
+test('a confirmation that differs from the saved address never generates or sends a link',async()=>{
+    const calls=mock();const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'different@example.test'}));
+    assert.equal(response.statusCode,400);
+    assert.ok(calls.some(x=>x.payload?.p_action==='prepare_invite'));
+    assert.equal(calls.at(-1).payload.p_action,'invite_failed');
+    assert.ok(!calls.some(x=>x.url.endsWith('/auth/v1/admin/generate_link')));
+});
 test('unapproved actor cannot send mail even with forged actor or role fields',async()=>{
-    const calls=mock({denyPrepare:true});const response=await handler(event({action:'invite',resource_id:resource,actor_id:request,role:'admin'}));
+    const calls=mock({denyPrepare:true});const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test',actor_id:request,role:'admin'}));
     assert.equal(response.statusCode,400);assert.equal(calls.length,2);
 });
 test('new account generates an invite link and sends a branded access invitation',async()=>{
-    const calls=mock();const response=await handler(event({action:'invite',resource_id:resource,redirect_to:'https://evil.test',password:'malicious'}));
+    const calls=mock();const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test',redirect_to:'https://evil.test',password:'malicious'}));
     assert.equal(response.statusCode,200);
     const generated=calls.find(x=>x.url.endsWith('/auth/v1/admin/generate_link'));
     assert.deepEqual(generated.payload,{type:'invite',email:'recipient@example.test',
@@ -82,7 +109,7 @@ test('new account generates an invite link and sends a branded access invitation
     assert.deepEqual(calls.filter(x=>x.payload?.p_action).map(x=>x.payload.p_action),['prepare_invite','link_invite','invite_sent']);
 });
 test('existing confirmed account uses a recovery token inside the same access-invitation message',async()=>{
-    const calls=mock({confirmed:true});const response=await handler(event({action:'invite',resource_id:resource}));
+    const calls=mock({confirmed:true});const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test'}));
     assert.equal(response.statusCode,200);
     assert.ok(!calls.some(x=>x.url.includes('/auth/v1/invite')||x.url.includes('/auth/v1/recover')||x.url.includes('/admin/users')));
     const generated=calls.find(x=>x.url.endsWith('/auth/v1/admin/generate_link'));
@@ -92,8 +119,36 @@ test('existing confirmed account uses a recovery token inside the same access-in
     const mail=calls.findIndex(x=>x.url==='https://gmail.googleapis.com/gmail/v1/users/me/messages/send');
     assert.ok(link<mail);
 });
+test('Administrator correction updates the unused Auth login through the server and sends a replacement invitation',async()=>{
+    const calls=mock();const response=await handler(event({action:'correct_email',resource_id:resource,request_id:request,new_email:'corrected@example.test',confirmed_email:'corrected@example.test'}));
+    const result=JSON.parse(response.body);
+    assert.equal(response.statusCode,200);assert.equal(result.email_corrected,true);
+    const correctionCalls=calls.filter(x=>x.url.endsWith('/rest/v1/rpc/resource_email_correction_046'));
+    assert.deepEqual(correctionCalls.map(x=>x.payload.p_action),['prepare','complete']);
+    const authUpdate=calls.find(x=>x.url.endsWith(`/auth/v1/admin/users/${resource}`));
+    assert.equal(authUpdate.options.method,'PUT');
+    assert.deepEqual(authUpdate.payload,{email:'corrected@example.test'});
+    const generated=calls.find(x=>x.url.endsWith('/auth/v1/admin/generate_link'));
+    assert.equal(generated.payload.email,'corrected@example.test');
+    assert.ok(calls.findIndex(x=>x.url.endsWith(`/auth/v1/admin/users/${resource}`))<calls.findIndex(x=>x.payload?.p_action==='prepare_invite'));
+});
+test('a linked account with sign-in history cannot enter the correction flow',async()=>{
+    const calls=mock({correctionSignedIn:true});const response=await handler(event({action:'correct_email',resource_id:resource,request_id:request,new_email:'corrected@example.test',confirmed_email:'corrected@example.test'}));
+    assert.equal(response.statusCode,400);
+    assert.match(JSON.parse(response.body).error,/already been used/);
+    assert.ok(!calls.some(x=>x.url.includes('/auth/v1/admin/users/')));
+    assert.ok(!calls.some(x=>x.url.endsWith('/auth/v1/admin/generate_link')));
+});
+test('an Auth update failure does not complete the correction or send an invitation',async()=>{
+    const calls=mock({failAuthUpdate:true});const response=await handler(event({action:'correct_email',resource_id:resource,request_id:request,new_email:'corrected@example.test',confirmed_email:'corrected@example.test'}));
+    const result=JSON.parse(response.body);
+    assert.equal(response.statusCode,400);assert.equal(result.email_correction_pending,true);
+    assert.ok(!calls.some(x=>x.url.endsWith('/rest/v1/rpc/resource_email_correction_046')&&x.payload.p_action==='complete'));
+    assert.ok(!calls.some(x=>x.url.endsWith('/auth/v1/admin/generate_link')));
+    assert.ok(!response.body.includes('provider-private-detail'));
+});
 test('failed email preserves created resource ID for safe retry and records failure',async()=>{
-    const calls=mock({failMail:true});const response=await handler(event({action:'create_internal',request_id:request,payload:{name:'Internal'}}));
+    const calls=mock({failMail:true});const response=await handler(event({action:'create_internal',request_id:request,confirmed_email:'recipient@example.test',payload:{name:'Internal',email:'recipient@example.test'}}));
     const result=JSON.parse(response.body);
     assert.equal(response.statusCode,400);assert.equal(result.resource_id,resource);
     assert.equal(calls.at(-1).payload.p_action,'invite_failed');
@@ -101,7 +156,7 @@ test('failed email preserves created resource ID for safe retry and records fail
     assert.ok(!calls.some(x=>x.options.method==='DELETE'));
 });
 test('failed Gmail authorization leaks no provider detail and never activates access',async()=>{
-    const calls=mock({failAuth:true});const response=await handler(event({action:'invite',resource_id:resource}));
+    const calls=mock({failAuth:true});const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test'}));
     assert.equal(response.statusCode,400);
     assert.equal(calls.at(-1).payload.p_action,'invite_failed');
     assert.ok(!calls.some(x=>x.url==='https://gmail.googleapis.com/gmail/v1/users/me/messages/send'));
@@ -109,12 +164,12 @@ test('failed Gmail authorization leaks no provider detail and never activates ac
     assert.ok(!calls.some(x=>x.payload?.p_action==='invite_sent'));
 });
 test('link conflicts prevent recovery mail to existing account',async()=>{
-    const calls=mock({confirmed:true,failLink:true});const response=await handler(event({action:'invite',resource_id:resource}));
+    const calls=mock({confirmed:true,failLink:true});const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test'}));
     assert.equal(response.statusCode,400);
     assert.ok(!calls.some(x=>x.url==='https://gmail.googleapis.com/gmail/v1/users/me/messages/send'));
 });
 test('an invalid generated action link is rejected before linking or sending email',async()=>{
-    const calls=mock({badLink:true});const response=await handler(event({action:'invite',resource_id:resource}));
+    const calls=mock({badLink:true});const response=await handler(event({action:'invite',resource_id:resource,confirmed_email:'recipient@example.test'}));
     assert.equal(response.statusCode,400);
     assert.ok(!calls.some(x=>x.payload?.p_action==='link_invite'));
     assert.ok(!calls.some(x=>x.url==='https://gmail.googleapis.com/gmail/v1/users/me/messages/send'));
@@ -131,6 +186,6 @@ test('internal creation requires an idempotency key',async()=>{
     assert.equal(response.statusCode,400);assert.equal(calls.length,0);
 });
 test('internal retry preserves supplied creation request ID',async()=>{
-    const calls=mock();await handler(event({action:'create_internal',request_id:request,payload:{name:'Internal'}}));
+    const calls=mock();await handler(event({action:'create_internal',request_id:request,confirmed_email:'recipient@example.test',payload:{name:'Internal',email:'recipient@example.test'}}));
     assert.equal(calls.find(x=>x.payload?.p_action==='create_internal').payload.p_request_id,request);
 });

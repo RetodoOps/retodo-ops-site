@@ -118,9 +118,9 @@ test('Resource JavaScript stays on narrow RPC projections and contains no Client
     assert.match(resourcePoJs, /resource_portal_purchase_order/);
 });
 
-test('successor UI assets use update 045 cache keys and retain responsive form styles', () => {
+test('successor UI assets use current cache keys and retain responsive form styles', () => {
     assert.match(jobHtml, /style\.css\?v=045/);
-    assert.match(jobHtml, /job\.js\?v=045/);
+    assert.match(jobHtml, /job\.js\?v=047/);
     assert.match(dashboardHtml, /style\.css\?v=044/);
     assert.match(read('tms/resource-po.html'), /resource-po\.js\?v=044/);
     assert.match(style, /\.job-operations-form/);
