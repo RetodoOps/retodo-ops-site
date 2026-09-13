@@ -1,4 +1,5 @@
 let resourceId, resource, appRole = 'user', cvData = null, portalLinkStatus = null;
+let complianceSummary = null, complianceFileRecords = [], complianceRefreshTimer = null;
 let pairs=[], services=[], specializations=[], resourceSpecializations=[], rates=[], tests=[], accountQualifications=[], accounts=[], education=[], documents=[], history=[], availability=[], privateNotes=[], accountSpecializationDefaults=[];
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const el=id=>document.getElementById(id), val=id=>el(id).value.trim(), nullable=id=>val(id)||null;
@@ -197,9 +198,255 @@ function openTestModal(){
 async function saveTest(){const type=val('test-type');if(type==='Domain'&&!val('test-spec'))return modalError('testError','Select a specialization for a Domain test.');if(type==='Account'&&!val('test-account'))return modalError('testError','Select an Account for an Account test.');const user=(await _sb.auth.getUser()).data.user;const payload={resource_id:resourceId,test_type:type,status:val('test-status'),source_language:nullable('test-source'),target_language:nullable('test-target'),service_type:nullable('test-service'),specialization_id:type==='General'?null:nullable('test-spec'),account_id:type==='Account'?nullable('test-account'):null,assigned_at:val('test-assigned')||new Date().toISOString(),memoq_project_ref:nullable('test-memoq'),reviewer_name:nullable('test-reviewer'),evidence:nullable('test-evidence'),created_by:user?.id||null};const {error}=await _sb.from('resource_tests').insert(payload);if(error)return modalError('testError',error.message);closeModal('testModal');await loadResource();setStatus('Resource test recorded ✓')}
 async function recordTestResult(id,status){const test=tests.find(item=>item.id===id);if(!test)return;if(status==='Failed'&&!confirm(`Record this ${test.test_type} test as Failed?${test.test_type==='General'?' The Resource will be marked Do not use.':''}`))return;const {error}=await _sb.from('resource_tests').update({status,completed_at:new Date().toISOString()}).eq('id',id);if(error)return showError(error.message);await loadResource();setStatus(status==='Passed'?'Test passed and qualification updated ✓':'Test failed and restriction updated ✓')}
 
-function renderEducation(){el('educationList').innerHTML=education.length?education.map(row=>`<div class="data-card"><div><strong>${esc(row.degree||'Degree not specified')}${row.field_of_study?` · ${esc(row.field_of_study)}`:''}</strong><small>${esc(row.institution||'Institution not specified')} · ${row.start_year||'—'}–${row.end_year||'—'}</small></div>${approvalPill(row.verified)}</div>`).join(''):'<div class="empty-compact">No education records.</div>';el('documentsList').innerHTML=documents.length?documents.map(row=>`<div class="data-card"><div><strong>${esc(row.document_type)}</strong><small>${esc(row.status)}${row.expires_on?` · expires ${fmtDate(row.expires_on)}`:''}</small></div></div>`).join(''):'<div class="empty-compact">No document metadata.</div>'}
-function openEducationModal(){['edu-institution','edu-degree','edu-field','edu-start','edu-end'].forEach(id=>el(id).value='');el('edu-verified').checked=false;el('educationModal').classList.remove('hidden')}
-async function saveEducation(){const {error}=await _sb.from('resource_education').insert({resource_id:resourceId,institution:nullable('edu-institution'),degree:nullable('edu-degree'),field_of_study:nullable('edu-field'),start_year:val('edu-start')===''?null:Number(val('edu-start')),end_year:val('edu-end')===''?null:Number(val('edu-end')),verified:el('edu-verified').checked,sort_order:education.length});if(error)return modalError('educationError',error.message);closeModal('educationModal');await loadResource();setStatus('Education added ✓')}
+const canEditCompliance = () => ['admin', 'pm', 'client_relations'].includes(appRole);
+const complianceMonth = date => date ? String(date).slice(0, 7) : '';
+const complianceFileById = id => complianceFileRecords.find(file => file.id === id);
+const readyComplianceDocument = document => {
+    const file=complianceFileById(document.file_record_id);
+    return ['Pending','Valid'].includes(document.status)
+        && file?.upload_status === 'Ready'
+        && file?.storage_provider === 'Cloudflare R2'
+        && file?.job_id === null
+        && file?.file_role === `Compliance - ${document.document_type}`;
+};
+
+function evidenceFileCard(document){
+    const file=complianceFileById(document.file_record_id);
+    if(!file||!readyComplianceDocument(document))return '';
+    const reviewed=document.status==='Valid';
+    return `<div class="data-card compliance-file-card"><div><strong>${esc(file.original_filename)}</strong><small>${esc(document.document_type)} · ${reviewed?`reviewed ${fmtDateTime(document.reviewed_at)}`:'upload verified · review required for ISO eligibility'}</small></div><div class="table-actions"><button class="table-action" type="button" onclick="openComplianceFile('${file.id}','View')">Open</button><button class="table-action" type="button" onclick="openComplianceFile('${file.id}','Download')">Download</button>${!reviewed&&canEditCompliance()?`<button class="table-action" type="button" onclick="reviewComplianceEvidence('${file.id}')">Confirm evidence</button>`:''}</div></div>`;
+}
+
+function renderEducation(){
+    const edit=canEditCompliance();
+    el('addEducationBtn').classList.toggle('hidden',!edit);
+    el('educationList').innerHTML=education.length?education.map(row=>{
+        const linked=documents.filter(document=>document.education_id===row.id&&document.document_type==='Diploma / certificate');
+        const ready=linked.filter(readyComplianceDocument);
+        const graduation=row.graduation_date?complianceMonth(row.graduation_date).replace(/^(\d{4})-(\d{2})$/,'$2/$1'):(row.end_year||'Not recorded');
+        const labels=[row.degree_type,row.field_of_study,row.institution,row.country,`Graduation: ${graduation}`].filter(Boolean);
+        return `<div class="compliance-education-record"><div class="data-card"><div><strong>${esc(row.degree||row.degree_type||'Degree not specified')}</strong><small>${esc(labels.join(' · '))}</small><small>${row.is_highest_relevant?'Highest relevant degree · ':''}${row.verified?'Reviewed':'Not reviewed'} · ${ready.length} diploma/certificate file${ready.length===1?'':'s'}</small></div><div class="table-actions">${edit?`<button class="table-action" type="button" onclick="openEducationModal('${row.id}')">Edit</button><button class="table-action" type="button" onclick="openComplianceFileModal('Diploma / certificate','${row.id}')">Upload diploma/certificate</button>`:''}</div></div>${ready.map(evidenceFileCard).join('')}</div>`;
+    }).join(''):'<div class="empty-compact">No education evidence recorded.</div>';
+    const cv=documents.filter(document=>document.document_type==='CV'&&readyComplianceDocument(document));
+    el('complianceCvFiles').innerHTML=cv.length?cv.map(evidenceFileCard).join(''):'<div class="empty-compact">No CV evidence files.</div>';
+    el('saveProfessionalExperienceBtn').classList.toggle('hidden',!edit);
+    el('uploadCvEvidenceBtn').classList.toggle('hidden',!edit);
+    ['r-translation-since','r-revision-since','r-mtpe-since'].forEach(id=>el(id).disabled=!edit);
+    for(const [id,date] of Object.entries({
+        'r-translation-since':resource.translation_professional_since,
+        'r-revision-since':resource.revision_professional_since,
+        'r-mtpe-since':resource.mtpe_professional_since,
+    }))el(id).value=complianceMonth(date);
+    const other=documents.filter(document=>!['CV','Diploma / certificate'].includes(document.document_type));
+    el('documentsList').innerHTML=other.length?other.map(row=>`<div class="data-card"><div><strong>${esc(row.document_type)}</strong><small>${esc(row.status)}${row.expires_on?` · expires ${fmtDate(row.expires_on)}`:''}</small></div></div>`).join(''):'<div class="empty-compact">No other document metadata.</div>';
+}
+
+function openEducationModal(id=null){
+    if(!canEditCompliance())return;
+    const row=education.find(item=>item.id===id);
+    el('educationModalTitle').textContent=row?'Edit education evidence':'Add education evidence';
+    el('edu-id').value=row?.id||'';
+    for(const [id,value] of Object.entries({
+        'edu-institution':row?.institution,
+        'edu-degree':row?.degree,
+        'edu-degree-type':row?.degree_type,
+        'edu-field':row?.field_of_study,
+        'edu-country':row?.country,
+        'edu-graduation':row?.graduation_date?complianceMonth(row.graduation_date):'',
+        'edu-graduation-year':row?.end_year||'',
+    }))el(id).value=value||'';
+    el('edu-highest').checked=row?!!row.is_highest_relevant:!education.some(item=>item.is_highest_relevant);
+    el('edu-verified').checked=!!row?.verified;
+    el('educationModal').classList.remove('hidden');
+}
+
+async function saveEducation(){
+    if(!canEditCompliance())return modalError('educationError','Operational access required.');
+    const graduation=val('edu-graduation');
+    const graduationYear=val('edu-graduation-year');
+    if(graduation&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(graduation))return modalError('educationError','Enter a valid graduation month/year.');
+    if(graduationYear&&(!/^\d{1,4}$/.test(graduationYear)||Number(graduationYear)>new Date().getUTCFullYear()))return modalError('educationError','Enter a valid graduation year.');
+    const original=education.find(item=>item.id===val('edu-id'));
+    const payload={
+        institution:nullable('edu-institution'),
+        degree:nullable('edu-degree'),
+        degree_type:nullable('edu-degree-type'),
+        field_of_study:nullable('edu-field'),
+        country:nullable('edu-country'),
+        graduation_date:graduation?`${graduation}-01`:null,
+        end_year:graduation?Number(graduation.slice(0,4)):graduationYear?Number(graduationYear):null,
+        verified:el('edu-verified').checked,
+        is_highest_relevant:el('edu-highest').checked,
+    };
+    const button=el('saveEducationBtn');button.disabled=true;
+    try{
+        const {error}=await _sb.rpc('save_resource_education_047',{
+            p_resource_id:resourceId,p_education_id:original?.id||null,p_payload:payload
+        });
+        if(error)throw error;
+        closeModal('educationModal');await loadResource();
+        setStatus(original?'Education updated ✓':'Education added ✓');
+    }catch(error){modalError('educationError',error.message)}
+    finally{button.disabled=false}
+}
+
+function renderComplianceSummary(){
+    if(!complianceSummary)return;
+    const experiences=complianceSummary.professional_experience||{};
+    for(const [service,[id,label]] of Object.entries({
+        translation:['translationExperience','Translation experience'],
+        revision:['revisionExperience','Revision experience'],
+        mtpe:['mtpeExperience','MTPE experience']
+    }))el(id).textContent=`${label}: ${experiences[service]?.display||'Not recorded'}`;
+
+    for(const [key,id] of Object.entries({
+        translator:'isoTranslatorEligibility',
+        reviser:'isoReviserEligibility',
+        post_editor:'isoPostEditorEligibility',
+    })){
+        const result=complianceSummary.iso_eligibility?.[key];
+        if(!result)continue;
+        const row=el(id),badge=row.querySelector('summary strong'),explanation=row.querySelector('p');
+        badge.textContent=result.status;
+        badge.className=`pill ${result.eligible?'pill-green':'pill-amber'}`;
+        explanation.textContent=result.explanation;
+    }
+}
+
+async function refreshComplianceSummary(){
+    if(!resourceId||resource?.resource_type==='Internal'||!['admin','pm','qa','client_relations'].includes(appRole))return;
+    const {data,error}=await _sb.rpc('resource_compliance_summary_047',{p_resource_id:resourceId});
+    if(error){showError(`Compliance calculation unavailable: ${error.message}`);return}
+    complianceSummary=data;renderComplianceSummary();
+}
+
+function scheduleComplianceRefresh(){
+    clearTimeout(complianceRefreshTimer);
+    const now=Date.now(),nextUtcMidnight=Date.UTC(
+        new Date(now).getUTCFullYear(),new Date(now).getUTCMonth(),new Date(now).getUTCDate()+1
+    );
+    complianceRefreshTimer=setTimeout(async()=>{
+        try{
+            await refreshComplianceSummary();
+            if(!el('blindCvModal').classList.contains('hidden'))await refreshBlindCvData();
+        }catch(error){showError(error.message)}finally{scheduleComplianceRefresh()}
+    },Math.max(1000,nextUtcMidnight-now+2500));
+}
+
+async function saveProfessionalExperience(){
+    if(!canEditCompliance())return showError('Operational access required.');
+    const inputs=['r-translation-since','r-revision-since','r-mtpe-since'].map(val);
+    const now=new Date(),currentMonth=`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}`;
+    if(inputs.some(value=>value&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(value)))return showError('Use valid MM/YYYY professional start dates.');
+    if(inputs.some(value=>value&&value>currentMonth))return showError('Professional start dates cannot be in the future.');
+    const button=el('saveProfessionalExperienceBtn');button.disabled=true;
+    const dates=inputs.map(value=>value?`${value}-01`:null);
+    try{
+        const {error}=await _sb.rpc('save_resource_professional_since_047',{
+            p_resource_id:resourceId,
+            p_translation_since:dates[0],p_revision_since:dates[1],p_mtpe_since:dates[2]
+        });
+        if(error)throw error;
+        await loadResource();setStatus('Professional start dates updated ✓');
+    }catch(error){showError(error.message)}finally{button.disabled=false}
+}
+
+async function complianceFileApi(action,payload={}){
+    const {data:{session}}=await _sb.auth.getSession();
+    if(!session?.access_token)throw new Error('Session expired. Sign in again.');
+    const response=await fetch('/.netlify/functions/resource-compliance-files',{
+        method:'POST',
+        headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},
+        body:JSON.stringify({action,...payload})
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||`Compliance file request failed (HTTP ${response.status}).`);
+    return result;
+}
+
+function openComplianceFileModal(type,educationId=null){
+    if(!canEditCompliance())return;
+    if(!['Diploma / certificate','CV'].includes(type))return;
+    el('compliance-evidence-type').value=type;
+    el('compliance-education-id').value=educationId||'';
+    el('complianceFileModalTitle').textContent=`Upload ${type} evidence`;
+    el('complianceFileInput').value='';
+    el('complianceFileProgress').textContent='';
+    el('complianceFileError').classList.add('hidden');
+    el('complianceFileModal').classList.remove('hidden');
+}
+
+async function uploadComplianceFiles(){
+    if(!canEditCompliance())return modalError('complianceFileError','Operational access required.');
+    const files=[...(el('complianceFileInput').files||[])];
+    if(!files.length)return modalError('complianceFileError','Choose at least one evidence file.');
+    if(!globalThis.TMS_FILE_HASH?.sha256Hex)return modalError('complianceFileError','The secure file hasher is unavailable. Refresh the page.');
+    const type=val('compliance-evidence-type'),educationId=nullable('compliance-education-id');
+    const button=el('uploadComplianceFileBtn');button.disabled=true;
+    let uploaded=0;
+    try{
+        for(const file of files){
+            let prepared=null;
+            try{
+                el('complianceFileProgress').textContent=`Checking ${file.name} (${uploaded+1}/${files.length})…`;
+                const checksum=await TMS_FILE_HASH.sha256Hex(file);
+                prepared=await complianceFileApi('prepare_upload',{
+                    resource_id:resourceId,
+                    education_id:educationId,
+                    evidence_type:type,
+                    original_filename:file.name,
+                    mime_type:file.type||'application/octet-stream',
+                    size_bytes:file.size,
+                    checksum_sha256:checksum
+                });
+                if(!prepared.file_id||!prepared.upload_url)throw new Error('Private R2 upload ticket incomplete.');
+                el('complianceFileProgress').textContent=`Uploading ${file.name} (${uploaded+1}/${files.length})…`;
+                const response=await fetch(prepared.upload_url,{
+                    method:'PUT',headers:prepared.upload_headers||{},body:file
+                });
+                if(!response.ok)throw new Error(`Cloudflare R2 rejected the upload (HTTP ${response.status}).`);
+                el('complianceFileProgress').textContent=`Verifying ${file.name}…`;
+                await complianceFileApi('complete_upload',{file_id:prepared.file_id});
+                uploaded++;
+            }catch(error){
+                if(prepared?.file_id)await complianceFileApi('discard_upload',{file_id:prepared.file_id}).catch(()=>{});
+                throw error;
+            }
+        }
+        closeModal('complianceFileModal');
+        await loadResource();
+        setStatus(`${uploaded} Compliance evidence file${uploaded===1?'':'s'} uploaded ✓`);
+    }catch(error){
+        await loadResource();
+        modalError('complianceFileError',`${uploaded} uploaded; next file not published: ${error.message}`);
+    }finally{button.disabled=false}
+}
+
+async function openComplianceFile(fileId,action='View'){
+    const evidence=documents.find(row=>row.file_record_id===fileId);
+    if(!evidence||!readyComplianceDocument(evidence))return showError('Compliance file unavailable.');
+    try{
+        const signed=await complianceFileApi('download',{
+            file_id:fileId,file_action:action
+        });
+        const link=document.createElement('a');
+        link.href=signed.download_url;link.rel='noopener noreferrer';
+        if(action==='Download')link.download=signed.filename||'evidence';
+        else link.target='_blank';
+        document.body.appendChild(link);link.click();link.remove();
+    }catch(error){showError(error.message)}
+}
+
+async function reviewComplianceEvidence(fileId){
+    if(!canEditCompliance())return showError('Operational access required.');
+    const evidence=documents.find(row=>row.file_record_id===fileId);
+    if(!evidence||!readyComplianceDocument(evidence))return showError('Compliance evidence unavailable.');
+    if(!confirm('Confirm that you have inspected this evidence file and it supports the recorded qualification or experience?'))return;
+    try{
+        await complianceFileApi('review_evidence',{file_id:fileId});
+        await loadResource();setStatus('Compliance evidence confirmed ✓');
+    }catch(error){showError(error.message)}
+}
 
 function renderHistory(){el('historyTbody').innerHTML=history.length?history.map(row=>`<tr><td>${row.period_start?fmtDate(row.period_start):row.project_year||'—'}${row.period_end?` – ${fmtDate(row.period_end)}`:''}</td><td>${esc(row.account_display_label||'Confidential account')}</td><td>${esc(row.source_language||'—')} → ${esc(row.target_language||'—')}</td><td>${esc(row.service_type||'—')}</td><td>${esc(specName(row.specialization_id))}</td><td>${esc(row.project_summary||'—')}</td><td><input type="checkbox" ${row.include_in_blind_cv?'checked':''} onchange="toggleHistoryCv('${row.id}',this.checked)"></td></tr>`).join(''):'<tr class="state-row"><td colspan="7">No approved Job history.</td></tr>'}
 async function toggleHistoryCv(id,checked){const {error}=await _sb.from('resource_project_history').update({include_in_blind_cv:checked}).eq('id',id);if(error)return showError(error.message);setStatus('CV inclusion updated ✓')}
@@ -211,14 +458,49 @@ function renderPrivateNotes(){if(appRole!=='admin')return;el('privateArchiveCard
 async function addPrivateNote(){if(!val('new-private-note'))return;const user=(await _sb.auth.getUser()).data.user;const {error}=await _sb.from('resource_private_notes').insert({resource_id:resourceId,note_type:'Private management note',content:val('new-private-note'),created_by:user?.id||null});if(error)return showError(error.message);el('new-private-note').value='';await loadResource();setStatus('Private note added ✓')}
 
 function cvText(value,fallback='Not recorded'){return value&&String(value).trim()?String(value):fallback}
-function renderBlindCvPreview(){const r=cvData.resource,lp=cvData.language_pairs||[],hist=cvData.project_history||[];el('blindCvPreview').innerHTML=`<div class="cv-brand"><strong>Retodo Ops</strong><span>Blind Linguist Profile</span></div><h2>${esc(r.internal_number)} · ${esc(cvText(r.initials))}</h2><div class="cv-meta"><span><b>Nationality:</b> ${esc(cvText(r.nationality))}</span><span><b>Residence:</b> ${esc(cvText(r.country_of_residence))}</span><span><b>Native language:</b> ${esc(cvText(r.native_language))}</span></div><h3>Language coverage</h3><p>${lp.length?lp.map(x=>`${esc(x.source)} → ${esc(x.target)}${x.native_target?' (native target)':''}`).join('; '):'Not recorded'}</p><h3>Services and specializations</h3><p><b>Services:</b> ${esc((cvData.services||[]).join(', ')||'Not recorded')}</p><ul>${(cvData.specializations||[]).map(x=>`<li>${esc(x.name)}${x.experience_years?` — ${x.experience_years} years`:''}</li>`).join('')||'<li>Not recorded</li>'}</ul><h3>Education</h3><ul>${(cvData.education||[]).map(x=>`<li>${esc([x.degree,x.field_of_study,x.institution].filter(Boolean).join(', '))}${x.end_year?` (${x.start_year||'—'}–${x.end_year})`:''}</li>`).join('')||'<li>Not recorded</li>'}</ul><h3>Selected project experience</h3><ul>${hist.map(x=>`<li>${esc(String(x.year||''))} · ${esc(cvText(x.account,'Confidential account'))} · ${esc(cvText(x.source_language,'—'))} → ${esc(cvText(x.target_language,'—'))} · ${esc([x.service,x.specialization].filter(Boolean).join(', '))}</li>`).join('')||'<li>No approved project history selected.</li>'}</ul><div class="cv-footer">Prepared by Retodo Ops · Personal identity and direct contact details withheld</div>`}
-async function openBlindCv(){el('blindCvModal').classList.remove('hidden');el('blindCvPreview').textContent='Preparing anonymized profile…';const {data,error}=await _sb.rpc('get_blind_cv_data',{p_resource_id:resourceId});if(error){modalError('blindCvError',error.message);return}cvData=data;renderBlindCvPreview()}
+function blindCvExperienceLines(){const experience=cvData?.professional_experience||{};return [['Translation experience',experience.translation],['Revision experience',experience.revision],['MTPE experience',experience.mtpe]].map(([label,result])=>`${label}: ${result?.display||'Not recorded'}`)}
+function renderBlindCvPreview(){const r=cvData.resource,lp=cvData.language_pairs||[],hist=cvData.project_history||[];el('blindCvPreview').innerHTML=`<div class="cv-brand"><strong>Retodo Ops</strong><span>Blind Linguist Profile</span></div><h2>${esc(r.internal_number)} · ${esc(cvText(r.initials))}</h2><div class="cv-meta"><span><b>Nationality:</b> ${esc(cvText(r.nationality))}</span><span><b>Residence:</b> ${esc(cvText(r.country_of_residence))}</span><span><b>Native language:</b> ${esc(cvText(r.native_language))}</span></div><h3>Language coverage</h3><p>${lp.length?lp.map(x=>`${esc(x.source)} → ${esc(x.target)}${x.native_target?' (native target)':''}`).join('; '):'Not recorded'}</p><h3>Professional experience</h3><ul>${blindCvExperienceLines().map(line=>`<li>${esc(line)}</li>`).join('')}</ul><h3>Services and specializations</h3><p><b>Services:</b> ${esc((cvData.services||[]).join(', ')||'Not recorded')}</p><ul>${(cvData.specializations||[]).map(x=>`<li>${esc(x.name)}${x.experience_years?` — ${x.experience_years} years`:''}</li>`).join('')||'<li>Not recorded</li>'}</ul><h3>Education</h3><ul>${(cvData.education||[]).map(x=>`<li>${esc([x.degree,x.field_of_study,x.institution].filter(Boolean).join(', '))}${x.end_year?` (${x.start_year||'—'}–${x.end_year})`:''}</li>`).join('')||'<li>Not recorded</li>'}</ul><h3>Selected project experience</h3><ul>${hist.map(x=>`<li>${esc(String(x.year||''))} · ${esc(cvText(x.account,'Confidential account'))} · ${esc(cvText(x.source_language,'—'))} → ${esc(cvText(x.target_language,'—'))} · ${esc([x.service,x.specialization].filter(Boolean).join(', '))}</li>`).join('')||'<li>No approved project history selected.</li>'}</ul><div class="cv-footer">Prepared by Retodo Ops · Personal identity and direct contact details withheld</div>`}
+async function refreshBlindCvData(){const {data,error}=await _sb.rpc('get_blind_cv_data',{p_resource_id:resourceId});if(error)throw error;cvData=data;renderBlindCvPreview()}
+async function openBlindCv(){el('blindCvModal').classList.remove('hidden');el('blindCvPreview').textContent='Preparing anonymized profile…';try{await refreshBlindCvData()}catch(error){modalError('blindCvError',error.message)}}
 function saveBlob(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-function cvLines(){const r=cvData.resource;return [{heading:'Linguist profile',lines:[`${r.internal_number} · ${cvText(r.initials)}`,`Nationality: ${cvText(r.nationality)}`,`Country of residence: ${cvText(r.country_of_residence)}`,`Native language: ${cvText(r.native_language)}`]},{heading:'Language coverage',lines:(cvData.language_pairs||[]).map(x=>`${x.source} → ${x.target}${x.native_target?' (native target)':''}`)},{heading:'Services',lines:cvData.services||[]},{heading:'Specializations',lines:(cvData.specializations||[]).map(x=>`${x.name}${x.experience_years?` — ${x.experience_years} years`:''}`)},{heading:'Education',lines:(cvData.education||[]).map(x=>[x.degree,x.field_of_study,x.institution,x.start_year||x.end_year?`${x.start_year||'—'}–${x.end_year||'—'}`:''].filter(Boolean).join(', '))},{heading:'Selected project experience',lines:(cvData.project_history||[]).map(x=>`${x.year||''} · ${cvText(x.account,'Confidential account')} · ${cvText(x.source_language,'—')} → ${cvText(x.target_language,'—')} · ${[x.service,x.specialization].filter(Boolean).join(', ')}`)}]}
-async function downloadBlindCvDocx(){if(!cvData)return;try{const {Document,Packer,Paragraph,TextRun,HeadingLevel,AlignmentType}=window.docx;const children=[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'Retodo Ops',bold:true,size:32,color:'1E1248'})]}),new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'BLIND LINGUIST PROFILE',bold:true,size:22,color:'7C3AED'})]})];cvLines().forEach(section=>{children.push(new Paragraph({text:section.heading,heading:HeadingLevel.HEADING_2,spacing:{before:240,after:80}}));(section.lines.length?section.lines:['Not recorded']).forEach(line=>children.push(new Paragraph({text:line,bullet:section.heading==='Linguist profile'?undefined:{level:0}}))) });children.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:320},children:[new TextRun({text:'Personal identity and direct contact details withheld',italics:true,color:'6B7280',size:18})]}));const doc=new Document({sections:[{properties:{},children}]});saveBlob(await Packer.toBlob(doc),`Blind_CV_${cvData.resource.internal_number}.docx`)}catch(error){modalError('blindCvError',`DOCX generation failed: ${error.message}`)}}
-async function downloadBlindCvPdf(){if(!cvData)return;try{await window.html2pdf().set({margin:[10,10,10,10],filename:`Blind_CV_${cvData.resource.internal_number}.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(el('blindCvPreview')).save()}catch(error){modalError('blindCvError',`PDF generation failed: ${error.message}`)}}
+function cvLines(){const r=cvData.resource;return [{heading:'Linguist profile',lines:[`${r.internal_number} · ${cvText(r.initials)}`,`Nationality: ${cvText(r.nationality)}`,`Country of residence: ${cvText(r.country_of_residence)}`,`Native language: ${cvText(r.native_language)}`]},{heading:'Language coverage',lines:(cvData.language_pairs||[]).map(x=>`${x.source} → ${x.target}${x.native_target?' (native target)':''}`)},{heading:'Professional experience',lines:blindCvExperienceLines()},{heading:'Services',lines:cvData.services||[]},{heading:'Specializations',lines:(cvData.specializations||[]).map(x=>`${x.name}${x.experience_years?` — ${x.experience_years} years`:''}`)},{heading:'Education',lines:(cvData.education||[]).map(x=>[x.degree,x.field_of_study,x.institution,x.start_year||x.end_year?`${x.start_year||'—'}–${x.end_year||'—'}`:''].filter(Boolean).join(', '))},{heading:'Selected project experience',lines:(cvData.project_history||[]).map(x=>`${x.year||''} · ${cvText(x.account,'Confidential account')} · ${cvText(x.source_language,'—')} → ${cvText(x.target_language,'—')} · ${[x.service,x.specialization].filter(Boolean).join(', ')}`)}]}
+async function downloadBlindCvDocx(){if(!cvData)return;try{await refreshBlindCvData();const {Document,Packer,Paragraph,TextRun,HeadingLevel,AlignmentType}=window.docx;const children=[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'Retodo Ops',bold:true,size:32,color:'1E1248'})]}),new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'BLIND LINGUIST PROFILE',bold:true,size:22,color:'7C3AED'})]})];cvLines().forEach(section=>{children.push(new Paragraph({text:section.heading,heading:HeadingLevel.HEADING_2,spacing:{before:240,after:80}}));(section.lines.length?section.lines:['Not recorded']).forEach(line=>children.push(new Paragraph({text:line,bullet:section.heading==='Linguist profile'?undefined:{level:0}}))) });children.push(new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:320},children:[new TextRun({text:'Personal identity and direct contact details withheld',italics:true,color:'6B7280',size:18})]}));const doc=new Document({sections:[{properties:{},children}]});saveBlob(await Packer.toBlob(doc),`Blind_CV_${cvData.resource.internal_number}.docx`)}catch(error){modalError('blindCvError',`DOCX generation failed: ${error.message}`)}}
+async function downloadBlindCvPdf(){if(!cvData)return;try{await refreshBlindCvData();await window.html2pdf().set({margin:[10,10,10,10],filename:`Blind_CV_${cvData.resource.internal_number}.pdf`,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(el('blindCvPreview')).save()}catch(error){modalError('blindCvError',`PDF generation failed: ${error.message}`)}}
 
-async function loadResource(){const base=await _sb.from('resources').select('*').eq('id',resourceId).single();if(base.error)return showError(base.error.message);resource=base.data;const requests=[_sb.from('resource_language_pairs').select('*').eq('resource_id',resourceId).order('target_language'),_sb.from('resource_services').select('*').eq('resource_id',resourceId).order('service_type'),_sb.from('specializations').select('*').eq('active',true).order('name'),_sb.from('resource_specializations').select('*').eq('resource_id',resourceId),_sb.from('resource_rates').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),_sb.from('resource_tests').select('*').eq('resource_id',resourceId).order('assigned_at',{ascending:false}),_sb.from('resource_account_qualifications').select('*').eq('resource_id',resourceId).order('updated_at',{ascending:false}),_sb.from('client_accounts').select('id,name').order('name'),_sb.from('resource_education').select('*').eq('resource_id',resourceId).order('sort_order'),_sb.from('resource_documents').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),_sb.from('resource_project_history').select('*').eq('resource_id',resourceId).order('project_year',{ascending:false}),_sb.from('resource_availability').select('*').eq('resource_id',resourceId).order('starts_at',{ascending:false})];if(appRole==='admin')requests.push(_sb.from('resource_private_notes').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}));const result=await Promise.all(requests);[pairs,services,specializations,resourceSpecializations,rates,tests,accountQualifications,accounts,education,documents,history,availability]=result.slice(0,12).map(x=>x.data||[]);privateNotes=appRole==='admin'?(result[12]?.data||[]):[];populateOverview();renderPairs();renderServices();renderSpecializations();renderRates();renderTests();renderEducation();renderHistory();renderAvailability();renderPrivateNotes()}
+async function loadResource(){
+    const base=await _sb.from('resources').select('*').eq('id',resourceId).single();
+    if(base.error)return showError(base.error.message);
+    resource=base.data;
+    const requests=[
+        _sb.from('resource_language_pairs').select('*').eq('resource_id',resourceId).order('target_language'),
+        _sb.from('resource_services').select('*').eq('resource_id',resourceId).order('service_type'),
+        _sb.from('specializations').select('*').eq('active',true).order('name'),
+        _sb.from('resource_specializations').select('*').eq('resource_id',resourceId),
+        _sb.from('resource_rates').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),
+        _sb.from('resource_tests').select('*').eq('resource_id',resourceId).order('assigned_at',{ascending:false}),
+        _sb.from('resource_account_qualifications').select('*').eq('resource_id',resourceId).order('updated_at',{ascending:false}),
+        _sb.from('client_accounts').select('id,name').order('name'),
+        _sb.from('resource_education').select('*').eq('resource_id',resourceId).order('sort_order'),
+        _sb.from('resource_documents').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),
+        _sb.from('resource_project_history').select('*').eq('resource_id',resourceId).order('project_year',{ascending:false}),
+        _sb.from('resource_availability').select('*').eq('resource_id',resourceId).order('starts_at',{ascending:false})
+    ];
+    if(appRole==='admin')requests.push(
+        _sb.from('resource_private_notes').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false})
+    );
+    const result=await Promise.all(requests);
+    [pairs,services,specializations,resourceSpecializations,rates,tests,accountQualifications,accounts,education,documents,history,availability]=result.slice(0,12).map(x=>x.data||[]);
+    privateNotes=appRole==='admin'?(result[12]?.data||[]):[];
+    const evidenceIds=[...new Set(documents.filter(document=>['CV','Diploma / certificate'].includes(document.document_type)).map(document=>document.file_record_id).filter(Boolean))];
+    if(evidenceIds.length){
+        const files=await _sb.from('file_records').select('id,original_filename,upload_status,storage_provider,job_id,file_role').in('id',evidenceIds);
+        if(files.error)showError(`Compliance file metadata unavailable: ${files.error.message}`);
+        complianceFileRecords=files.data||[];
+    }else complianceFileRecords=[];
+    populateOverview();renderPairs();renderServices();renderSpecializations();renderRates();renderTests();
+    renderEducation();renderHistory();renderAvailability();renderPrivateNotes();
+    await refreshComplianceSummary();
+}
 
 // Update 036: an Account carries its default specializations into the
 // Resource rate-card editor, preventing an Account/rate-card discrepancy.
@@ -257,4 +539,10 @@ document.querySelectorAll('#r-internal-positions input').forEach(input=>input.ad
 el('rate-unit').addEventListener('change',toggleCatDiscounts);el('rate-value').addEventListener('input',calculateCatRates);el('rate-currency').addEventListener('change',calculateCatRates);
 el('rate-account').addEventListener('change',()=>renderRateSpecializationOptions());
 el('test-type').addEventListener('change',updateTestScopeFields);
-(async()=>{const user=await requireAuth();if(!user)return;await Promise.all([TMS_REF.loadLanguages(_sb),TMS_REF.loadServices(_sb)]);TMS_REF.installDatalists();TMS_REF.populateServiceSelect('service-name');resourceId=new URLSearchParams(location.search).get('id');if(!resourceId){location.href='resources.html?type=external';return}const role=await _sb.rpc('current_app_role');appRole=role.data||'user';await loadResource()})();
+document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden){
+        refreshComplianceSummary();
+        if(!el('blindCvModal').classList.contains('hidden'))refreshBlindCvData().catch(error=>showError(error.message));
+    }
+});
+(async()=>{const user=await requireAuth();if(!user)return;await Promise.all([TMS_REF.loadLanguages(_sb),TMS_REF.loadServices(_sb)]);TMS_REF.installDatalists();TMS_REF.populateServiceSelect('service-name');resourceId=new URLSearchParams(location.search).get('id');if(!resourceId){location.href='resources.html?type=external';return}const role=await _sb.rpc('current_app_role');appRole=role.data||'user';await loadResource();scheduleComplianceRefresh()})();

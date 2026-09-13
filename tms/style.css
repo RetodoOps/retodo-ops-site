@@ -1245,6 +1245,49 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .internal-resource-mode .resource-tabs,
 .internal-resource-mode .record-pane { display: none; }
 .internal-resource-mode #internalOverviewCard { display: block; }
+
+/* Update 048: company-only Compliance evidence and derived ISO states. */
+.compliance-card { margin-top: 18px; }
+.compliance-card .section-card-heading { margin-bottom: 16px; }
+.compliance-help { margin: 2px 0 14px; }
+.compliance-education-record { display: grid; gap: 5px; }
+.compliance-education-record > .compliance-file-card { margin-left: 18px; background: #faf9ff; }
+.compliance-file-card strong { overflow-wrap: anywhere; }
+.compliance-experience-grid { margin: 14px 0 20px; }
+.experience-duration { display: block; margin-top: 6px; color: #4c1d95; font-weight: 700; }
+.compliance-evidence-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px;
+    border: 1px solid #ddd6fe;
+    border-radius: 9px;
+    background: #faf9ff;
+}
+.compliance-evidence-row > div { display: grid; gap: 4px; }
+.compliance-evidence-row .field-label { color: #64748b; font-size: 11px; font-weight: 750; text-transform: uppercase; }
+.compliance-evidence-row small { color: #64748b; }
+.compliance-file-list { margin-top: 12px; }
+.iso-eligibility-list { display: grid; gap: 9px; }
+.iso-eligibility-item { border: 1px solid #ddd6fe; border-radius: 9px; background: #fff; }
+.iso-eligibility-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    font-weight: 700;
+}
+.iso-eligibility-item summary .pill { margin-left: auto; white-space: nowrap; }
+.iso-eligibility-item p { padding: 12px 14px; border-top: 1px solid #ede9fe; color: #475569; }
+.internal-iso-card .privacy-label { white-space: nowrap; }
+@media (max-width: 680px) {
+    .compliance-evidence-row, .iso-eligibility-item summary { align-items: flex-start; flex-direction: column; }
+    .iso-eligibility-item summary .pill { margin-left: 0; }
+    .compliance-education-record > .compliance-file-card { margin-left: 0; }
+}
 .internal-resource-filters .resource-filter-row:first-child { grid-template-columns: minmax(280px, 520px); }
 .internal-resource-filters .resource-search { width: 100%; max-width: 520px; }
 

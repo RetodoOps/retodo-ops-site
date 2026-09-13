@@ -41,9 +41,9 @@ test('Delivery tab badge counts effective Ready files only',()=>{
     assert.match(source,/readyCount===0/);
 });
 
-test('changed browser scripts use Update 047 cache keys',()=>{
+test('existing invitation scripts retain Update 047 cache keys; changed pages use Update 048',()=>{
     assert.match(read('tms/resource.html'),/onboarding\.js\?v=047/);
-    assert.match(read('tms/resource.html'),/resource\.js\?v=047/);
+    assert.match(read('tms/resource.html'),/resource\.js\?v=048/);
     assert.match(read('tms/resources.html'),/resources\.js\?v=047/);
-    assert.match(read('tms/job.html'),/job\.js\?v=047/);
+    assert.match(read('tms/job.html'),/job\.js\?v=048/);
 });

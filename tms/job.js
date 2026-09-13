@@ -356,8 +356,10 @@ function updateDeliveryFileBadge(){
 function renderJobFiles(){
   const body=document.getElementById('jobFilesTbody');
   updateDeliveryFileBadge();
-  if(!jobFiles.length){body.innerHTML='<tr class="state-row"><td colspan="7">No files are linked to this Job.</td></tr>';renderDeliveryControls();renderFileLifecycle();return}
-  body.innerHTML=jobFiles.map(file=>{
+  // Preserve failed/discarded records for audit without showing them as live Job files.
+  const visibleFiles=jobFiles.filter(file=>file.upload_status!=='Failed');
+  if(!visibleFiles.length){body.innerHTML='<tr class="state-row"><td colspan="7">No active files are linked to this Job.</td></tr>';renderDeliveryControls();renderFileLifecycle();return}
+  body.innerHTML=visibleFiles.map(file=>{
     const status=file.upload_status||(file.archived_at?'Archived':'Ready'),access=latestResourceFileAccess(file.id),actions=[];
     if(status==='Ready'&&['Cloudflare R2','Supabase'].includes(file.storage_provider)){
       actions.push(`<button class="table-action" type="button" onclick="openStaffJobFile('${file.id}','View')">Open</button>`);
