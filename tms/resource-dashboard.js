@@ -1,5 +1,249 @@
 let portalJobs = [];
 let portalPurchaseOrders = [];
+let portalCompliance = null;
+
+const portalValue = id => String(document.getElementById(id)?.value || '').trim();
+const portalMonth = date => date ? String(date).slice(0, 7) : '';
+
+function portalCountryOptions(selected = '') {
+    const values = [...(globalThis.TMS_REF?.countries || [])];
+    if (selected && !values.includes(selected)) values.push(selected);
+    return '<option value="">Select country…</option>' + values.map(country =>
+        `<option value="${portalEsc(country)}" ${country === selected ? 'selected' : ''}>${portalEsc(country)}</option>`
+    ).join('');
+}
+
+function portalExperienceDuration(month) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month || '')) return null;
+    const [year, value] = month.split('-').map(Number);
+    const now = new Date();
+    const total = (now.getUTCFullYear() - year) * 12 + now.getUTCMonth() + 1 - value;
+    if (total < 0) return null;
+    const years = Math.floor(total / 12), months = total % 12;
+    return `${years} ${years === 1 ? 'year' : 'years'} ${months} ${months === 1 ? 'month' : 'months'}`;
+}
+
+function updatePortalExperiencePreview() {
+    for (const [inputId, outputId, label] of [
+        ['portal-translation-since', 'portalTranslationExperience', 'Translation experience'],
+        ['portal-revision-since', 'portalRevisionExperience', 'Revision experience'],
+        ['portal-mtpe-since', 'portalMtpeExperience', 'MTPE experience'],
+    ]) {
+        const duration = portalExperienceDuration(portalValue(inputId));
+        document.getElementById(outputId).textContent = `${label}: ${duration || 'Not recorded'}`;
+    }
+}
+
+function togglePortalEducationFields() {
+    const noDegree = portalValue('portal-degree-level') === 'No university degree';
+    const other = portalValue('portal-field-category') === 'Other';
+    const type = document.getElementById('portal-degree-type');
+    type.disabled = noDegree || !portalCompliance?.editable;
+    if (noDegree) type.value = 'No university degree';
+    else if (type.value === 'No university degree') type.value = '';
+    for (const id of ['portal-field-category', 'portal-institution', 'portal-education-country', 'portal-graduation-year']) {
+        const input = document.getElementById(id);
+        input.disabled = noDegree || !portalCompliance?.editable;
+    }
+    document.getElementById('portal-field-other-field').classList.toggle('hidden', noDegree || !other);
+    document.getElementById('portal-field-other').disabled = noDegree || !other || !portalCompliance?.editable;
+    document.getElementById('portalDiplomaUploadRow').classList.toggle('hidden', noDegree);
+    document.getElementById('portalDiplomaEvidence').classList.toggle('hidden', noDegree);
+    if (noDegree && portalCompliance?.editable) {
+        document.getElementById('portal-field-category').value = '';
+        document.getElementById('portal-field-other').value = '';
+        document.getElementById('portal-institution').value = '';
+        document.getElementById('portal-education-country').value = '';
+        document.getElementById('portal-graduation-year').value = '';
+    }
+}
+
+function portalComplianceFileCard(file) {
+    const reviewed = file.review_status === 'Valid';
+    return `<div class="data-card compliance-file-card"><div><strong>${portalEsc(file.filename)}</strong><small>${portalEsc(file.evidence_type)} · ${reviewed ? 'Reviewed' : 'Pending internal review'} · ${portalBytes(file.size_bytes)}</small></div><div class="table-actions"><button class="table-action" type="button" onclick="openPortalComplianceFile('${file.file_id}','View')">Open</button><button class="table-action" type="button" onclick="openPortalComplianceFile('${file.file_id}','Download')">Download</button></div></div>`;
+}
+
+function renderPortalCompliance() {
+    const data = portalCompliance || {visible: false, editable: false, status: 'Not requested', documents: []};
+    const visible = data.visible === true;
+    document.getElementById('portalComplianceNav').classList.toggle('hidden', !visible);
+    document.getElementById('myCompliance').classList.toggle('hidden', !visible);
+    document.getElementById('portalComplianceStatus').textContent = data.status || 'Not requested';
+    if (!visible) return;
+
+    const status = data.status || 'Requested', pill = document.getElementById('portalCompliancePill');
+    pill.textContent = status;
+    pill.className = `pill ${status === 'Complete' ? 'pill-green' : status === 'Changes required' ? 'pill-red' : status === 'Submitted' ? 'pill-blue' : 'pill-amber'}`;
+    const change = document.getElementById('portalComplianceChanges');
+    change.textContent = data.change_reason ? `Requested changes: ${data.change_reason}` : '';
+    change.classList.toggle('hidden', !data.change_reason);
+    const readOnly = document.getElementById('portalComplianceReadOnly');
+    const readOnlyMessages = {
+        Submitted: 'Your submission is locked while Retodo Ops reviews the evidence.',
+        Complete: 'Compliance review is complete. The information remains available to you as read-only.',
+    };
+    readOnly.textContent = data.editable ? '' : (readOnlyMessages[status] || 'This Compliance record is currently read-only.');
+    readOnly.classList.toggle('hidden', !!data.editable);
+
+    const education = data.education || {};
+    document.getElementById('portal-degree-level').value = education.degree_level || '';
+    document.getElementById('portal-degree-type').value = education.degree_type || '';
+    document.getElementById('portal-field-category').value = education.field_of_study_category || '';
+    document.getElementById('portal-field-other').value = education.field_of_study_other || '';
+    document.getElementById('portal-institution').value = education.institution || '';
+    document.getElementById('portal-education-country').innerHTML = portalCountryOptions(education.country || '');
+    document.getElementById('portal-graduation-year').value = education.graduation_year || '';
+    const legacyDegree = document.getElementById('portal-legacy-degree');
+    legacyDegree.textContent = education.legacy_degree ? `Legacy degree label: ${education.legacy_degree}. Select the matching option before submitting.` : '';
+    legacyDegree.classList.toggle('hidden', !legacyDegree.textContent);
+    const legacyField = document.getElementById('portal-legacy-field');
+    legacyField.textContent = education.legacy_field_of_study ? `Legacy field: ${education.legacy_field_of_study}. Select the matching option before submitting.` : '';
+    legacyField.classList.toggle('hidden', !legacyField.textContent);
+
+    const since = data.professional_since || {};
+    document.getElementById('portal-translation-since').value = portalMonth(since.translation);
+    document.getElementById('portal-revision-since').value = portalMonth(since.revision);
+    document.getElementById('portal-mtpe-since').value = portalMonth(since.mtpe);
+    const inputs = document.querySelectorAll('#myCompliance input, #myCompliance select');
+    inputs.forEach(input => input.disabled = !data.editable);
+    togglePortalEducationFields();
+    updatePortalExperiencePreview();
+
+    const documents = Array.isArray(data.documents) ? data.documents : [];
+    const diploma = documents.filter(file => file.evidence_type === 'Diploma / certificate');
+    const cv = documents.filter(file => file.evidence_type === 'CV');
+    document.getElementById('portalDiplomaEvidence').innerHTML = diploma.length ? diploma.map(portalComplianceFileCard).join('') : '<div class="empty-compact">No diploma/certificate evidence uploaded.</div>';
+    document.getElementById('portalCvEvidence').innerHTML = cv.length ? cv.map(portalComplianceFileCard).join('') : '<div class="empty-compact">No CV evidence uploaded.</div>';
+    document.getElementById('portalComplianceActions').classList.toggle('hidden', !data.editable);
+    for (const id of ['portalUploadDiplomaBtn', 'portalUploadCvBtn']) document.getElementById(id).disabled = !data.editable;
+    if (location.hash === '#myCompliance') document.getElementById('myCompliance').scrollIntoView({block: 'start'});
+}
+
+function portalCompliancePayload() {
+    const values = ['portal-translation-since', 'portal-revision-since', 'portal-mtpe-since'].map(portalValue);
+    const now = new Date(), currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+    if (values.some(value => value && (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value) || value > currentMonth))) throw new Error('Professional start months must be valid and not in the future.');
+    const year = portalValue('portal-graduation-year');
+    if (year && (!/^\d{4}$/.test(year) || Number(year) < 1900 || Number(year) > now.getUTCFullYear())) throw new Error('Enter a valid graduation year.');
+    return {
+        education: {
+            degree_level: portalValue('portal-degree-level') || null,
+            degree_type: portalValue('portal-degree-type') || null,
+            field_of_study_category: portalValue('portal-field-category') || null,
+            field_of_study_other: portalValue('portal-field-other') || null,
+            institution: portalValue('portal-institution') || null,
+            country: portalValue('portal-education-country') || null,
+            end_year: year ? Number(year) : null,
+        },
+        translation_professional_since: values[0] ? `${values[0]}-01` : null,
+        revision_professional_since: values[1] ? `${values[1]}-01` : null,
+        mtpe_professional_since: values[2] ? `${values[2]}-01` : null,
+    };
+}
+
+async function savePortalCompliance({quiet = false} = {}) {
+    portalClearError('portalComplianceError');
+    if (!portalCompliance?.editable) throw new Error('Compliance evidence is currently read-only.');
+    const button = document.getElementById('portalSaveComplianceBtn');
+    button.disabled = true;
+    try {
+        const {data, error} = await _sb.rpc('resource_portal_save_compliance_048', {p_payload: portalCompliancePayload()});
+        if (error) throw error;
+        portalCompliance = data;
+        renderPortalCompliance();
+        if (!quiet) document.getElementById('portalComplianceProgress').textContent = 'Progress saved.';
+        return data;
+    } catch (error) {
+        portalShowError(error.message, 'portalComplianceError');
+        if (quiet) throw error;
+        return null;
+    } finally { button.disabled = false; }
+}
+
+async function submitPortalCompliance() {
+    portalClearError('portalComplianceError');
+    const button = document.getElementById('portalSubmitComplianceBtn');
+    button.disabled = true;
+    try {
+        await savePortalCompliance({quiet: true});
+        const {data, error} = await _sb.rpc('resource_portal_submit_compliance_048');
+        if (error) throw error;
+        portalCompliance = data;
+        renderPortalCompliance();
+        document.getElementById('portalComplianceProgress').textContent = 'Submitted for internal review.';
+    } catch (error) {
+        portalShowError(error.message, 'portalComplianceError');
+    } finally { button.disabled = false; }
+}
+
+async function portalComplianceFileApi(action, payload = {}) {
+    const {data: {session}} = await _sb.auth.getSession();
+    if (!session?.access_token) throw new Error('Session expired. Sign in again.');
+    const response = await fetch('/.netlify/functions/resource-compliance-files', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`},
+        body: JSON.stringify({action, ...payload}),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'The Compliance file request could not be completed.');
+    return result;
+}
+
+async function uploadPortalComplianceFiles(type) {
+    portalClearError('portalComplianceError');
+    if (!portalCompliance?.editable) return portalShowError('Compliance evidence is currently read-only.', 'portalComplianceError');
+    const input = document.getElementById(type === 'CV' ? 'portalCvFiles' : 'portalDiplomaFiles');
+    const files = [...(input.files || [])];
+    if (!files.length) return portalShowError('Choose at least one file.', 'portalComplianceError');
+    if (!globalThis.TMS_FILE_HASH?.sha256Hex) return portalShowError('The secure file hasher is unavailable. Refresh the page.', 'portalComplianceError');
+    const button = document.getElementById(type === 'CV' ? 'portalUploadCvBtn' : 'portalUploadDiplomaBtn');
+    button.disabled = true;
+    let uploaded = 0;
+    try {
+        await savePortalCompliance({quiet: true});
+        const educationId = portalCompliance.education?.id || null;
+        if (type === 'Diploma / certificate' && !educationId) throw new Error('Save the education record before uploading diploma evidence.');
+        for (const file of files) {
+            let prepared = null;
+            try {
+                document.getElementById('portalComplianceProgress').textContent = `Checking ${file.name} (${uploaded + 1}/${files.length})…`;
+                const checksum = await TMS_FILE_HASH.sha256Hex(file);
+                prepared = await portalComplianceFileApi('prepare_upload', {
+                    resource_id: portalCompliance.resource_id,
+                    education_id: type === 'Diploma / certificate' ? educationId : null,
+                    evidence_type: type,
+                    original_filename: file.name,
+                    mime_type: file.type || 'application/octet-stream',
+                    size_bytes: file.size,
+                    checksum_sha256: checksum,
+                });
+                const response = await fetch(prepared.upload_url, {method: 'PUT', headers: prepared.upload_headers || {}, body: file});
+                if (!response.ok) throw new Error(`Cloudflare R2 rejected the upload (HTTP ${response.status}).`);
+                await portalComplianceFileApi('complete_upload', {file_id: prepared.file_id});
+                uploaded++;
+            } catch (error) {
+                if (prepared?.file_id) await portalComplianceFileApi('discard_upload', {file_id: prepared.file_id}).catch(() => {});
+                throw error;
+            }
+        }
+        const result = await _sb.rpc('resource_portal_compliance_048');
+        if (result.error) throw result.error;
+        portalCompliance = result.data;
+        input.value = '';
+        renderPortalCompliance();
+        document.getElementById('portalComplianceProgress').textContent = `${uploaded} file${uploaded === 1 ? '' : 's'} uploaded and pending internal review.`;
+    } catch (error) {
+        portalShowError(`${uploaded} uploaded; next file was not published: ${error.message}`, 'portalComplianceError');
+    } finally { button.disabled = false; }
+}
+
+async function openPortalComplianceFile(fileId, action = 'View') {
+    portalClearError('portalComplianceError');
+    try {
+        const signed = await portalComplianceFileApi('download', {file_id: fileId, file_action: action});
+        triggerPortalDownload(signed.download_url, action === 'Download' ? signed.filename : '');
+    } catch (error) { portalShowError(error.message, 'portalComplianceError'); }
+}
 
 function renderPortalJobs() {
     const query = document.getElementById('jobSearch').value.trim().toLowerCase();
@@ -69,17 +313,30 @@ async function loadPortalDashboard() {
             ? _sb.rpc('resource_portal_jobs')
             : Promise.resolve({data: [], error: null}),
         _sb.rpc('resource_portal_purchase_orders'),
+        _sb.rpc('resource_portal_compliance_048'),
     ];
-    const [jobsResult, poResult] = await Promise.all(requests);
+    const [jobsResult, poResult, complianceResult] = await Promise.all(requests);
     if (jobsResult.error) portalShowError(jobsResult.error.message);
     if (poResult.error) portalShowError(poResult.error.message);
+    if (complianceResult.error) portalShowError(complianceResult.error.message);
     portalJobs = jobsResult.data || [];
     portalPurchaseOrders = poResult.data || [];
+    portalCompliance = complianceResult.data || {
+        visible: false,
+        editable: false,
+        status: 'Not requested',
+        documents: [],
+    };
     renderPortalJobs();
     renderPortalPurchaseOrders();
+    renderPortalCompliance();
 }
 
 document.getElementById('jobSearch').addEventListener('input', renderPortalJobs);
 document.getElementById('poSearch').addEventListener('input', renderPortalPurchaseOrders);
+document.getElementById('portal-degree-level').addEventListener('change', togglePortalEducationFields);
+document.getElementById('portal-field-category').addEventListener('change', togglePortalEducationFields);
+for (const id of ['portal-translation-since', 'portal-revision-since', 'portal-mtpe-since']) {
+    document.getElementById(id).addEventListener('input', updatePortalExperiencePreview);
+}
 loadPortalDashboard();
-

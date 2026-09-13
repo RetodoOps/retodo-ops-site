@@ -14,9 +14,9 @@ const migration = read('tms/migrations/047_compliance_evidence_iso_eligibility.s
 
 test('education, experience, evidence and read-only ISO panels reuse Resource Compliance', () => {
   for (const id of [
-    'pane-qualifications', 'educationEvidenceCard', 'edu-degree', 'edu-degree-type',
-    'edu-field', 'edu-institution', 'edu-country', 'edu-graduation',
-    'edu-graduation-year',
+    'pane-qualifications', 'educationEvidenceCard', 'edu-degree-level',
+    'edu-degree-type', 'edu-field-category', 'edu-field-other',
+    'edu-institution', 'edu-country', 'edu-graduation-year',
     'complianceFileInput', 'r-translation-since', 'r-revision-since',
     'r-mtpe-since', 'complianceCvFiles', 'isoTranslatorEligibility',
     'isoReviserEligibility', 'isoPostEditorEligibility',

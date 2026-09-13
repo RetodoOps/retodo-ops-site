@@ -52,7 +52,7 @@ async function dispatch(action, actorId, {
   resourceId = null,
   payload = {},
 } = {}) {
-  return serviceRpc('resource_compliance_file_dispatch_047', {
+  return serviceRpc('resource_compliance_file_dispatch_048', {
     p_action: action,
     p_actor_id: actorId,
     p_file_id: fileId,

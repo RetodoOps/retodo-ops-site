@@ -1096,6 +1096,7 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     border-radius: 11px;
     background: #fff;
 }
+.portal-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .portal-summary > div,
 .portal-job-context > div {
     min-width: 0;
@@ -1283,10 +1284,42 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .iso-eligibility-item summary .pill { margin-left: auto; white-space: nowrap; }
 .iso-eligibility-item p { padding: 12px 14px; border-top: 1px solid #ede9fe; color: #475569; }
 .internal-iso-card .privacy-label { white-space: nowrap; }
+
+/* Update 049: prompted Compliance workflow and portal evidence form. */
+.compliance-workflow-card { margin-top: 18px; }
+.compliance-workflow-card .section-card-heading { align-items: center; }
+.compliance-workflow-actions,
+.portal-compliance-actions,
+.portal-upload-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+.compliance-workflow-card .portal-notice { margin: 0 20px 18px; }
+.qualification-job-links { display: grid; gap: 5px; }
+.qualification-job-links small { display: block; color: #64748b; }
+.portal-compliance-section { overflow: hidden; }
+.portal-compliance-section > .portal-notice,
+.portal-compliance-section > .info-banner { margin: 14px 20px 0; }
+.portal-compliance-grid { display: grid; grid-template-columns: 1fr; padding: 0 20px; }
+.portal-compliance-fieldset { padding: 22px 0; }
+.portal-compliance-fieldset .form-grid { margin-bottom: 18px; }
+.portal-upload-controls input[type="file"] { width: min(440px, 100%); }
+.portal-compliance-actions { padding: 0 20px 20px; }
+.portal-compliance-section > .field-help,
+.portal-compliance-section > .error-msg { margin: 0 20px 14px; }
+.compliance-file-card { min-width: 0; }
+.compliance-file-card > div:first-child { min-width: 0; }
 @media (max-width: 680px) {
     .compliance-evidence-row, .iso-eligibility-item summary { align-items: flex-start; flex-direction: column; }
     .iso-eligibility-item summary .pill { margin-left: 0; }
     .compliance-education-record > .compliance-file-card { margin-left: 0; }
+    .compliance-workflow-actions,
+    .portal-compliance-actions,
+    .portal-upload-controls { width: 100%; justify-content: flex-start; }
+    .portal-upload-controls input[type="file"] { width: 100%; }
 }
 .internal-resource-filters .resource-filter-row:first-child { grid-template-columns: minmax(280px, 520px); }
 .internal-resource-filters .resource-search { width: 100%; max-width: 520px; }

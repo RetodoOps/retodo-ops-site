@@ -1,5 +1,5 @@
 let resourceId, resource, appRole = 'user', cvData = null, portalLinkStatus = null;
-let complianceSummary = null, complianceFileRecords = [], complianceRefreshTimer = null;
+let complianceSummary = null, complianceWorkflow = null, complianceFileRecords = [], complianceRefreshTimer = null;
 let pairs=[], services=[], specializations=[], resourceSpecializations=[], rates=[], tests=[], accountQualifications=[], accounts=[], education=[], documents=[], history=[], availability=[], privateNotes=[], accountSpecializationDefaults=[];
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const el=id=>document.getElementById(id), val=id=>el(id).value.trim(), nullable=id=>val(id)||null;
@@ -182,25 +182,83 @@ async function saveRate(){
 
 function accountName(id){return accounts.find(account=>account.id===id)?.name||'Non-defined Account'}
 function testScope(test){if(test.test_type==='General')return 'General';if(test.test_type==='Domain')return `Domain · ${specName(test.specialization_id)}`;return `Account · ${accountName(test.account_id)}${test.specialization_id?` · ${specName(test.specialization_id)}`:''}`}
-function testStatusPill(status){const css=status==='Passed'?'pill-green':status==='Failed'?'pill-red':status==='Cancelled'?'':'pill-amber';return `<span class="pill ${css}">${esc(status)}</span>`}
+function testStatusPill(status){const css=status==='Completed'?'pill-blue':status==='Cancelled'?'':'pill-amber';return `<span class="pill ${css}">${esc(status)}</span>`}
+function testResultPill(result){if(!result)return '—';return `<span class="pill ${result==='Pass'?'pill-green':'pill-red'}">${esc(result)}</span>`}
+function jobQuantityLabel(quantity,unit){if(quantity==null||quantity==='')return 'Quantity not recorded';const number=Number(quantity).toLocaleString('en-GB',{maximumFractionDigits:3});return `${number} ${unit==='Flat rate'?'flat rate':unit||'units'}`}
+function accountQualificationVolume(jobs=[]){const totals=new Map();for(const job of jobs){if(job.quantity==null)continue;const unit=job.unit||'Units';totals.set(unit,(totals.get(unit)||0)+Number(job.quantity))}return totals.size?[...totals].map(([unit,total])=>jobQuantityLabel(total,unit)).join(' · '):'Quantity not recorded'}
 function renderTests(){
-    el('testsTbody').innerHTML=tests.length?tests.map(test=>`<tr><td><strong>${esc(testScope(test))}</strong><div class="customer-sub">${esc(test.evidence||'No evidence recorded')}</div></td><td>${esc(test.source_language||'—')} → ${esc(test.target_language||'—')}<div class="customer-sub">${esc(test.service_type||'—')}</div></td><td>${testStatusPill(test.status)}</td><td>${fmtDateTime(test.assigned_at)}<div class="customer-sub">${test.completed_at?fmtDateTime(test.completed_at):'Not completed'}</div></td><td>${test.memoq_project_ref?`<a class="table-link" href="${esc(test.memoq_project_ref)}" target="_blank" rel="noopener">memoQ ↗</a>`:'—'}<div class="customer-sub">${esc(test.reviewer_name||'Reviewer not set')}</div></td><td><div class="table-actions">${['Assigned','In review'].includes(test.status)?`<button class="table-action success" onclick="recordTestResult('${test.id}','Passed')">Pass</button><button class="table-action danger" onclick="recordTestResult('${test.id}','Failed')">Fail</button>`:''}</div></td></tr>`).join(''):'<tr class="state-row"><td colspan="6">No tests recorded.</td></tr>';
-    el('accountQualificationsTbody').innerHTML=accountQualifications.length?accountQualifications.map(row=>`<tr><td>${esc(accountName(row.account_id))}</td><td>${esc(row.specialization_id?specName(row.specialization_id):'All specializations')}</td><td>${qualificationPill(row.qualification_status)}</td><td>${esc(row.evidence||'—')}</td></tr>`).join(''):'<tr class="state-row"><td colspan="4">No Account-specific qualifications.</td></tr>';
+    el('testsTbody').innerHTML=tests.length?tests.map(test=>{
+        const preTms=!!test.tested_before_tms;
+        const timing=preTms?'<span class="pill">Pre-TMS launch</span><div class="customer-sub">No test date recorded</div>':`${fmtDateTime(test.assigned_at)}<div class="customer-sub">${test.completed_at?fmtDateTime(test.completed_at):'Not completed'}</div>`;
+        return `<tr><td><strong>${esc(testScope(test))}</strong><div class="customer-sub">${esc(test.evidence||'No evidence recorded')}</div></td><td>${esc(test.source_language||'—')} → ${esc(test.target_language||'—')}<div class="customer-sub">${esc(test.service_type||'—')}</div></td><td>${testStatusPill(test.status)}</td><td>${testResultPill(test.test_result)}</td><td>${timing}</td><td>${test.memoq_project_ref?`<a class="table-link" href="${esc(test.memoq_project_ref)}" target="_blank" rel="noopener">memoQ ↗</a>`:'—'}<div class="customer-sub">${esc(test.reviewer_name||'Reviewer not set')}</div></td><td><div class="table-actions">${['Assigned','In review'].includes(test.status)?`<button class="table-action success" onclick="recordTestResult('${test.id}','Pass')">Pass</button><button class="table-action danger" onclick="recordTestResult('${test.id}','Fail')">Fail</button>`:''}</div></td></tr>`;
+    }).join(''):'<tr class="state-row"><td colspan="7">No tests recorded.</td></tr>';
+    el('accountQualificationsTbody').innerHTML=accountQualifications.length?accountQualifications.map(row=>{
+        const jobs=Array.isArray(row.approved_jobs)?row.approved_jobs:[];
+        const jobLinks=jobs.map(job=>`<a class="table-link qualification-job-link" href="job.html?id=${encodeURIComponent(job.job_id)}">${esc(job.job_number)}</a><small>${esc(jobQuantityLabel(job.quantity,job.unit))}</small>`).join('');
+        return `<tr><td><strong>${esc(row.account_name)}</strong></td><td>${esc(row.source_language||'—')} → ${esc(row.target_language||'—')}<div class="customer-sub">${esc(row.service_type||'—')}</div></td><td>${esc(row.specialization_name||'Non-defined')}</td><td><span class="pill pill-green">${Number(row.approved_job_count||0)} approved</span></td><td>${esc(accountQualificationVolume(jobs))}</td><td>${fmtDateTime(row.last_approved_at)}</td><td><div class="qualification-job-links">${jobLinks}</div></td></tr>`;
+    }).join(''):'<tr class="state-row"><td colspan="7">No Approved TMS Jobs provide Account qualification evidence yet.</td></tr>';
 }
-function updateTestScopeFields(){const type=val('test-type');el('test-spec').disabled=type==='General';el('test-account').disabled=type!=='Account';if(type==='General')el('test-spec').value='';if(type!=='Account')el('test-account').value=''}
+function updateTestScopeFields(){const type=val('test-type');el('test-spec').disabled=type==='General';el('test-account').disabled=type!=='Account';if(type==='General')el('test-spec').value='';if(type!=='Account')el('test-account').value='';updateTestWorkflowFields()}
+function updateTestWorkflowFields(){const legacy=el('test-pre-tms').checked,status=val('test-status');el('test-assigned-field').classList.toggle('hidden',legacy);el('test-result-field').classList.toggle('hidden',!legacy&&status!=='Completed');el('test-status').disabled=legacy;el('test-result').disabled=legacy;if(legacy){el('test-status').value='Completed';el('test-result').value='Pass';el('test-assigned').value=''}else if(status!=='Completed')el('test-result').value=''}
 function openTestModal(){
     const now=toLocalDT(new Date().toISOString());el('test-type').value='General';el('test-status').value='Assigned';el('test-assigned').value=now;
+    el('test-result').value='';el('test-pre-tms').checked=false;
     el('test-source').innerHTML=languageOptions('','Not specified');el('test-target').innerHTML=languageOptions('','Not specified');
     const configuredServices=[...new Set(services.map(service=>service.service_type))];el('test-service').innerHTML='<option value="">Not specified</option>'+configuredServices.map(service=>`<option>${esc(service)}</option>`).join('');
     el('test-spec').innerHTML=specOptions();el('test-account').innerHTML='<option value="">Select Account…</option>'+accounts.map(account=>`<option value="${account.id}">${esc(account.name)}</option>`).join('');
     ['test-memoq','test-reviewer','test-evidence'].forEach(id=>el(id).value='');updateTestScopeFields();el('testModal').classList.remove('hidden')
 }
-async function saveTest(){const type=val('test-type');if(type==='Domain'&&!val('test-spec'))return modalError('testError','Select a specialization for a Domain test.');if(type==='Account'&&!val('test-account'))return modalError('testError','Select an Account for an Account test.');const user=(await _sb.auth.getUser()).data.user;const payload={resource_id:resourceId,test_type:type,status:val('test-status'),source_language:nullable('test-source'),target_language:nullable('test-target'),service_type:nullable('test-service'),specialization_id:type==='General'?null:nullable('test-spec'),account_id:type==='Account'?nullable('test-account'):null,assigned_at:val('test-assigned')||new Date().toISOString(),memoq_project_ref:nullable('test-memoq'),reviewer_name:nullable('test-reviewer'),evidence:nullable('test-evidence'),created_by:user?.id||null};const {error}=await _sb.from('resource_tests').insert(payload);if(error)return modalError('testError',error.message);closeModal('testModal');await loadResource();setStatus('Resource test recorded ✓')}
-async function recordTestResult(id,status){const test=tests.find(item=>item.id===id);if(!test)return;if(status==='Failed'&&!confirm(`Record this ${test.test_type} test as Failed?${test.test_type==='General'?' The Resource will be marked Do not use.':''}`))return;const {error}=await _sb.from('resource_tests').update({status,completed_at:new Date().toISOString()}).eq('id',id);if(error)return showError(error.message);await loadResource();setStatus(status==='Passed'?'Test passed and qualification updated ✓':'Test failed and restriction updated ✓')}
+async function saveTest(){const type=val('test-type'),legacy=el('test-pre-tms').checked,status=legacy?'Completed':val('test-status'),result=legacy?'Pass':nullable('test-result');if(type==='Domain'&&!val('test-spec'))return modalError('testError','Select a specialization for a Domain test.');if(type==='Account'&&!val('test-account'))return modalError('testError','Select an Account for an Account test.');if(status==='Completed'&&!result)return modalError('testError','Select Pass or Fail for a completed test.');if(type==='General'&&result==='Fail'&&!confirm('Record this General test as Fail? The Resource will be marked Do not use.'))return;const user=(await _sb.auth.getUser()).data.user;const payload={resource_id:resourceId,test_type:type,status,test_result:status==='Completed'?result:null,tested_before_tms:legacy,source_language:nullable('test-source'),target_language:nullable('test-target'),service_type:nullable('test-service'),specialization_id:type==='General'?null:nullable('test-spec'),account_id:type==='Account'?nullable('test-account'):null,assigned_at:legacy?null:(val('test-assigned')||new Date().toISOString()),completed_at:status==='Completed'&&!legacy?new Date().toISOString():null,memoq_project_ref:nullable('test-memoq'),reviewer_name:nullable('test-reviewer'),evidence:nullable('test-evidence'),created_by:user?.id||null};const {error}=await _sb.from('resource_tests').insert(payload);if(error)return modalError('testError',error.message);closeModal('testModal');await loadResource();setStatus(legacy?'Pre-TMS test recorded as Passed ✓':'Resource test recorded ✓')}
+async function recordTestResult(id,result){const test=tests.find(item=>item.id===id);if(!test)return;if(result==='Fail'&&!confirm(`Record this ${test.test_type} test as Fail?${test.test_type==='General'?' The Resource will be marked Do not use.':''}`))return;const {error}=await _sb.from('resource_tests').update({status:'Completed',test_result:result,completed_at:new Date().toISOString()}).eq('id',id);if(error)return showError(error.message);await loadResource();setStatus(result==='Pass'?'Test passed and qualification updated ✓':'Test failed and restriction updated ✓')}
 
 const canEditCompliance = () => ['admin', 'pm', 'client_relations'].includes(appRole);
 const complianceMonth = date => date ? String(date).slice(0, 7) : '';
 const complianceFileById = id => complianceFileRecords.find(file => file.id === id);
+function renderComplianceWorkflow(){
+    if(!complianceWorkflow||resource?.resource_type==='Internal')return;
+    const status=complianceWorkflow.status||'Not requested',edit=canEditCompliance();
+    const badge=el('complianceWorkflowStatus');badge.textContent=status;badge.className=`pill ${status==='Complete'?'pill-green':status==='Changes required'?'pill-red':status==='Submitted'?'pill-blue':status==='Not requested'?'':'pill-amber'}`;
+    const successful=!!complianceWorkflow.successful_general_test;
+    const messages={
+        'Not requested':successful?'A successful General test is recorded. Start the prompted Compliance phase when ready.':'Compliance can be requested after a General test is passed. The Resource may continue working independently of this phase.',
+        'Requested':'The Resource has been prompted and the Compliance form is available in their portal.',
+        'In progress':'The Resource is entering education, professional-experience and CV evidence in the portal.',
+        'Submitted':'The Resource submission is locked pending internal evidence review.',
+        'Changes required':'The Resource may edit and resubmit the requested Compliance changes.',
+        'Complete':'Required Compliance evidence has been reviewed. ISO eligibility remains a separate system-generated result.'
+    };
+    el('complianceWorkflowMessage').textContent=messages[status]||status;
+    const visibility={
+        requestComplianceBtn:edit&&status==='Not requested'&&successful,
+        resendComplianceBtn:edit&&['Requested','In progress','Changes required'].includes(status),
+        requestComplianceChangesBtn:edit&&['Submitted','Complete'].includes(status),
+        completeComplianceBtn:edit&&status==='Submitted'
+    };
+    Object.entries(visibility).forEach(([id,show])=>el(id).classList.toggle('hidden',!show));
+    const completion=complianceWorkflow.completion_check||{},completeButton=el('completeComplianceBtn');
+    completeButton.disabled=status==='Submitted'&&!completion.complete;
+    completeButton.title=completeButton.disabled?(completion.reason||'Evidence review is incomplete'):'';
+    const reason=el('complianceWorkflowReason');
+    const notices=[];
+    if(complianceWorkflow.change_reason)notices.push(`Requested changes: ${complianceWorkflow.change_reason}`);
+    if(complianceWorkflow.notification_error)notices.push('Portal task is active, but the last email notification was not delivered. Use Resend notification.');
+    if(status==='Submitted'&&!completion.complete)notices.push(`Internal review pending: ${completion.reason||'Evidence is incomplete.'}`);
+    reason.textContent=notices.join(' ');reason.classList.toggle('hidden',!notices.length);
+}
+async function complianceWorkflowApi(action,reason=null){
+    const {data:{session}}=await _sb.auth.getSession();if(!session?.access_token)throw new Error('Session expired. Sign in again.');
+    const response=await fetch('/.netlify/functions/resource-compliance',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},body:JSON.stringify({action,resource_id:resourceId,reason})});
+    const body=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(body.error||'The Compliance request could not be completed.');error.workflowStatus=body.workflow_status;throw error}return body;
+}
+async function runComplianceWorkflow(action){
+    if(!canEditCompliance())return;
+    let reason=null;
+    if(action==='request_changes'){reason=prompt('Describe exactly which Compliance information or evidence must be changed:','');if(reason===null)return;if(!reason.trim())return showError('Explain which Compliance changes are required.');}
+    const questions={request:'Open the Compliance phase and email this Resource?',resend:'Resend the Compliance notification email?',complete:'Mark this Compliance submission complete?'};
+    if(questions[action]&&!confirm(questions[action]))return;
+    try{await complianceWorkflowApi(action,reason);await loadResource();setStatus(action==='complete'?'Compliance marked complete ✓':action==='request_changes'?'Changes requested and notification sent ✓':action==='resend'?'Compliance notification resent ✓':'Compliance requested and notification sent ✓')}
+    catch(error){await loadResource();showError(error.workflowStatus?`${error.message} The portal task remains ${error.workflowStatus}.`:error.message)}
+}
 const readyComplianceDocument = document => {
     const file=complianceFileById(document.file_record_id);
     return ['Pending','Valid'].includes(document.status)
@@ -223,9 +281,11 @@ function renderEducation(){
     el('educationList').innerHTML=education.length?education.map(row=>{
         const linked=documents.filter(document=>document.education_id===row.id&&document.document_type==='Diploma / certificate');
         const ready=linked.filter(readyComplianceDocument);
-        const graduation=row.graduation_date?complianceMonth(row.graduation_date).replace(/^(\d{4})-(\d{2})$/,'$2/$1'):(row.end_year||'Not recorded');
-        const labels=[row.degree_type,row.field_of_study,row.institution,row.country,`Graduation: ${graduation}`].filter(Boolean);
-        return `<div class="compliance-education-record"><div class="data-card"><div><strong>${esc(row.degree||row.degree_type||'Degree not specified')}</strong><small>${esc(labels.join(' · '))}</small><small>${row.is_highest_relevant?'Highest relevant degree · ':''}${row.verified?'Reviewed':'Not reviewed'} · ${ready.length} diploma/certificate file${ready.length===1?'':'s'}</small></div><div class="table-actions">${edit?`<button class="table-action" type="button" onclick="openEducationModal('${row.id}')">Edit</button><button class="table-action" type="button" onclick="openComplianceFileModal('Diploma / certificate','${row.id}')">Upload diploma/certificate</button>`:''}</div></div>${ready.map(evidenceFileCard).join('')}</div>`;
+        const graduation=row.end_year||String(row.graduation_date||'').slice(0,4)||'Not recorded';
+        const field=row.field_of_study_category==='Other'?row.field_of_study_other:(row.field_of_study_category||row.field_of_study);
+        const labels=[row.degree_type,field,row.institution,row.country,`Graduation: ${graduation}`].filter(Boolean);
+        const allowDiploma=row.degree_level!=='No university degree';
+        return `<div class="compliance-education-record"><div class="data-card"><div><strong>${esc(row.degree_level||row.degree||row.degree_type||'Degree not specified')}</strong><small>${esc(labels.join(' · '))}</small><small>${row.is_highest_relevant?'Highest relevant degree · ':''}${row.verified?'Reviewed':'Not reviewed'} · ${ready.length} diploma/certificate file${ready.length===1?'':'s'}</small></div><div class="table-actions">${edit?`<button class="table-action" type="button" onclick="openEducationModal('${row.id}')">Edit</button>${allowDiploma?`<button class="table-action" type="button" onclick="openComplianceFileModal('Diploma / certificate','${row.id}')">Upload diploma/certificate</button>`:''}`:''}</div></div>${ready.map(evidenceFileCard).join('')}</div>`;
     }).join(''):'<div class="empty-compact">No education evidence recorded.</div>';
     const cv=documents.filter(document=>document.document_type==='CV'&&readyComplianceDocument(document));
     el('complianceCvFiles').innerHTML=cv.length?cv.map(evidenceFileCard).join(''):'<div class="empty-compact">No CV evidence files.</div>';
@@ -241,6 +301,8 @@ function renderEducation(){
     el('documentsList').innerHTML=other.length?other.map(row=>`<div class="data-card"><div><strong>${esc(row.document_type)}</strong><small>${esc(row.status)}${row.expires_on?` · expires ${fmtDate(row.expires_on)}`:''}</small></div></div>`).join(''):'<div class="empty-compact">No other document metadata.</div>';
 }
 
+function educationCountryOptions(selected=''){const values=[...TMS_REF.countries];if(selected&&!values.includes(selected))values.push(selected);return '<option value="">Select country…</option>'+values.map(country=>`<option value="${esc(country)}" ${country===selected?'selected':''}>${esc(country)}</option>`).join('')}
+function toggleEducationFields(){const noDegree=val('edu-degree-level')==='No university degree',other=val('edu-field-category')==='Other';el('edu-degree-type').disabled=noDegree;if(noDegree)el('edu-degree-type').value='No university degree';else if(val('edu-degree-type')==='No university degree')el('edu-degree-type').value='';['edu-field-category','edu-institution','edu-country','edu-graduation-year'].forEach(id=>el(id).disabled=noDegree);el('edu-field-other-field').classList.toggle('hidden',noDegree||!other);if(noDegree){el('edu-field-category').value='';el('edu-field-other').value='';el('edu-institution').value='';el('edu-country').value='';el('edu-graduation-year').value=''}}
 function openEducationModal(id=null){
     if(!canEditCompliance())return;
     const row=education.find(item=>item.id===id);
@@ -248,39 +310,40 @@ function openEducationModal(id=null){
     el('edu-id').value=row?.id||'';
     for(const [id,value] of Object.entries({
         'edu-institution':row?.institution,
-        'edu-degree':row?.degree,
+        'edu-degree-level':row?.degree_level,
         'edu-degree-type':row?.degree_type,
-        'edu-field':row?.field_of_study,
-        'edu-country':row?.country,
-        'edu-graduation':row?.graduation_date?complianceMonth(row.graduation_date):'',
-        'edu-graduation-year':row?.end_year||'',
+        'edu-field-category':row?.field_of_study_category,
+        'edu-field-other':row?.field_of_study_other,
+        'edu-graduation-year':row?.end_year||String(row?.graduation_date||'').slice(0,4),
     }))el(id).value=value||'';
+    el('edu-country').innerHTML=educationCountryOptions(row?.country||'');
+    const legacyDegree=el('edu-legacy-degree');legacyDegree.textContent=row?.degree&&!row?.degree_level?`Legacy degree label: ${row.degree}`:'';legacyDegree.classList.toggle('hidden',!legacyDegree.textContent);
+    const legacyField=el('edu-legacy-field');legacyField.textContent=row?.field_of_study&&!row?.field_of_study_category?`Legacy field of study: ${row.field_of_study}`:'';legacyField.classList.toggle('hidden',!legacyField.textContent);
     el('edu-highest').checked=row?!!row.is_highest_relevant:!education.some(item=>item.is_highest_relevant);
     el('edu-verified').checked=!!row?.verified;
+    toggleEducationFields();
     el('educationModal').classList.remove('hidden');
 }
 
 async function saveEducation(){
     if(!canEditCompliance())return modalError('educationError','Operational access required.');
-    const graduation=val('edu-graduation');
     const graduationYear=val('edu-graduation-year');
-    if(graduation&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(graduation))return modalError('educationError','Enter a valid graduation month/year.');
-    if(graduationYear&&(!/^\d{1,4}$/.test(graduationYear)||Number(graduationYear)>new Date().getUTCFullYear()))return modalError('educationError','Enter a valid graduation year.');
+    if(graduationYear&&(!/^\d{4}$/.test(graduationYear)||Number(graduationYear)<1900||Number(graduationYear)>new Date().getUTCFullYear()))return modalError('educationError','Enter a valid graduation year.');
     const original=education.find(item=>item.id===val('edu-id'));
     const payload={
         institution:nullable('edu-institution'),
-        degree:nullable('edu-degree'),
+        degree_level:nullable('edu-degree-level'),
         degree_type:nullable('edu-degree-type'),
-        field_of_study:nullable('edu-field'),
+        field_of_study_category:nullable('edu-field-category'),
+        field_of_study_other:nullable('edu-field-other'),
         country:nullable('edu-country'),
-        graduation_date:graduation?`${graduation}-01`:null,
-        end_year:graduation?Number(graduation.slice(0,4)):graduationYear?Number(graduationYear):null,
+        end_year:graduationYear?Number(graduationYear):null,
         verified:el('edu-verified').checked,
         is_highest_relevant:el('edu-highest').checked,
     };
     const button=el('saveEducationBtn');button.disabled=true;
     try{
-        const {error}=await _sb.rpc('save_resource_education_047',{
+        const {error}=await _sb.rpc('save_resource_education_048',{
             p_resource_id:resourceId,p_education_id:original?.id||null,p_payload:payload
         });
         if(error)throw error;
@@ -477,27 +540,29 @@ async function loadResource(){
         _sb.from('specializations').select('*').eq('active',true).order('name'),
         _sb.from('resource_specializations').select('*').eq('resource_id',resourceId),
         _sb.from('resource_rates').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),
-        _sb.from('resource_tests').select('*').eq('resource_id',resourceId).order('assigned_at',{ascending:false}),
-        _sb.from('resource_account_qualifications').select('*').eq('resource_id',resourceId).order('updated_at',{ascending:false}),
+        _sb.from('resource_tests').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),
         _sb.from('client_accounts').select('id,name').order('name'),
         _sb.from('resource_education').select('*').eq('resource_id',resourceId).order('sort_order'),
         _sb.from('resource_documents').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false}),
         _sb.from('resource_project_history').select('*').eq('resource_id',resourceId).order('project_year',{ascending:false}),
-        _sb.from('resource_availability').select('*').eq('resource_id',resourceId).order('starts_at',{ascending:false})
+        _sb.from('resource_availability').select('*').eq('resource_id',resourceId).order('starts_at',{ascending:false}),
+        _sb.rpc('resource_account_job_qualifications_048',{p_resource_id:resourceId}),
+        _sb.rpc('resource_compliance_workflow_summary_048',{p_resource_id:resourceId})
     ];
     if(appRole==='admin')requests.push(
         _sb.from('resource_private_notes').select('*').eq('resource_id',resourceId).order('created_at',{ascending:false})
     );
     const result=await Promise.all(requests);
-    [pairs,services,specializations,resourceSpecializations,rates,tests,accountQualifications,accounts,education,documents,history,availability]=result.slice(0,12).map(x=>x.data||[]);
-    privateNotes=appRole==='admin'?(result[12]?.data||[]):[];
+    [pairs,services,specializations,resourceSpecializations,rates,tests,accounts,education,documents,history,availability,accountQualifications]=result.slice(0,12).map(x=>x.data||[]);
+    complianceWorkflow=result[12]?.data||null;
+    privateNotes=appRole==='admin'?(result[13]?.data||[]):[];
     const evidenceIds=[...new Set(documents.filter(document=>['CV','Diploma / certificate'].includes(document.document_type)).map(document=>document.file_record_id).filter(Boolean))];
     if(evidenceIds.length){
         const files=await _sb.from('file_records').select('id,original_filename,upload_status,storage_provider,job_id,file_role').in('id',evidenceIds);
         if(files.error)showError(`Compliance file metadata unavailable: ${files.error.message}`);
         complianceFileRecords=files.data||[];
     }else complianceFileRecords=[];
-    populateOverview();renderPairs();renderServices();renderSpecializations();renderRates();renderTests();
+    populateOverview();renderPairs();renderServices();renderSpecializations();renderRates();renderTests();renderComplianceWorkflow();
     renderEducation();renderHistory();renderAvailability();renderPrivateNotes();
     await refreshComplianceSummary();
 }
@@ -539,6 +604,10 @@ document.querySelectorAll('#r-internal-positions input').forEach(input=>input.ad
 el('rate-unit').addEventListener('change',toggleCatDiscounts);el('rate-value').addEventListener('input',calculateCatRates);el('rate-currency').addEventListener('change',calculateCatRates);
 el('rate-account').addEventListener('change',()=>renderRateSpecializationOptions());
 el('test-type').addEventListener('change',updateTestScopeFields);
+el('test-status').addEventListener('change',updateTestWorkflowFields);
+el('test-pre-tms').addEventListener('change',updateTestWorkflowFields);
+el('edu-degree-level').addEventListener('change',toggleEducationFields);
+el('edu-field-category').addEventListener('change',toggleEducationFields);
 document.addEventListener('visibilitychange',()=>{
     if(!document.hidden){
         refreshComplianceSummary();

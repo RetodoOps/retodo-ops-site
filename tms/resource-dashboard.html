@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Work — RetodoOps Resource Portal</title>
-  <link rel="stylesheet" href="style.css?v=044">
+  <link rel="stylesheet" href="style.css?v=049">
 </head>
 <body class="resource-portal-body">
 <div class="app">
@@ -16,6 +16,7 @@
     <nav class="nav" aria-label="Resource portal navigation">
       <a class="nav-item active" href="resource-dashboard.html#myJobs">My Jobs</a>
       <a class="nav-item" href="resource-dashboard.html#myPurchaseOrders">My Purchase Orders</a>
+      <a id="portalComplianceNav" class="nav-item hidden" href="resource-dashboard.html#myCompliance">My Compliance</a>
       <hr class="nav-divider">
       <a class="nav-item" href="#" onclick="signOut();return false">Sign Out</a>
     </nav>
@@ -40,6 +41,47 @@
       <div><span>Assigned Jobs</span><strong id="portalJobCount">—</strong></div>
       <div><span>Purchase Orders</span><strong id="portalPoCount">—</strong></div>
       <div><span>Access</span><strong id="portalAccessLabel">—</strong></div>
+      <div><span>Compliance</span><strong id="portalComplianceStatus">Not requested</strong></div>
+    </section>
+
+    <section id="myCompliance" class="section-card portal-section portal-compliance-section hidden">
+      <div class="section-card-heading">
+        <div><h2>My Compliance</h2><p>Provide the requested education and professional-experience evidence. This task does not prevent you from working on assigned Jobs.</p></div>
+        <span id="portalCompliancePill" class="pill">Not requested</span>
+      </div>
+      <div id="portalComplianceChanges" class="portal-notice hidden" role="status"></div>
+      <div id="portalComplianceReadOnly" class="info-banner hidden" role="status"></div>
+      <div class="portal-compliance-grid">
+        <fieldset class="rate-fieldset portal-compliance-fieldset">
+          <legend>Education evidence</legend>
+          <div class="form-grid form-grid-3">
+            <div class="field field-span-2"><label for="portal-degree-level">Highest relevant degree *</label><select id="portal-degree-level"><option value="">Select degree…</option><option>Doctorate</option><option>Master's degree</option><option>Bachelor's degree</option><option>Professional bachelor / short-cycle higher education</option><option>Other university degree</option><option>No university degree</option></select><small id="portal-legacy-degree" class="field-help hidden"></small></div>
+            <div class="field"><label for="portal-degree-type">Degree type *</label><select id="portal-degree-type"><option value="">Select type…</option><option value="Translation / language degree">Translation / interpreting / language degree</option><option>Other university degree</option><option>No university degree</option></select></div>
+            <div class="field"><label for="portal-field-category">Field of study *</label><select id="portal-field-category"><option value="">Select field…</option><option>Translation</option><option>Interpreting</option><option>Translation and Interpreting</option><option>Linguistics</option><option>Philology / Language studies</option><option>Law</option><option>Economics / Finance</option><option>Business / Management</option><option>Medicine / Life sciences</option><option>Engineering / Technology</option><option>Computer science / IT</option><option>Other</option></select><small id="portal-legacy-field" class="field-help hidden"></small></div>
+            <div id="portal-field-other-field" class="field hidden"><label for="portal-field-other">Other field of study *</label><input id="portal-field-other"></div>
+            <div class="field"><label for="portal-institution">Institution *</label><input id="portal-institution"></div>
+            <div class="field"><label for="portal-education-country">Country *</label><select id="portal-education-country"><option value="">Select country…</option></select></div>
+            <div class="field"><label for="portal-graduation-year">Graduation year *</label><input id="portal-graduation-year" type="number" min="1900" max="9999" step="1"></div>
+          </div>
+          <div id="portalDiplomaUploadRow" class="compliance-evidence-row"><div><span class="field-label">Evidence</span><strong>Diploma / certificate</strong><small>Private file(s), reviewed internally by Retodo Ops.</small></div><div class="portal-upload-controls"><input id="portalDiplomaFiles" type="file" multiple><button id="portalUploadDiplomaBtn" class="btn-secondary" type="button" onclick="uploadPortalComplianceFiles('Diploma / certificate')">Upload</button></div></div>
+          <div id="portalDiplomaEvidence" class="data-card-list compliance-file-list"></div>
+        </fieldset>
+
+        <fieldset class="rate-fieldset portal-compliance-fieldset">
+          <legend>Professional experience</legend>
+          <p class="field-help">Enter the month when you began working professionally in each service. The durations update automatically; do not enter a number of years.</p>
+          <div class="form-grid form-grid-3">
+            <div class="field"><label for="portal-translation-since">Translation professional since (MM/YYYY)</label><input id="portal-translation-since" type="month"><small id="portalTranslationExperience" class="experience-duration">Not recorded</small></div>
+            <div class="field"><label for="portal-revision-since">Revision professional since (MM/YYYY)</label><input id="portal-revision-since" type="month"><small id="portalRevisionExperience" class="experience-duration">Not recorded</small></div>
+            <div class="field"><label for="portal-mtpe-since">MTPE professional since (MM/YYYY)</label><input id="portal-mtpe-since" type="month"><small id="portalMtpeExperience" class="experience-duration">Not recorded</small></div>
+          </div>
+          <div class="compliance-evidence-row"><div><span class="field-label">Evidence type</span><strong>CV</strong><small>Upload one or more private CV evidence files.</small></div><div class="portal-upload-controls"><input id="portalCvFiles" type="file" multiple><button id="portalUploadCvBtn" class="btn-secondary" type="button" onclick="uploadPortalComplianceFiles('CV')">Upload</button></div></div>
+          <div id="portalCvEvidence" class="data-card-list compliance-file-list"></div>
+        </fieldset>
+      </div>
+      <p id="portalComplianceProgress" class="field-help" role="status"></p>
+      <p id="portalComplianceError" class="error-msg hidden" role="alert"></p>
+      <div id="portalComplianceActions" class="portal-compliance-actions"><button id="portalSaveComplianceBtn" class="btn-secondary" type="button" onclick="savePortalCompliance()">Save progress</button><button id="portalSubmitComplianceBtn" class="btn-primary" type="button" onclick="submitPortalCompliance()">Submit for review</button></div>
     </section>
 
     <section id="myJobs" class="section-card table-card portal-section">
@@ -73,7 +115,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js?v=036"></script>
 <script src="auth.js?v=042"></script>
+<script src="reference-data.js?v=036"></script>
+<script src="file-hash.js?v=048"></script>
 <script src="resource-portal.js?v=039"></script>
-<script src="resource-dashboard.js?v=039"></script>
+<script src="resource-dashboard.js?v=049"></script>
 </body>
 </html>
