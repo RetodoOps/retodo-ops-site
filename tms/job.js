@@ -8,7 +8,10 @@ let projectScopeLines = [], projectJobs = [];
 let supplierTermsDirty = false;
 let selectedPOVersionKey = null;
 let expectedPOVersion = 0;
+let loadedDeadlineFields = '';
 const MANUAL_FLAT_FEE_VALUE = 'manual-flat-fee';
+const TMS_JOB_BUILD = '051';
+document.documentElement.dataset.jobBuild = TMS_JOB_BUILD;
 
 const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 const val = id => document.getElementById(id).value.trim();
@@ -22,6 +25,7 @@ const toLocalDT = iso => { if(!iso)return ''; const d=new Date(iso),p=n=>String(
 const datePart = iso => toLocalDT(iso).slice(0,10);
 const timePart = iso => toLocalDT(iso).slice(11,16);
 const combineDateTime = (dateId,timeId) => {const date=val(dateId);return date?`${date}T${val(timeId)||'17:00'}`:null};
+const deadlineFieldSnapshot = () => `${val('j-deadline-date')}|${val('j-deadline-time')}`;
 const localDateValue = (date=new Date()) => {const p=n=>String(n).padStart(2,'0');return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`};
 const deadlineIsPast = () => {const value=combineDateTime('j-deadline-date','j-deadline-time');return value&&new Date(value)<new Date()};
 const fourHoursFromNow = () => new Date(Date.now()+4*60*60*1000).toISOString();
@@ -82,6 +86,13 @@ function currentJobClientValue(terms,supplierRows){
 }
 function calculateSupplierCatGrid(prefix){const body=document.getElementById(`${prefix}-cat-rows`);let total=0,currency='';body.querySelectorAll('tr').forEach(row=>{const q=Number(row.querySelector('.supplier-cat-quantity').value||0),rate=Number(row.dataset.rate||0),amount=roundMoney(row.dataset.unit==='Fixed fee'?(q>0?rate:0):q*rate);row.querySelector('.supplier-cat-amount').textContent=money(amount,row.dataset.currency);total+=amount;currency=row.dataset.currency});document.getElementById(`${prefix}-cat-total`).textContent=money(total,currency||'EUR');renderJobFinancials()}
 function collectSupplierCatRows(prefix){return [...document.querySelectorAll(`#${prefix}-cat-rows tr`)].map(row=>({resource_rate_id:row.dataset.rateId,quantity:Number(row.querySelector('.supplier-cat-quantity').value||0)}))}
+function supplierCatRowsChanged(rows=[]){
+  const saved=Array.isArray(job?.cat_analysis?.rows)?job.cat_analysis.rows:[];
+  const currentByRate=new Map(rows.map(row=>[String(row.resource_rate_id||''),Number(row.quantity||0)]));
+  const savedByRate=new Map(saved.map(row=>[String(row.resource_rate_id||''),Number(row.quantity||0)]));
+  const keys=new Set([...currentByRate.keys(),...savedByRate.keys()]);
+  return [...keys].some(key=>Math.abs((currentByRate.get(key)||0)-(savedByRate.get(key)||0))>0.000001);
+}
 function updateFlatFeeField(){
   const select=document.getElementById('j-rate-select'),wrap=document.getElementById('j-flat-fee-wrap'),fee=document.getElementById('j-flat-fee'),currency=document.getElementById('j-flat-fee-currency'),rate=document.getElementById('j-rate'),amount=document.getElementById('j-amount');
   if(!select||!wrap)return;
@@ -112,6 +123,7 @@ function populateHeader(){
 function populateOverview(){
   const effectiveCost=effectiveJobSupplierCost(),fields={'j-number':job.job_number,'j-status':job.status,'j-deadline-date':datePart(job.deadline),'j-deadline-time':timePart(job.deadline),'j-service':job.service_type,'j-source':job.source_language||scoop?.source_language||project?.source_language,'j-target':job.target_language||scoop?.target_language||project?.target_language,'j-quantity':job.quantity,'j-rate':job.supplier_rate,'j-amount':job.resource_id?money(effectiveCost.amount,effectiveCost.currency):'','j-notes':job.notes};
   Object.entries(fields).forEach(([id,value])=>document.getElementById(id).value=value??'');
+  loadedDeadlineFields=deadlineFieldSnapshot();
   syncInheritedSpecialization();document.getElementById('j-deadline-date').min=localDateValue();
   document.getElementById('j-po-required').checked=!!job.po_required;
   ['j-service','j-source','j-target','j-quantity','j-deadline-date','j-deadline-time','j-status','j-po-required','j-notes'].forEach(id=>document.getElementById(id).disabled=false);
@@ -161,15 +173,26 @@ async function saveJob(){
   clearError();
   if(job.resource_id&&val('j-candidate')&&val('j-candidate')!==job.resource_id)return showError('Use Reassign & Issue New PO to replace the Resource; this preserves and cancels the current PO correctly.');
   if(!val('j-specialization'))return showError('Job specialization is required.');
-  if(deadlineIsPast())return showError('Resource deadline cannot be in the past.');
+  const deadlineChanged=deadlineFieldSnapshot()!==loadedDeadlineFields;
+  const deadline=deadlineChanged?combineDateTime('j-deadline-date','j-deadline-time'):null;
+  if(deadlineChanged&&deadlineIsPast())return showError('Resource deadline cannot be in the past.');
   if(job.resource_id && val('j-status')==='Unassigned')return showError('An assigned Job cannot return to Unassigned. Cancel it or create a new Job.');
   if(!job.resource_id&&['Assigned','In Progress','Delivered','Revision Required','Approved'].includes(val('j-status')))return showError('Assign a Resource and issue its Supplier PO before moving this Job into production.');
   if(!val('j-source')||!val('j-target'))return showError('Source and Target languages are required.');
   if(!TMS_REF.languages.includes(val('j-source'))||!TMS_REF.languages.includes(val('j-target')))return showError('Choose Source and Target from the shared language list.');
   const manualFlatFee=val('j-rate-select')===MANUAL_FLAT_FEE_VALUE;
-  const termsChanged=val('j-service')!==job.service_type||val('j-source')!==(job.source_language||'')||val('j-target')!==(job.target_language||'')||val('j-specialization')!==job.specialization_id||Number(val('j-quantity')||0)!==Number(job.quantity||0);
-  if(job.resource_id&&termsChanged&&!val('j-rate-select'))return showError('Select an Approved Supplier rate matching the edited Job terms, or choose Manual flat fee.');
-  const catRows=val('j-rate-select')&&!manualFlatFee?collectSupplierCatRows('j'):[],payload={status:val('j-status'),deadline:combineDateTime('j-deadline-date','j-deadline-time'),service_type:val('j-service'),source_language:val('j-source'),target_language:val('j-target'),specialization_id:val('j-specialization'),quantity:catRows.length?catRows.reduce((sum,row)=>sum+Number(row.quantity||0),0):(val('j-quantity')===''?null:Number(val('j-quantity'))),po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes'),resource_rate_id:job.resource_id&&!manualFlatFee?nullable('j-rate-select'):null,cat_rows:catRows};
+  const selectedRateId=job.resource_id&&!manualFlatFee?nullable('j-rate-select'):null;
+  const catRows=selectedRateId?collectSupplierCatRows('j'):[];
+  const quantity=catRows.length?catRows.reduce((sum,row)=>sum+Number(row.quantity||0),0):(val('j-quantity')===''?null:Number(val('j-quantity')));
+  const coreTermsChanged=val('j-service')!==job.service_type||val('j-source')!==(job.source_language||'')||val('j-target')!==(job.target_language||'')||val('j-specialization')!==job.specialization_id||Number(quantity||0)!==Number(job.quantity||0);
+  const supplierTermsChanged=coreTermsChanged||(selectedRateId||null)!==(job.resource_rate_id||null)||(selectedRateId?supplierCatRowsChanged(catRows):false);
+  if(job.resource_id&&supplierTermsChanged&&!val('j-rate-select'))return showError('Select an Approved Supplier rate matching the edited Job terms, or choose Manual flat fee.');
+  const payload={status:val('j-status'),po_required:document.getElementById('j-po-required').checked,notes:nullable('j-notes')};
+  if(deadlineChanged)payload.deadline=deadline;
+  if(coreTermsChanged||supplierTermsChanged){
+    Object.assign(payload,{service_type:val('j-service'),source_language:val('j-source'),target_language:val('j-target'),specialization_id:val('j-specialization'),quantity});
+    if(selectedRateId){payload.resource_rate_id=selectedRateId;payload.cat_rows=catRows;}
+  }
   const {data,error}=await _sb.rpc('save_job_overview_inherit_rate_unit',{p_job_id:jobId,p_payload:payload});if(error)return showError(error.message);
   await loadJob();setStatus(Number(data)>0?`Job saved · Supplier PO version ${data} created ✓`:'Job saved ✓');
 }

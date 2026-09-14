@@ -61,6 +61,15 @@ async function dispatch(action, actorId, {
   });
 }
 
+async function deleteDispatch(action, actorId, fileId, reason = null) {
+  return serviceRpc('resource_compliance_file_delete_050', {
+    p_action: action,
+    p_actor_id: actorId,
+    p_file_id: fileId,
+    p_reason: reason,
+  });
+}
+
 exports.handler = async event => {
   if (event.httpMethod !== 'POST') {
     return jsonResponse(405, {error: 'POST required.'});
@@ -75,7 +84,7 @@ exports.handler = async event => {
   try { body = parseBody(event); } catch (error) {
     return jsonResponse(error.status || 400, {error: publicError(error)});
   }
-  if (!['prepare_upload', 'complete_upload', 'discard_upload', 'review_evidence', 'download'].includes(body.action)) {
+  if (!['prepare_upload', 'complete_upload', 'discard_upload', 'review_evidence', 'delete_file', 'download'].includes(body.action)) {
     return jsonResponse(400, {error: 'Unknown Compliance file action.'});
   }
 
@@ -174,6 +183,19 @@ exports.handler = async event => {
       return jsonResponse(200, {file_id: fileId, status: 'Valid'});
     }
 
+    if (body.action === 'delete_file') {
+      const fileId = requireUuid(body.file_id, 'File ID');
+      const ticket = await deleteDispatch('inspect', user.id, fileId);
+      await deleteKey(ticket.object_key, config, client).catch(error => {
+        if (error?.$metadata?.httpStatusCode !== 404 && error?.name !== 'NoSuchKey') throw error;
+      });
+      await deleteDispatch(
+        'commit', user.id, fileId,
+        String(body.reason || 'Duplicate or incorrectly uploaded Compliance evidence deleted').slice(0, 500),
+      );
+      return jsonResponse(200, {file_id: fileId, status: 'Deleted'});
+    }
+
     const fileId = requireUuid(body.file_id, 'File ID');
     const fileAction = body.file_action === 'Download' ? 'Download' : 'View';
     const ticket = await dispatch('authorize_download', user.id, {
@@ -205,6 +227,7 @@ exports.__test = {
   requireUuid,
   optionalUuid,
   dispatch,
+  deleteDispatch,
   MAX_SINGLE_UPLOAD_BYTES,
   EVIDENCE_TYPES,
 };

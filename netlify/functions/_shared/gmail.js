@@ -96,7 +96,62 @@ async function sendComplianceNotification(ticket, portalUrl) {
   return {message_id: data.id, thread_id: data.threadId || null};
 }
 
+function complianceSubmissionMessage(ticket, adminUrl) {
+  const fromEmail = cleanHeader(process.env.GMAIL_FROM_EMAIL || 'ops@retodo-ops.com');
+  const fromName = cleanHeader(process.env.GMAIL_FROM_NAME || 'RetodoOps TMS');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromEmail)) {
+    throw new Error('The internal Compliance notification email address is invalid.');
+  }
+  const resourceName = cleanHeader(ticket.name || ticket.internal_number || 'External Resource').slice(0, 200);
+  const resourceNumber = cleanHeader(ticket.internal_number || '').slice(0, 100);
+  const submittedAt = ticket.submitted_at
+    ? new Date(ticket.submitted_at).toISOString().replace('T', ' ').replace('.000Z', ' UTC')
+    : 'now';
+  const subject = `Compliance submitted: ${resourceNumber || resourceName}`;
+  const plain = `${resourceName}${resourceNumber ? ` (${resourceNumber})` : ''} submitted Compliance for internal review at ${submittedAt}.\n\nOpen the Resource Compliance record:\n${adminUrl}\n\nRetodo Ops TMS`;
+  const html = `<!doctype html><html><body style="margin:0;background:#f5f3ff;font-family:Arial,sans-serif;color:#172033">
+    <div style="max-width:640px;margin:24px auto;background:#fff;border:1px solid #ddd6fe;border-radius:12px;overflow:hidden">
+      <div style="padding:22px 26px;background:#4c1d95;color:#fff"><div style="font-size:13px;opacity:.85">RETODO OPS TMS</div><h1 style="margin:5px 0 0;font-size:22px">Compliance submitted for review</h1></div>
+      <div style="padding:24px 26px"><p><strong>${htmlEscape(resourceName)}</strong>${resourceNumber ? ` (${htmlEscape(resourceNumber)})` : ''} submitted Compliance evidence.</p><p style="color:#475467">Submitted: ${htmlEscape(submittedAt)}</p><p style="margin:26px 0"><a href="${htmlEscape(adminUrl)}" style="display:inline-block;padding:12px 18px;background:#6d28d9;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Review Compliance</a></p></div>
+    </div></body></html>`;
+  const boundary = `retodo_${randomUUID()}`;
+  return base64url([
+    `From: ${encodeHeader(fromName)} <${fromEmail}>`,
+    `Reply-To: ${fromEmail}`,
+    `To: ${fromEmail}`,
+    `Subject: ${encodeHeader(subject)}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '', `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: base64', '',
+    Buffer.from(plain, 'utf8').toString('base64'),
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: base64', '',
+    Buffer.from(html, 'utf8').toString('base64'),
+    `--${boundary}--`, '',
+  ].join('\r\n'));
+}
+
+async function sendComplianceSubmissionNotification(ticket, adminUrl) {
+  const accessToken = await gmailAccessToken();
+  const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: {Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json'},
+    body: JSON.stringify({raw: complianceSubmissionMessage(ticket, adminUrl)}),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.id) {
+    throw new Error(`Internal Compliance notification delivery failed (HTTP ${response.status}).`);
+  }
+  return {message_id: data.id, thread_id: data.threadId || null};
+}
+
 module.exports = {
   sendComplianceNotification,
   complianceNotificationMessage,
+  sendComplianceSubmissionNotification,
+  complianceSubmissionMessage,
 };

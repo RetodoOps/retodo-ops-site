@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="retodo-tms-build" content="051">
   <title>My Work — RetodoOps Resource Portal</title>
-  <link rel="stylesheet" href="style.css?v=049">
+  <link rel="stylesheet" href="style.css?v=051">
 </head>
 <body class="resource-portal-body">
 <div class="app">
@@ -78,6 +79,45 @@
           <div class="compliance-evidence-row"><div><span class="field-label">Evidence type</span><strong>CV</strong><small>Upload one or more private CV evidence files.</small></div><div class="portal-upload-controls"><input id="portalCvFiles" type="file" multiple><button id="portalUploadCvBtn" class="btn-secondary" type="button" onclick="uploadPortalComplianceFiles('CV')">Upload</button></div></div>
           <div id="portalCvEvidence" class="data-card-list compliance-file-list"></div>
         </fieldset>
+
+        <fieldset id="portalAgreementCard" class="rate-fieldset portal-compliance-fieldset portal-agreement-card hidden">
+          <legend>Freelancer Framework Agreement</legend>
+          <div class="section-card-heading portal-agreement-heading"><div><h3>Retodo Ops agreement</h3><p>Review the exact supplied agreement, confirm the Service Provider details and accept it electronically.</p></div><span id="portalAgreementPill" class="pill">Not accepted</span></div>
+          <div class="agreement-parties">
+            <div class="data-card"><div><strong>Retodo EOOD</strong><small>UIC 208524462 · 48A Svetla St., 1360 Sofia, Bulgaria</small><small>Retodo Ops Operations · ops@retodo-ops.com</small></div></div>
+            <div class="agreement-version"><span>Agreement version</span><strong id="portalAgreementVersion">1.0</strong><a id="portalAgreementDownload" class="table-link" href="agreements/03_Retodo_Ops_Freelancer_Framework_Agreement.docx" download>Download original DOCX</a></div>
+          </div>
+          <div class="form-grid form-grid-3 agreement-provider-fields">
+            <div class="field field-span-2"><label for="portal-agreement-provider-name">Service Provider full legal name / company *</label><input id="portal-agreement-provider-name"></div>
+            <div class="field"><label for="portal-agreement-registration">ID or registration number *</label><input id="portal-agreement-registration"></div>
+            <div class="field field-span-2"><label for="portal-agreement-address">Service Provider address *</label><input id="portal-agreement-address"></div>
+            <div class="field"><label for="portal-agreement-tax">Tax / VAT number *</label><input id="portal-agreement-tax"></div>
+            <div class="field"><label for="portal-agreement-signatory">Signatory full name *</label><input id="portal-agreement-signatory"></div>
+            <div class="field"><label for="portal-agreement-email">Registration email</label><input id="portal-agreement-email" type="email" readonly></div>
+            <div class="field"><label for="portal-agreement-effective-date">Effective date</label><input id="portal-agreement-effective-date" type="date" readonly></div>
+          </div>
+          <details class="agreement-text"><summary>Read the full Freelancer Framework Agreement</summary><div class="agreement-legal-text">
+            <h3>Freelancer Framework Agreement</h3><p><em>For independent linguists and language-service companies</em></p><p>Retodo and the Service Provider are each a “Party” and together the “Parties”.</p>
+            <h4>1. Independent relationship</h4><p>The Service Provider acts as an independent contractor, not as an employee, agent, partner or exclusive supplier of Retodo. The Service Provider controls how services are performed, subject to project specifications, deadlines, security requirements and quality standards, and is responsible for taxes, social-security obligations, permits, equipment and insurance applicable to its business.</p>
+            <h4>2. Project assignments</h4><p>Each assignment requires a written purchase order or equivalent written confirmation (“Project PO”) stating scope, languages, service, files, deadline and compensation. Retodo issues the Project PO only after the Service Provider has confirmed availability, scope, rate and deadline. Once issued, the Project PO constitutes the final written assignment and no further acceptance is required. The Project PO and this Agreement form the complete terms for that assignment.</p>
+            <h4>3. Performance standards</h4><p>The Service Provider shall deliver accurate, complete and fit-for-purpose work; follow instructions, terminology, style guides and CAT-tool requirements; perform appropriate self-review and QA; immediately flag ambiguity, corrupted files, conflicts, capacity issues or likely delay; and not introduce machine translation or generative-AI tools unless Retodo expressly authorizes them in writing for the project.</p>
+            <h4>4. Personal performance and subcontracting</h4><p>The Service Provider may not subcontract, share files, or allow another person to access project materials without Retodo’s prior written approval. Approved subcontractors must be bound by obligations at least as protective as this Agreement. The Service Provider remains fully responsible for their work.</p>
+            <h4>5. Confidentiality and security</h4><p>The Service Provider shall keep Client and Retodo information confidential, use it only for the assignment, apply reasonable technical and organizational safeguards, and promptly report any loss, unauthorized access, disclosure or suspected security incident. Project materials may not be uploaded to public, consumer or unapproved cloud, AI or MT services.</p>
+            <h4>6. Data protection</h4><p>Where project materials contain personal data, the Service Provider shall process it only on documented instructions from Retodo, limit access, maintain confidentiality and security, assist with incidents and data-subject requests, and delete or return it when instructed. If legally required, the Parties shall execute a separate data-processing addendum before access.</p>
+            <h4>7. Fees and invoicing</h4><p>Fees are set in each Project PO. Retodo operates two freelancer invoicing cycles each month: the 15th and the last working day of the month. Completed Project POs are approved for invoicing on the next applicable cycle date after Retodo accepts the delivery. Work approved by the 15th may be invoiced on the 15th; work approved after that cutoff may be invoiced on the last working day. The Service Provider shall submit one legally valid invoice for the POs approved in that cycle. Retodo shall pay undisputed amounts within 60 calendar days calculated from the applicable invoicing date, by bank transfer in the agreed currency. The Service Provider bears receiving-bank charges and is responsible for its taxes. Retodo may withhold only amounts genuinely disputed and shall explain the dispute promptly.</p>
+            <h4>8. Corrections and quality issues</h4><p>The Service Provider shall correct substantiated errors attributable to its work promptly and without additional charge. If urgent correction is necessary and the Service Provider is unavailable or fails to correct within the required time, Retodo may arrange correction and seek reasonable direct costs to the extent caused by the breach. Repeated material quality or deadline failures may result in suspension or termination.</p><p>Where a substantiated quality failure, missed deadline, incomplete delivery or other material non-conformity reduces the value or usability of the Services, Retodo may, acting reasonably and proportionately, apply a reduction to the affected Project PO, set off documented direct correction costs, or agree another commercial adjustment. Retodo shall notify the Service Provider in writing of the grounds and calculation. Any reduction shall relate only to the affected work and shall not exceed the unpaid amount under the relevant Project PO, except for separately recoverable direct losses permitted under this Agreement.</p>
+            <h4>9. Intellectual property</h4><p>To the fullest extent permitted by law, all transferable economic rights in project deliverables are assigned to Retodo upon payment of the relevant invoice, for onward transfer or licensing to the Client. The Service Provider waives or agrees not to assert moral rights to the extent legally possible. Pre-existing tools and know-how remain with their owner, but the Service Provider grants rights necessary to use the deliverable.</p>
+            <h4>10. Records, retention and deletion</h4><p>The Service Provider shall retain only records required by law or reasonably necessary for invoicing and defense of claims. On request or project completion, it shall return or securely delete project files and confirm deletion, except for legally required archival copies, which remain protected.</p>
+            <h4>11. Non-solicitation and non-circumvention</h4><p>During an assignment and for 12 months after it, the Service Provider shall not knowingly bypass Retodo to solicit or contract directly for substantially the same services with a Client first introduced through Retodo, unless Retodo gives written consent. This does not restrict a demonstrable pre-existing relationship or general marketing not targeted at that Client.</p>
+            <h4>12. Warranties and liability</h4><p>The Service Provider warrants that work is original or properly authorized, does not knowingly infringe third-party rights, and complies with applicable law. Each Party is responsible for direct loss caused by its breach. Neither Party is liable for indirect or consequential loss, except where such limitation is prohibited. Nothing limits liability for fraud, wilful misconduct, confidentiality breach, unlawful data processing, or infringement caused by the responsible Party.</p>
+            <h4>13. Term and termination</h4><p>This Agreement starts on the effective date and continues until terminated by either Party on 30 days’ written notice. Retodo may suspend assignments or terminate immediately for serious confidentiality/security breach, fraud, unauthorized subcontracting or AI/MT use, repeated material quality failure, or other irremediable breach. Termination does not affect issued assignments, accrued payment rights, confidentiality, IP, data, non-circumvention or liability provisions.</p>
+            <h4>14. Governing law and disputes</h4><p>Bulgarian law governs this Agreement. The Parties shall first attempt good-faith resolution; unresolved disputes fall within the jurisdiction of the competent Bulgarian courts, unless a Project PO or signed amendment expressly provides otherwise.</p>
+            <h4>15. General</h4><p>This Agreement and issued Project POs constitute the entire agreement. A Project PO overrides this Agreement only where it expressly identifies the clause being varied. Amendments must be in writing. Electronic signatures and counterparts are permitted. Notices are sent to the stated email addresses. Invalid provisions are severed and the remainder continues.</p><p><strong>Electronic execution through the TMS.</strong> The Service Provider signs this Agreement electronically in Retodo's TMS. The system shall record the signatory name, registration email, date and time, Agreement version, and an acceptance audit trail. The recorded electronic acceptance has the same effect as a handwritten signature to the extent permitted by applicable law.</p>
+          </div></details>
+          <div id="portalAgreementAcceptControls" class="agreement-acceptance-controls"><label class="checkbox-row"><input id="portal-agreement-accept" type="checkbox"> I have read and accept the Freelancer Framework Agreement shown above.</label><button id="portalAcceptAgreementBtn" class="btn-primary" type="button" onclick="acceptPortalFrameworkAgreement()">Accept agreement electronically</button></div>
+          <div id="portalAgreementAcceptance" class="info-banner hidden" role="status"></div>
+          <p id="portalAgreementError" class="error-msg hidden" role="alert"></p>
+        </fieldset>
       </div>
       <p id="portalComplianceProgress" class="field-help" role="status"></p>
       <p id="portalComplianceError" class="error-msg hidden" role="alert"></p>
@@ -118,6 +158,6 @@
 <script src="reference-data.js?v=036"></script>
 <script src="file-hash.js?v=048"></script>
 <script src="resource-portal.js?v=039"></script>
-<script src="resource-dashboard.js?v=049"></script>
+<script src="resource-dashboard.js?v=051"></script>
 </body>
 </html>

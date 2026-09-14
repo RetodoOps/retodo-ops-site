@@ -1,3 +1,6 @@
+const TMS_DASHBOARD_BUILD = '051';
+document.documentElement.dataset.dashboardBuild = TMS_DASHBOARD_BUILD;
+
 // ── Language → flag emoji ──────────────────────────────────────────────────
 const LANG_FLAGS = {
     'English (US)': '🇺🇸', 'English (UK)': '🇬🇧', 'English': '🇬🇧',
@@ -35,6 +38,22 @@ let sortState    = { key: 'deadline', direction: 'asc' };
 const escapeHtml = value => String(value ?? '')
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+
+function dashboardResourceAssignments(selectedJobs, resourcesById) {
+    return selectedJobs.map(job => {
+        const resource = resourcesById.get(job.resource_id);
+        return {
+            job_id: job.id,
+            job_number: job.job_number,
+            resource_id: job.resource_id || null,
+            resource_number: resource?.internal_number || null,
+            resource_name: resource
+                ? (resource.legal_name || resource.company_name || resource.internal_number)
+                : null,
+            resource_type: resource?.resource_type || null,
+        };
+    });
+}
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 function sameDay(dateStr, offset = 0) {
@@ -92,6 +111,7 @@ function filterBySearch(projects, q) {
         (p.project_manager   || '').toLowerCase().includes(lc) ||
         (p.qa_specialist     || '').toLowerCase().includes(lc) ||
         (p.linguist          || '').toLowerCase().includes(lc) ||
+        (p.resource_assignments || []).some(item => `${item.job_number || ''} ${item.resource_number || ''} ${item.resource_name || ''}`.toLowerCase().includes(lc)) ||
         (p.project_type      || '').toLowerCase().includes(lc) ||
         (p.status            || '').toLowerCase().includes(lc)
     );
@@ -102,6 +122,7 @@ const SORT_ACCESSORS = {
     client: p => p.clients?.name,
     account: p => p.client_accounts?.name,
     language: p => `${p.source_language || ''} ${p.target_language || ''}`,
+    resource: p => p.linguist,
     deadline: p => p.deadline ? Date.parse(p.deadline) : null,
     pm: p => p.project_manager,
     status: p => p.status,
@@ -175,7 +196,7 @@ function renderTable() {
     updateSortIndicators();
 
     if (!rows.length) {
-        tbody.innerHTML = `<tr class="state-row"><td colspan="16">No Scoops found.</td></tr>`;
+        tbody.innerHTML = `<tr class="state-row"><td colspan="17">No Scoops found.</td></tr>`;
         return;
     }
 
@@ -203,6 +224,7 @@ function renderTable() {
                     <div class="lang-row"><span class="lang-flag">${tgtFlag}</span>${escapeHtml(p.target_language || '—')}</div>
                 </div>
             </td>
+            <td><div class="dashboard-resource-list">${(p.resource_assignments || []).length ? p.resource_assignments.map(item => `<div class="dashboard-resource-item"><a class="table-link" href="job.html?id=${encodeURIComponent(item.job_id)}">${escapeHtml(item.job_number || 'Job')}</a>${item.resource_id ? `<a class="customer-sub" href="resource.html?id=${encodeURIComponent(item.resource_id)}">${escapeHtml(item.resource_number || 'Resource')} · ${escapeHtml(item.resource_name || 'Assigned')}</a>` : '<span class="customer-sub">Unassigned</span>'}</div>`).join('') : '<span class="customer-sub">No linked Jobs</span>'}</div></td>
             <td><span class="${dlClass}">${fmtDate(p.deadline)}</span></td>
             <td>${escapeHtml(p.project_manager || '—')}</td>
             <td><span class="status-badge">${escapeHtml(p.status || '—')}</span></td>
@@ -220,7 +242,7 @@ function renderTable() {
 // ── Export to CSV ──────────────────────────────────────────────────────────
 function exportCSV() {
     const rows = visibleProjects();
-    const headers = ['Scoop','Project','Client','Account','Source Language','Target Language',
+    const headers = ['Scoop','Project','Client','Account','Source Language','Target Language','Assigned Resource',
         'Deadline','Project Manager','Status','Type','PO','Price','Expense',
         'Profit','Margin','Currency','Email Reference'];
     const lines = [headers.join(',')];
@@ -228,6 +250,7 @@ function exportCSV() {
         lines.push([
             p.scoop_number, p.display_name || p.project_number, p.clients?.name, p.client_accounts?.name,
             p.source_language, p.target_language,
+            (p.resource_assignments || []).map(item => `${item.job_number || 'Job'}: ${item.resource_number || ''}${item.resource_number ? ' · ' : ''}${item.resource_name || 'Unassigned'}`).join(' | '),
             p.deadline, p.project_manager, p.status, p.project_type, p.po_number,
             p.price, p.expense, p.margin_amount, p.scoop_margin, p.currency,
             p.email_reference
@@ -498,7 +521,7 @@ async function reloadProjects() {
         .order('deadline', { ascending: true });
     if (error) {
         document.getElementById('projectsTbody').innerHTML =
-            `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(error.message)}</td></tr>`;
+            `<tr class="state-row"><td colspan="17">Error: ${escapeHtml(error.message)}</td></tr>`;
         return;
     }
     const projects = projectRows || [], projectIds = projects.map(project => project.id);
@@ -509,15 +532,28 @@ async function reloadProjects() {
     }
     const [scoopResult, jobResult] = await Promise.all([
         _sb.from('project_scoops').select('*').in('project_id', projectIds).eq('active', true).order('created_at'),
-        _sb.from('project_jobs').select('id,project_id,project_scoop_id,status,supplier_amount,supplier_currency').in('project_id', projectIds).order('created_at'),
+        _sb.from('project_jobs').select('id,project_id,project_scoop_id,job_number,resource_id,status,service_type,supplier_amount,supplier_currency').in('project_id', projectIds).order('created_at'),
     ]);
     if (scoopResult.error || jobResult.error) {
         const message = scoopResult.error?.message || jobResult.error?.message;
         document.getElementById('projectsTbody').innerHTML =
-            `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(message)}</td></tr>`;
+            `<tr class="state-row"><td colspan="17">Error: ${escapeHtml(message)}</td></tr>`;
         return;
     }
     const jobs = jobResult.data || [], jobIds = jobs.map(job => job.id);
+    const resourceIds = [...new Set(jobs.map(job => job.resource_id).filter(Boolean))];
+    let assignedResources = [];
+    if (resourceIds.length) {
+        const resourceResult = await _sb.from('resources')
+            .select('id,internal_number,legal_name,company_name,resource_type')
+            .in('id', resourceIds);
+        if (resourceResult.error) {
+            document.getElementById('projectsTbody').innerHTML =
+                `<tr class="state-row"><td colspan="17">Error: ${escapeHtml(resourceResult.error.message)}</td></tr>`;
+            return;
+        }
+        assignedResources = resourceResult.data || [];
+    }
     let purchaseOrders = [];
     if (jobIds.length) {
         const poResult = await _sb.from('supplier_purchase_orders')
@@ -526,12 +562,14 @@ async function reloadProjects() {
             .order('created_at', { ascending: false });
         if (poResult.error) {
             document.getElementById('projectsTbody').innerHTML =
-                `<tr class="state-row"><td colspan="16">Error: ${escapeHtml(poResult.error.message)}</td></tr>`;
+                `<tr class="state-row"><td colspan="17">Error: ${escapeHtml(poResult.error.message)}</td></tr>`;
             return;
         }
         purchaseOrders = poResult.data || [];
     }
     const projectsById = new Map(projects.map(project => [project.id, project]));
+    const resourcesById = new Map(assignedResources.map(resource => [resource.id, resource]));
+    const resourceAssignments = selectedJobs => dashboardResourceAssignments(selectedJobs, resourcesById);
     const scoopRows=scoopResult.data||[],scoopProjectIds=new Set(scoopRows.map(scoop=>scoop.project_id));
     allProjects = scoopRows.map(scoop => {
         const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = scoop.status || TMS_REF.scoopStatus(scoop, scoopJobs) || 'Assign';
@@ -540,6 +578,7 @@ async function reloadProjects() {
             return sum + Number(po?.total ?? job.supplier_amount ?? 0);
         }, 0);
         const price = Number(scoop.price || 0), profit = price - expense;
+        const assignments = resourceAssignments(scoopJobs);
         return {
             ...base,
             scoop_id: scoop.id,
@@ -554,9 +593,11 @@ async function reloadProjects() {
             expense,
             margin_amount: profit,
             scoop_margin: price ? profit / price * 100 : 0,
+            resource_assignments: assignments,
+            linguist: assignments.map(item => `${item.resource_number || ''} ${item.resource_name || 'Unassigned'}`.trim()).join(' '),
         };
     });
-    allProjects.push(...projects.filter(project=>!scoopProjectIds.has(project.id)).map(project=>({...project,scoop_id:null,scoop_number:project.project_number,status:'Assign',scoop_status:'Assign',price:0,expense:0,margin_amount:0,scoop_margin:0})));
+    allProjects.push(...projects.filter(project=>!scoopProjectIds.has(project.id)).map(project=>{const projectJobs=jobs.filter(job=>job.project_id===project.id&&!['Declined','Cancelled'].includes(job.status)),assignments=resourceAssignments(projectJobs);return {...project,scoop_id:null,scoop_number:project.project_number,status:'Assign',scoop_status:'Assign',price:0,expense:0,margin_amount:0,scoop_margin:0,resource_assignments:assignments,linguist:assignments.map(item=>`${item.resource_number||''} ${item.resource_name||'Unassigned'}`.trim()).join(' ')}}));
     renderTabs(); renderTable();
 }
 

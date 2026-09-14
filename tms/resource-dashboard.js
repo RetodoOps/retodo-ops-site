@@ -1,6 +1,7 @@
 let portalJobs = [];
 let portalPurchaseOrders = [];
 let portalCompliance = null;
+let portalAgreement = null;
 
 const portalValue = id => String(document.getElementById(id)?.value || '').trim();
 const portalMonth = date => date ? String(date).slice(0, 7) : '';
@@ -60,7 +61,45 @@ function togglePortalEducationFields() {
 
 function portalComplianceFileCard(file) {
     const reviewed = file.review_status === 'Valid';
-    return `<div class="data-card compliance-file-card"><div><strong>${portalEsc(file.filename)}</strong><small>${portalEsc(file.evidence_type)} · ${reviewed ? 'Reviewed' : 'Pending internal review'} · ${portalBytes(file.size_bytes)}</small></div><div class="table-actions"><button class="table-action" type="button" onclick="openPortalComplianceFile('${file.file_id}','View')">Open</button><button class="table-action" type="button" onclick="openPortalComplianceFile('${file.file_id}','Download')">Download</button></div></div>`;
+    const remove = portalCompliance?.editable
+        ? `<button class="table-action danger" type="button" onclick="deletePortalComplianceFile('${file.file_id}')">Delete</button>`
+        : '';
+    return `<div class="data-card compliance-file-card"><div><strong>${portalEsc(file.filename)}</strong><small>${portalEsc(file.evidence_type)} · ${reviewed ? 'Reviewed' : 'Pending internal review'} · ${portalBytes(file.size_bytes)}</small></div><div class="table-actions"><button class="table-action" type="button" onclick="openPortalComplianceFile('${file.file_id}','View')">Open</button><button class="table-action" type="button" onclick="openPortalComplianceFile('${file.file_id}','Download')">Download</button>${remove}</div></div>`;
+}
+
+function renderPortalAgreement() {
+    const data = portalAgreement || {visible: false, status: 'Not accepted', provider: {}};
+    const card = document.getElementById('portalAgreementCard');
+    card.classList.toggle('hidden', data.visible !== true);
+    if (data.visible !== true) return;
+    const accepted = data.status === 'Accepted', provider = data.provider || {};
+    const pill = document.getElementById('portalAgreementPill');
+    pill.textContent = data.status || 'Not accepted';
+    pill.className = `pill ${accepted ? 'pill-green' : 'pill-amber'}`;
+    document.getElementById('portalAgreementVersion').textContent = data.agreement_version || '1.0';
+    document.getElementById('portalAgreementDownload').href = data.document_path || 'agreements/03_Retodo_Ops_Freelancer_Framework_Agreement.docx';
+    const values = {
+        'portal-agreement-provider-name': provider.service_provider_name,
+        'portal-agreement-registration': provider.registration_or_id_number,
+        'portal-agreement-address': provider.service_provider_address,
+        'portal-agreement-tax': provider.tax_vat_number,
+        'portal-agreement-signatory': provider.signatory_name,
+        'portal-agreement-email': provider.registration_email,
+        'portal-agreement-effective-date': String(data.effective_date || '').slice(0, 10),
+    };
+    Object.entries(values).forEach(([id, value]) => {
+        const input = document.getElementById(id);
+        input.value = value || '';
+        input.disabled = !data.can_accept || id === 'portal-agreement-email' || id === 'portal-agreement-effective-date';
+    });
+    document.getElementById('portal-agreement-accept').checked = accepted;
+    document.getElementById('portal-agreement-accept').disabled = !data.can_accept;
+    document.getElementById('portalAgreementAcceptControls').classList.toggle('hidden', accepted || !data.can_accept);
+    const notice = document.getElementById('portalAgreementAcceptance');
+    notice.textContent = accepted
+        ? `Accepted electronically by ${provider.signatory_name || 'the Service Provider'} on ${portalDateTime(data.accepted_at)} · Agreement version ${data.agreement_version}.`
+        : 'Complete any missing Service Provider details, read the Agreement and accept it before submitting Compliance.';
+    notice.classList.toggle('hidden', !accepted && data.can_accept);
 }
 
 function renderPortalCompliance() {
@@ -69,7 +108,7 @@ function renderPortalCompliance() {
     document.getElementById('portalComplianceNav').classList.toggle('hidden', !visible);
     document.getElementById('myCompliance').classList.toggle('hidden', !visible);
     document.getElementById('portalComplianceStatus').textContent = data.status || 'Not requested';
-    if (!visible) return;
+    if (!visible) { renderPortalAgreement(); return; }
 
     const status = data.status || 'Requested', pill = document.getElementById('portalCompliancePill');
     pill.textContent = status;
@@ -116,7 +155,39 @@ function renderPortalCompliance() {
     document.getElementById('portalCvEvidence').innerHTML = cv.length ? cv.map(portalComplianceFileCard).join('') : '<div class="empty-compact">No CV evidence uploaded.</div>';
     document.getElementById('portalComplianceActions').classList.toggle('hidden', !data.editable);
     for (const id of ['portalUploadDiplomaBtn', 'portalUploadCvBtn']) document.getElementById(id).disabled = !data.editable;
+    renderPortalAgreement();
     if (location.hash === '#myCompliance') document.getElementById('myCompliance').scrollIntoView({block: 'start'});
+}
+
+function portalAgreementPayload() {
+    return {
+        service_provider_name: portalValue('portal-agreement-provider-name'),
+        registration_or_id_number: portalValue('portal-agreement-registration'),
+        service_provider_address: portalValue('portal-agreement-address'),
+        tax_vat_number: portalValue('portal-agreement-tax'),
+        signatory_name: portalValue('portal-agreement-signatory'),
+        accepted: !!document.getElementById('portal-agreement-accept').checked,
+    };
+}
+
+async function acceptPortalFrameworkAgreement() {
+    portalClearError('portalAgreementError');
+    if (!portalAgreement?.can_accept) return;
+    if (!document.getElementById('portal-agreement-accept').checked) {
+        return portalShowError('Confirm that you have read and accept the Agreement.', 'portalAgreementError');
+    }
+    if (!confirm('Accept Agreement version 1.0 electronically with the displayed Service Provider details?')) return;
+    const button = document.getElementById('portalAcceptAgreementBtn');
+    button.disabled = true;
+    try {
+        const {data, error} = await _sb.rpc('resource_portal_accept_framework_agreement_050', {p_payload: portalAgreementPayload()});
+        if (error) throw error;
+        portalAgreement = data;
+        renderPortalAgreement();
+        document.getElementById('portalComplianceProgress').textContent = 'Framework Agreement accepted electronically.';
+    } catch (error) {
+        portalShowError(error.message, 'portalAgreementError');
+    } finally { button.disabled = false; }
 }
 
 function portalCompliancePayload() {
@@ -170,10 +241,30 @@ async function submitPortalCompliance() {
         if (error) throw error;
         portalCompliance = data;
         renderPortalCompliance();
-        document.getElementById('portalComplianceProgress').textContent = 'Submitted for internal review.';
+        try {
+            const result = await portalComplianceWorkflowApi('notify_submission');
+            document.getElementById('portalComplianceProgress').textContent = result.notification_sent || result.already_sent
+                ? 'Submitted for internal review · Retodo Ops notified.'
+                : 'Submitted for internal review.';
+        } catch {
+            document.getElementById('portalComplianceProgress').textContent = 'Submitted for internal review. The submission is visible internally; the email alert could not be delivered.';
+        }
     } catch (error) {
         portalShowError(error.message, 'portalComplianceError');
     } finally { button.disabled = false; }
+}
+
+async function portalComplianceWorkflowApi(action) {
+    const {data: {session}} = await _sb.auth.getSession();
+    if (!session?.access_token) throw new Error('Session expired. Sign in again.');
+    const response = await fetch('/.netlify/functions/resource-compliance', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`},
+        body: JSON.stringify({action, resource_id: portalCompliance.resource_id}),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Retodo Ops could not be notified.');
+    return result;
 }
 
 async function portalComplianceFileApi(action, payload = {}) {
@@ -242,6 +333,24 @@ async function openPortalComplianceFile(fileId, action = 'View') {
     try {
         const signed = await portalComplianceFileApi('download', {file_id: fileId, file_action: action});
         triggerPortalDownload(signed.download_url, action === 'Download' ? signed.filename : '');
+    } catch (error) { portalShowError(error.message, 'portalComplianceError'); }
+}
+
+async function deletePortalComplianceFile(fileId) {
+    portalClearError('portalComplianceError');
+    if (!portalCompliance?.editable) return portalShowError('Compliance evidence is currently read-only.', 'portalComplianceError');
+    const filename = (portalCompliance.documents || []).find(file => file.file_id === fileId)?.filename || 'this file';
+    if (!confirm(`Permanently delete ${filename} from private storage? This cannot be undone.`)) return;
+    try {
+        await portalComplianceFileApi('delete_file', {
+            file_id: fileId,
+            reason: 'Duplicate or incorrectly uploaded Compliance evidence deleted by the Resource',
+        });
+        const result = await _sb.rpc('resource_portal_compliance_048');
+        if (result.error) throw result.error;
+        portalCompliance = result.data;
+        renderPortalCompliance();
+        document.getElementById('portalComplianceProgress').textContent = 'Compliance evidence deleted.';
     } catch (error) { portalShowError(error.message, 'portalComplianceError'); }
 }
 
@@ -314,11 +423,13 @@ async function loadPortalDashboard() {
             : Promise.resolve({data: [], error: null}),
         _sb.rpc('resource_portal_purchase_orders'),
         _sb.rpc('resource_portal_compliance_048'),
+        _sb.rpc('resource_portal_framework_agreement_050'),
     ];
-    const [jobsResult, poResult, complianceResult] = await Promise.all(requests);
+    const [jobsResult, poResult, complianceResult, agreementResult] = await Promise.all(requests);
     if (jobsResult.error) portalShowError(jobsResult.error.message);
     if (poResult.error) portalShowError(poResult.error.message);
     if (complianceResult.error) portalShowError(complianceResult.error.message);
+    if (agreementResult.error) portalShowError(agreementResult.error.message);
     portalJobs = jobsResult.data || [];
     portalPurchaseOrders = poResult.data || [];
     portalCompliance = complianceResult.data || {
@@ -327,6 +438,7 @@ async function loadPortalDashboard() {
         status: 'Not requested',
         documents: [],
     };
+    portalAgreement = agreementResult.data || {visible: false, status: 'Not accepted', provider: {}};
     renderPortalJobs();
     renderPortalPurchaseOrders();
     renderPortalCompliance();

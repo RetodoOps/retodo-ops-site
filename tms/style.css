@@ -157,7 +157,7 @@ a { text-decoration: none; color: inherit; }
 
 /* === TABLE === */
 .table-wrap { flex: 1; overflow: auto; }
-.projects-table { width: 100%; border-collapse: collapse; background: white; min-width: 1540px; }
+.projects-table { width: 100%; border-collapse: collapse; background: white; min-width: 1760px; }
 .projects-table thead th {
     background: #f9fafb; border-bottom: 2px solid var(--border);
     padding: 11px 12px; text-align: center; font-weight: 700;
@@ -302,10 +302,14 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
 .button-row { margin-top: 16px; display: flex; gap: 8px; }
 .blind-cv-modal { width: 850px; }
 .blind-cv-preview { background: white; border: 1px solid #dbe4e8; padding: 34px 42px; max-width: 760px; margin: auto; color: #17324a; box-shadow: 0 4px 18px rgba(15,23,42,.08); }
-.cv-brand { border-bottom: 4px solid #13a8d3; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-.cv-brand strong { font-size: 18px; color: #0f2740; }.cv-brand span { color: #64748b; text-transform: uppercase; letter-spacing: .6px; font-size: 11px; }
+.cv-brand { border-bottom: 4px solid #13a8d3; padding-bottom: 12px; display: flex; gap: 20px; justify-content: space-between; align-items: center; }
+.cv-brand img { width: 176px; height: 56px; object-fit: contain; object-position: left center; }
+.cv-brand > div { display: grid; gap: 5px; text-align: right; }
+.cv-brand strong { font-size: 18px; color: #0f2740; text-transform: uppercase; letter-spacing: .5px; }
+.cv-brand span { color: #64748b; line-height: 1.45; font-size: 10.5px; }
 .blind-cv-preview h2 { font-size: 24px; margin: 24px 0 10px; }.blind-cv-preview h3 { color: #0f2740; margin: 21px 0 7px; font-size: 14px; border-bottom: 1px solid #dbe4e8; padding-bottom: 5px; }
 .blind-cv-preview p,.blind-cv-preview li { line-height: 1.55; }.blind-cv-preview ul { padding-left: 20px; }.cv-meta { display: flex; gap: 20px; flex-wrap: wrap; color: #475569; }.cv-footer { border-top: 1px solid #dbe4e8; margin-top: 25px; padding-top: 9px; color: #64748b; font-size: 10.5px; text-align: center; }
+.cv-language-list { display: grid; gap: 3px; }
 
 @media (max-width: 1050px) {
     .resource-summary { grid-template-columns: repeat(2,1fr); }
@@ -1324,6 +1328,31 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .internal-resource-filters .resource-filter-row:first-child { grid-template-columns: minmax(280px, 520px); }
 .internal-resource-filters .resource-search { width: 100%; max-width: 520px; }
 
+/* Update 050: assigned Resources, agreement acceptance and audit summaries. */
+.dashboard-resource-list { display: grid; gap: 7px; min-width: 190px; text-align: left; }
+.dashboard-resource-item { display: grid; gap: 1px; padding-bottom: 6px; border-bottom: 1px solid #ede9fe; }
+.dashboard-resource-item:last-child { padding-bottom: 0; border-bottom: 0; }
+.dashboard-resource-item .customer-sub { color: #64748b; text-decoration: none; }
+.portal-agreement-card { border-top: 1px solid #ddd6fe; }
+.portal-agreement-heading { margin-bottom: 16px; }
+.agreement-parties { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 14px; margin-bottom: 18px; }
+.agreement-version { display: grid; align-content: center; gap: 5px; min-width: 210px; padding: 14px; border: 1px solid #ddd6fe; border-radius: 9px; background: #faf9ff; }
+.agreement-version span { color: #64748b; font-size: 11px; font-weight: 750; text-transform: uppercase; }
+.agreement-version strong { color: #4c1d95; font-size: 18px; }
+.agreement-text { margin: 18px 0; border: 1px solid #ddd6fe; border-radius: 9px; background: #fff; }
+.agreement-text > summary { padding: 13px 15px; color: #4c1d95; cursor: pointer; font-weight: 750; }
+.agreement-legal-text { max-height: 480px; overflow: auto; padding: 4px 18px 18px; border-top: 1px solid #ede9fe; color: #334155; }
+.agreement-legal-text h3 { margin: 18px 0 4px; color: #24124d; }
+.agreement-legal-text h4 { margin: 18px 0 5px; color: #4c1d95; font-size: 13px; }
+.agreement-legal-text p { margin: 0 0 9px; line-height: 1.6; }
+.agreement-acceptance-controls { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px; border: 1px solid #c4b5fd; border-radius: 9px; background: #f5f3ff; }
+.agreement-acceptance-controls .checkbox-row { flex: 1 1 auto; }
+.agreement-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 9px; background: #e2e8f0; }
+.agreement-summary-grid > div { display: grid; align-content: start; gap: 5px; min-width: 0; padding: 13px 14px; background: #fff; }
+.agreement-summary-grid span { color: #64748b; font-size: 10px; font-weight: 750; letter-spacing: .4px; text-transform: uppercase; }
+.agreement-summary-grid strong { overflow-wrap: anywhere; color: #1e293b; font-size: 13px; }
+.agreement-summary-grid small { overflow-wrap: anywhere; color: #64748b; }
+
 /* Update 045 — private R2 file lifecycle and retention controls. */
 .job-file-lifecycle { margin: 0 20px 16px; align-items: flex-start; }
 .job-file-lifecycle span { min-width: 0; overflow-wrap: anywhere; }
@@ -1336,4 +1365,11 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
     #pane-delivery .pane-toolbar .header-actions { width: 100%; }
     #pane-delivery .pane-toolbar .header-actions button { flex: 1 1 150px; }
     .job-file-lifecycle { margin: 0 14px 14px; flex-direction: column; }
+}
+
+@media (max-width: 680px) {
+    .cv-brand, .agreement-acceptance-controls { align-items: flex-start; flex-direction: column; }
+    .cv-brand > div { text-align: left; }
+    .agreement-parties, .agreement-summary-grid { grid-template-columns: 1fr; }
+    .agreement-version { min-width: 0; }
 }

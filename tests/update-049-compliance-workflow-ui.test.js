@@ -33,7 +33,7 @@ test('Account qualifications derive Approved Job quantities without money', () =
   assert.match(resourceHtml, /Job volume/);
   assert.match(resourceHtml, /no financial value is included/i);
   assert.match(resourceJs, /accountQualificationVolume/);
-  assert.match(resourceJs, /unit==='Flat rate'\?'flat rate'/);
+  assert.match(resourceJs, /\['Flat rate','Fixed fee'\]\.includes\(unit\)\?'flat rate'/);
   assert.match(resourceJs, /job\.quantity,job\.unit/);
   const start = migration.indexOf('CREATE OR REPLACE FUNCTION public.resource_account_job_qualifications_048');
   const end = migration.indexOf('-- -------------------------------------------------------------------------', start + 100);
@@ -146,8 +146,8 @@ test('Update 049 uses only forward migration 048 and current UI cache keys', () 
   assert.match(migration, /BEGIN;/);
   assert.match(migration, /COMMIT;/);
   assert.match(migration, /requires the operational core and migration 047/);
-  assert.match(resourceHtml, /style\.css\?v=049/);
-  assert.match(resourceHtml, /resource\.js\?v=049/);
-  assert.match(portalHtml, /style\.css\?v=049/);
-  assert.match(portalHtml, /resource-dashboard\.js\?v=049/);
+  assert.match(resourceHtml, /style\.css\?v=051/);
+  assert.match(resourceHtml, /resource\.js\?v=051/);
+  assert.match(portalHtml, /style\.css\?v=051/);
+  assert.match(portalHtml, /resource-dashboard\.js\?v=051/);
 });
