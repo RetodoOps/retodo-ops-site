@@ -1352,6 +1352,21 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .agreement-summary-grid span { color: #64748b; font-size: 10px; font-weight: 750; letter-spacing: .4px; text-transform: uppercase; }
 .agreement-summary-grid strong { overflow-wrap: anywhere; color: #1e293b; font-size: 13px; }
 .agreement-summary-grid small { overflow-wrap: anywhere; color: #64748b; }
+.agreement-pdf-sheet { position: fixed; left: -20000px; top: 0; width: 760px; padding: 34px 42px; background: #fff; color: #1e293b; font: 14px/1.55 Arial, sans-serif; }
+.agreement-pdf-brand { display: flex; align-items: center; gap: 24px; padding-bottom: 18px; border-bottom: 2px solid #7c3aed; }
+.agreement-pdf-brand img { width: 176px; height: 56px; object-fit: contain; }
+.agreement-pdf-brand h1 { margin: 0 0 5px; color: #24124d; font-size: 24px; }
+.agreement-pdf-brand p, .agreement-pdf-signature p { margin: 4px 0; }
+.agreement-pdf-parties, .agreement-pdf-signature { margin: 22px 0; padding: 18px; border: 1px solid #ddd6fe; border-radius: 8px; background: #faf9ff; break-inside: avoid; }
+.agreement-pdf-parties h2, .agreement-pdf-signature h2 { margin: 0 0 12px; color: #4c1d95; font-size: 17px; }
+.agreement-pdf-parties dl { margin: 0; }
+.agreement-pdf-parties dl div { display: grid; grid-template-columns: 190px 1fr; gap: 14px; padding: 5px 0; }
+.agreement-pdf-parties dt { color: #64748b; font-weight: 700; }
+.agreement-pdf-parties dd { margin: 0; font-weight: 600; }
+.agreement-pdf-terms h3 { color: #24124d; }
+.agreement-pdf-terms h4 { margin: 18px 0 5px; color: #4c1d95; }
+.agreement-pdf-terms p { margin: 0 0 9px; }
+.agreement-signature-name { margin-top: 18px !important; padding-bottom: 5px; border-bottom: 1px solid #1e293b; font: italic 22px Georgia, serif; }
 
 /* Update 045 — private R2 file lifecycle and retention controls. */
 .job-file-lifecycle { margin: 0 20px 16px; align-items: flex-start; }

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="retodo-tms-build" content="051">
+    <meta name="retodo-tms-build" content="052">
     <title>Dashboard — RetodoOps TMS</title>
-    <link rel="stylesheet" href="style.css?v=051">
+    <link rel="stylesheet" href="style.css?v=052">
 </head>
 <body>
 <div class="app">
@@ -185,7 +185,7 @@
 
 <div id="bulkStatusModal" class="modal-overlay hidden"><div class="modal modal-small">
     <div class="modal-header"><h3>Change Project status</h3><button class="modal-close" onclick="closeBulkStatus()">×</button></div>
-    <div class="modal-body"><div class="field"><label>New status</label><select id="bulk-status"><option>Assign</option><option>Ongoing</option><option>Ready for QA</option><option>Waiting</option><option>Ready to Deliver</option><option>Delivered to Client</option><option>Approved</option></select></div><div class="form-grid"><div class="field"><label>Waiting reason</label><input id="bulk-wait-reason"></div><div class="field"><label>Follow-up date</label><input id="bulk-wait-follow-date" type="date"></div><div class="field"><label>Follow-up time</label><input id="bulk-wait-follow-time" type="time" step="60"></div></div><p id="bulkStatusError" class="error-msg hidden"></p></div>
+    <div class="modal-body"><div class="field"><label>New status</label><select id="bulk-status"><option>Assign</option><option>Ongoing</option><option>Ready for QA</option><option>Waiting</option><option>Ready to Deliver</option><option>Delivered to Client</option><option>Approved</option><option>Cancelled</option></select></div><div class="form-grid"><div class="field"><label>Waiting reason</label><input id="bulk-wait-reason"></div><div class="field"><label>Follow-up date</label><input id="bulk-wait-follow-date" type="date"></div><div class="field"><label>Follow-up time</label><input id="bulk-wait-follow-time" type="time" step="60"></div></div><p id="bulkStatusError" class="error-msg hidden"></p></div>
     <div class="modal-footer"><button class="btn-secondary" onclick="closeBulkStatus()">Cancel</button><button class="btn-primary" onclick="applyBulkStatus()">Update selected</button></div>
 </div></div>
 
@@ -194,6 +194,6 @@
 <script src="auth.js?v=039"></script>
 <script src="reference-data.js?v=036"></script>
 <script src="quick-nav.js?v=019"></script>
-<script src="dashboard.js?v=051"></script>
+<script src="dashboard.js?v=052"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "051",
-  "release": "Update 051 - static asset recovery",
-  "source_baseline": "Update 050",
+  "build": "052",
+  "release": "Update 052 - interface completion",
+  "source_baseline": "Update 051",
   "built_on": "2026-09-14"
 }

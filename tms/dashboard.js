@@ -1,4 +1,4 @@
-const TMS_DASHBOARD_BUILD = '051';
+const TMS_DASHBOARD_BUILD = '052';
 document.documentElement.dataset.dashboardBuild = TMS_DASHBOARD_BUILD;
 
 // ── Language → flag emoji ──────────────────────────────────────────────────
@@ -27,6 +27,7 @@ const TABS = [
     { key: 'due_tomorrow', label: 'Due Tomorrow' },
     { key: 'upcoming',     label: 'Upcoming' },
     { key: 'approved',     label: 'Approved' },
+    { key: 'cancelled',    label: 'Cancelled' },
     { key: 'all',          label: 'All' },
     { key: 'missing_po',   label: 'Missing PO' },
 ];
@@ -93,6 +94,7 @@ function filterByTab(projects, tab) {
         case 'due_tomorrow': return projects.filter(p => isTomorrow(p.deadline));
         case 'upcoming':     return projects.filter(p => p.upcoming);
         case 'approved':     return projects.filter(p => p.status === 'Approved');
+        case 'cancelled':    return projects.filter(p => p.status === 'Cancelled');
         case 'missing_po':   return projects.filter(p => p.missing_po);
         default:             return projects;
     }
@@ -213,7 +215,7 @@ function renderTable() {
 
         const projectHref=`project.html?id=${encodeURIComponent(p.id)}${p.scoop_id?`&scoop=${encodeURIComponent(p.scoop_id)}`:''}`;
         return `<tr>
-            <td><input type="checkbox" class="row-check" data-id="${p.id}"></td>
+            <td><input type="checkbox" class="row-check" data-project-id="${p.id}" data-scoop-id="${p.scoop_id || ''}"></td>
             <td>${i + 1}</td>
             <td><a class="proj-num" href="${projectHref}">${escapeHtml(p.scoop_number || p.project_number || '—')}</a><div class="customer-sub">${escapeHtml(p.scoop_id?(p.display_name || p.project_number || 'Project'):'Create first Scoop')}</div>${p.client_reference ? `<div class="customer-sub">Client ref: ${escapeHtml(p.client_reference)}</div>` : ''}</td>
             <td><div class="customer-main">${escapeHtml(p.clients?.name || '—')}</div></td>
@@ -483,12 +485,15 @@ installLanguageShortcut(document.getElementById('f-tgt'));
 document.getElementById('f-po').addEventListener('input', event => {
     if (event.target.value.trim()) document.getElementById('f-missingpo').checked = false;
 });
-function selectedProjectIds() {
-    return [...new Set([...document.querySelectorAll('.row-check:checked')].map(input => input.dataset.id))];
+function selectedDashboardRows() {
+    return [...document.querySelectorAll('.row-check:checked')].map(input => ({
+        projectId: input.dataset.projectId,
+        scoopId: input.dataset.scoopId || null,
+    }));
 }
 function openBulkStatus() {
-    const ids = selectedProjectIds();
-    if (!ids.length) { alert('Select at least one Project.'); return; }
+    const rows = selectedDashboardRows();
+    if (!rows.length) { alert('Select at least one Dashboard row.'); return; }
     document.getElementById('bulkStatusModal').classList.remove('hidden');
 }
 function closeBulkStatus() {
@@ -496,7 +501,7 @@ function closeBulkStatus() {
     document.getElementById('bulkStatusError').classList.add('hidden');
 }
 async function applyBulkStatus() {
-    const ids = selectedProjectIds(), status = document.getElementById('bulk-status').value;
+    const rows = selectedDashboardRows(), status = document.getElementById('bulk-status').value;
     const reason = document.getElementById('bulk-wait-reason').value.trim();
     const follow = combineDateTime('bulk-wait-follow-date','bulk-wait-follow-time');
     const errorEl = document.getElementById('bulkStatusError');
@@ -504,12 +509,18 @@ async function applyBulkStatus() {
         errorEl.textContent = 'Waiting requires a reason and follow-up date.';
         errorEl.classList.remove('hidden'); return;
     }
-    const { error } = await _sb.from('projects').update({
+    const scoopIds = [...new Set(rows.map(row => row.scoopId).filter(Boolean))];
+    const projectIds = [...new Set(rows.map(row => row.projectId).filter(Boolean))];
+    const updates = [];
+    if (scoopIds.length) updates.push(_sb.from('project_scoops').update({status, status_manual:true}).in('id', scoopIds));
+    if (projectIds.length) updates.push(_sb.from('projects').update({
         status,
         waiting_reason: status === 'Waiting' ? reason : null,
         waiting_follow_up_at: status === 'Waiting' ? follow : null,
-    }).in('id', ids);
-    if (error) { errorEl.textContent = error.message; errorEl.classList.remove('hidden'); return; }
+    }).in('id', projectIds));
+    const results = await Promise.all(updates);
+    const failure = results.find(result => result.error)?.error;
+    if (failure) { errorEl.textContent = failure.message; errorEl.classList.remove('hidden'); return; }
     closeBulkStatus();
     await reloadProjects();
 }

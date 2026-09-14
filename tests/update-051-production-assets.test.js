@@ -11,13 +11,13 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const jobJs = read('tms/job.js');
 const dashboardJs = read('tms/dashboard.js');
 
-test('Build 051 has an independently readable deployment marker', () => {
+test('Update 051 recovery remains present under the current deployment marker', () => {
   const build = JSON.parse(read('tms/build.json'));
   assert.deepEqual(build, {
     product: 'Retodo Ops TMS',
-    build: '051',
-    release: 'Update 051 - static asset recovery',
-    source_baseline: 'Update 050',
+    build: '052',
+    release: 'Update 052 - interface completion',
+    source_baseline: 'Update 051',
     built_on: '2026-09-14',
   });
   for (const file of [
@@ -25,13 +25,13 @@ test('Build 051 has an independently readable deployment marker', () => {
     'tms/resource.html', 'tms/resource-dashboard.html',
   ]) {
     const html = read(file);
-    assert.match(html, /<meta name="retodo-tms-build" content="051">/);
-    assert.match(html, /style\.css\?v=051/);
+    assert.match(html, /<meta name="retodo-tms-build" content="052">/);
+    assert.match(html, /style\.css\?v=052/);
   }
-  assert.match(read('tms/job.html'), /job\.js\?v=051/);
-  assert.match(read('tms/dashboard.html'), /dashboard\.js\?v=051/);
-  assert.match(read('tms/resource.html'), /resource\.js\?v=051/);
-  assert.match(read('tms/resource-dashboard.html'), /resource-dashboard\.js\?v=051/);
+  assert.match(read('tms/job.html'), /job\.js\?v=052/);
+  assert.match(read('tms/dashboard.html'), /dashboard\.js\?v=052/);
+  assert.match(read('tms/resource.html'), /resource\.js\?v=052/);
+  assert.match(read('tms/resource-dashboard.html'), /resource-dashboard\.js\?v=052/);
 });
 
 test('Job save compares the displayed deadline fields, not a timezone reparse', () => {

@@ -43,7 +43,7 @@ test('Delivery tab badge counts effective Ready files only',()=>{
 
 test('existing invitation scripts retain Update 047 cache keys; changed pages use current successors',()=>{
     assert.match(read('tms/resource.html'),/onboarding\.js\?v=047/);
-    assert.match(read('tms/resource.html'),/resource\.js\?v=051/);
+    assert.match(read('tms/resource.html'),/resource\.js\?v=052/);
     assert.match(read('tms/resources.html'),/resources\.js\?v=047/);
-    assert.match(read('tms/job.html'),/job\.js\?v=051/);
+    assert.match(read('tms/job.html'),/job\.js\?v=052/);
 });

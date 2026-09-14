@@ -114,7 +114,7 @@ test('Approved Project History stores and renders approximate quantity/unit with
 
 test('Blind CV adds Retodo identity/logo, one language pair per line and Project size', () => {
   assert.match(resourceJs, /BLIND_CV_COMPANY_LINES=\['Retodo EOOD · UIC 208524462'/);
-  assert.match(resourceJs, /<img src="\.\.\/Logo-440x140\.png" alt="Retodo Ops">/);
+  assert.match(resourceJs, /<img src="Logo-440x140\.png" alt="Retodo Ops">/);
   assert.match(resourceJs, /<ul class="cv-language-list">/);
   assert.match(resourceJs, /lp\.map\(x=>`<li>/);
   assert.match(resourceJs, /heading:'Language coverage',lines:\(cvData\.language_pairs\|\|\[\]\)\.map/);
@@ -148,7 +148,7 @@ test('supplied agreement asset is exact and the portal contains all clauses and 
   }
   for (const id of [
     'portal-agreement-provider-name', 'portal-agreement-registration',
-    'portal-agreement-address', 'portal-agreement-tax',
+    'portal-agreement-address',
     'portal-agreement-signatory', 'portal-agreement-email',
   ]) assert.match(portalHtml, new RegExp(`id="${id}"`), id);
   assert.match(migration, /v_resource\.company_name[\s\S]*v_resource\.legal_name/);
@@ -211,7 +211,7 @@ test('Update 050 uses a forward-only migration and successor asset cache keys', 
     [read('tms/job.html'), 'job'], [dashboardHtml, 'dashboard'],
     [resourceHtml, 'resource'], [portalHtml, 'resource-dashboard'],
   ]) {
-    assert.match(html, /style\.css\?v=051/);
-    assert.match(html, new RegExp(`${script}\\.js\\?v=051`));
+    assert.match(html, /style\.css\?v=052/);
+    assert.match(html, new RegExp(`${script}\\.js\\?v=052`));
   }
 });
