@@ -256,10 +256,27 @@ function renderFrameworkAgreementSummary(){
     const accepted=data.status==='Accepted',pill=el('frameworkAgreementStatus');
     pill.textContent=data.status||'Not accepted';pill.className=`pill ${accepted?'pill-green':'pill-amber'}`;
     el('frameworkAgreementDetails').innerHTML=accepted
-        ? `<div><span>Service Provider</span><strong>${esc(data.service_provider_name||'—')}</strong></div><div><span>ID / Tax / VAT</span><strong>${esc([...new Set([data.registration_or_id_number,data.tax_vat_number].filter(Boolean))].join(" / ")||"—")}</strong></div><div><span>Address</span><strong>${esc(data.service_provider_address||'—')}</strong></div><div><span>Signatory</span><strong>${esc(data.signatory_name||'—')}</strong><small>${esc(data.registration_email||'—')}</small></div><div><span>Accepted</span><strong>${fmtDateTime(data.accepted_at)}</strong><small>Version ${esc(data.agreement_version||'1.0')}</small></div>`
+        ? `<div><span>Service Provider</span><strong>${esc(data.service_provider_name||'—')}</strong></div><div><span>ID / Tax / VAT</span><strong>${esc([...new Set([data.registration_or_id_number,data.tax_vat_number].filter(Boolean))].join(" / ")||"—")}</strong></div><div><span>Address</span><strong>${esc(data.service_provider_address||'—')}</strong></div><div><span>Signatory</span><strong>${esc(data.signatory_name||'—')}</strong><small>${esc(data.registration_email||'—')}</small></div><div><span>Accepted</span><strong>${fmtDateTime(data.accepted_at)}</strong><small>Version ${esc(data.agreement_version||'1.0')}</small></div><div><span>Document SHA-256</span><strong class="agreement-hash">${esc(data.agreement_sha256||'—')}</strong></div>`
         : '<div class="empty-compact">The current Agreement has not been accepted by this Resource.</div>';
     const link=el('frameworkAgreementDownload');
-    link.href=data.document_path||'agreements/03_Retodo_Ops_Freelancer_Framework_Agreement.docx';
+    link.onclick=null;
+    if(accepted){
+        link.href='#';
+        link.removeAttribute('download');
+        link.textContent='Download signed PDF';
+        link.onclick=event=>{event.preventDefault();downloadFrameworkAgreementPdf()};
+    }else{
+        link.href=data.document_path||'agreements/03_Retodo_Ops_Freelancer_Framework_Agreement.docx';
+        link.setAttribute('download','');
+        link.textContent='Download original';
+    }
+}
+async function downloadFrameworkAgreementPdf(){
+    const data=frameworkAgreement||{};
+    if(data.status!=='Accepted')return showError('Accept the Agreement before downloading the signed PDF.');
+    const legal=el('frameworkAgreementLegalText');
+    try{await tmsDownloadSignedAgreementPdf({agreement:data,provider:data,legalHtml:legal?.innerHTML,filenameBase:'Retodo_Ops_Freelancer_Agreement'});}
+    catch(error){showError(`Signed PDF generation failed: ${error.message}`)}
 }
 async function complianceWorkflowApi(action,reason=null){
     const {data:{session}}=await _sb.auth.getSession();if(!session?.access_token)throw new Error('Session expired. Sign in again.');

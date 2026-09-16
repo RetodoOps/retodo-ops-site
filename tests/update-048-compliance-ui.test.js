@@ -74,7 +74,7 @@ test('discarded Job files stay in audit but are not listed as active attachments
   assert.match(job, /const visibleFiles=jobFiles\.filter\(file=>/);
   assert.match(job, /upload_status[^;]*'Failed'/);
   assert.match(job, /const readyCount=jobFiles\.filter/);
-  assert.match(read('tms/job.html'), /job\.js\?v=052/);
+  assert.match(read('tms/job.html'), /job\.js\?v=053/);
 });
 
 test('Compliance file endpoint rejects invalid methods and origins before privileged access', async () => {

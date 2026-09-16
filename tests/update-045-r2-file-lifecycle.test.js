@@ -54,7 +54,7 @@ test('Resource access remains own-Job, Ready-only and Client-blind', () => {
 });
 
 test('staff upload uses streaming SHA-256, presigned PUT and verified completion', () => {
-  assert.match(jobHtml, /file-hash\.js\?v=045/);
+  assert.match(jobHtml, /file-hash\.js\?v=053/);
   assert.match(jobJs, /TMS_FILE_HASH\.sha256Hex/);
   assert.match(jobJs, /fileApi\('prepare_upload'/);
   assert.match(jobJs, /fetch\(prepared\.upload_url/);

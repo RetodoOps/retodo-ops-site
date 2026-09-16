@@ -211,7 +211,7 @@ test('Update 050 uses a forward-only migration and successor asset cache keys', 
     [read('tms/job.html'), 'job'], [dashboardHtml, 'dashboard'],
     [resourceHtml, 'resource'], [portalHtml, 'resource-dashboard'],
   ]) {
-    assert.match(html, /style\.css\?v=052/);
-    assert.match(html, new RegExp(`${script}\\.js\\?v=052`));
+    assert.match(html, /style\.css\?v=053/);
+    assert.match(html, new RegExp(`${script}\\.js\\?v=053`));
   }
 });

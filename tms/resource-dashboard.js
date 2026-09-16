@@ -188,22 +188,17 @@ function portalAgreementPayload() {
 async function downloadPortalSignedAgreementPdf() {
     const data = portalAgreement || {};
     if (data.status !== 'Accepted') return portalShowError('Accept the Agreement before downloading the signed PDF.', 'portalAgreementError');
-    if (typeof window.html2pdf !== 'function') return portalShowError('PDF generation is unavailable. Reload the page and try again.', 'portalAgreementError');
     const provider = data.provider || {};
     const legal = document.querySelector('#portalAgreementCard .agreement-legal-text');
-    const sheet = document.createElement('article');
-    sheet.className = 'agreement-pdf-sheet';
-    sheet.setAttribute('aria-hidden', 'true');
-    sheet.innerHTML = `<header class="agreement-pdf-brand"><img src="Logo-440x140.png" alt="Retodo Ops"><div><h1>Freelancer Framework Agreement</h1><p>Agreement version ${portalEsc(data.agreement_version || '1.0')} · Effective ${portalEsc(String(data.effective_date || '').slice(0,10) || '—')}</p></div></header><section class="agreement-pdf-parties"><h2>Service Provider details</h2><dl><div><dt>Full legal name / company</dt><dd>${portalEsc(provider.service_provider_name || '—')}</dd></div><div><dt>ID / Tax / VAT</dt><dd>${portalEsc(portalCombinedId(provider) || '—')}</dd></div><div><dt>Address</dt><dd>${portalEsc(provider.service_provider_address || '—')}</dd></div><div><dt>Registration email</dt><dd>${portalEsc(provider.registration_email || '—')}</dd></div></dl></section><section class="agreement-pdf-terms">${legal ? legal.innerHTML : ''}</section><section class="agreement-pdf-signature"><h2>Electronic signature / acceptance</h2><p class="agreement-signature-name">${portalEsc(provider.signatory_name || '—')}</p><p>Electronically signed and accepted through the Retodo Ops TMS by the authenticated Service Provider account.</p><p>${portalEsc(provider.registration_email || '—')} · ${portalEsc(portalDateTime(data.accepted_at))}</p><p>Agreement version ${portalEsc(data.agreement_version || '1.0')} · Document SHA-256 ${portalEsc(data.agreement_sha256 || 'recorded in the immutable audit trail')}</p></section>`;
-    document.body.appendChild(sheet);
     try {
-        await sheet.querySelector('img').decode().catch(() => {});
-        const filename = `Retodo_Ops_Freelancer_Agreement_${String(provider.signatory_name || 'signed').replace(/[^a-z0-9_-]+/gi,'_')}.pdf`;
-        const pdf = window.html2pdf().set({['mar'+'gin']:[12,12,12,12],filename,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}});
-        await pdf['from'](sheet).save();
+        await tmsDownloadSignedAgreementPdf({
+            agreement: data,
+            provider,
+            legalHtml: legal?.innerHTML,
+        });
     } catch (error) {
         portalShowError(`Signed PDF generation failed: ${error.message}`, 'portalAgreementError');
-    } finally { sheet.remove(); }
+    }
 }
 
 async function acceptPortalFrameworkAgreement() {

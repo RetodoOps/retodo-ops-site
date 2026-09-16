@@ -15,9 +15,9 @@ test('Update 051 recovery remains present under the current deployment marker', 
   const build = JSON.parse(read('tms/build.json'));
   assert.deepEqual(build, {
     product: 'Retodo Ops TMS',
-    build: '052',
-    release: 'Update 052 - interface completion',
-    source_baseline: 'Update 051',
+    build: '053',
+    release: 'Update 053 - registration and agreement PDF recovery',
+    source_baseline: 'Update 052',
     built_on: '2026-09-14',
   });
   for (const file of [
@@ -25,13 +25,13 @@ test('Update 051 recovery remains present under the current deployment marker', 
     'tms/resource.html', 'tms/resource-dashboard.html',
   ]) {
     const html = read(file);
-    assert.match(html, /<meta name="retodo-tms-build" content="052">/);
-    assert.match(html, /style\.css\?v=052/);
+    assert.match(html, /<meta name="retodo-tms-build" content="053">/);
+    assert.match(html, /style\.css\?v=053/);
   }
-  assert.match(read('tms/job.html'), /job\.js\?v=052/);
-  assert.match(read('tms/dashboard.html'), /dashboard\.js\?v=052/);
-  assert.match(read('tms/resource.html'), /resource\.js\?v=052/);
-  assert.match(read('tms/resource-dashboard.html'), /resource-dashboard\.js\?v=052/);
+  assert.match(read('tms/job.html'), /job\.js\?v=053/);
+  assert.match(read('tms/dashboard.html'), /dashboard\.js\?v=053/);
+  assert.match(read('tms/resource.html'), /resource\.js\?v=053/);
+  assert.match(read('tms/resource-dashboard.html'), /resource-dashboard\.js\?v=053/);
 });
 
 test('Job save compares the displayed deadline fields, not a timezone reparse', () => {

@@ -58,7 +58,7 @@ test('staff Job page retains the complete file UI while Update 045 routes new bi
     for (const role of ['Source', 'Reference', 'Instructions', 'Delivery', 'Other']) {
         assert.match(jobHtml, new RegExp(`<option>${role}</option>`));
     }
-    assert.match(jobHtml, /file-hash\.js\?v=045/);
+    assert.match(jobHtml, /file-hash\.js\?v=053/);
     assert.match(jobJs, /TMS_FILE_HASH\.sha256Hex/);
     assert.match(jobJs, /\/\.netlify\/functions\/job-files/);
     assert.match(jobJs, /fileApi\('prepare_upload'/);
@@ -119,9 +119,9 @@ test('Resource JavaScript stays on narrow RPC projections and contains no Client
 });
 
 test('successor UI assets use current cache keys and retain responsive form styles', () => {
-    assert.match(jobHtml, /style\.css\?v=052/);
-    assert.match(jobHtml, /job\.js\?v=052/);
-    assert.match(dashboardHtml, /style\.css\?v=052/);
+    assert.match(jobHtml, /style\.css\?v=053/);
+    assert.match(jobHtml, /job\.js\?v=053/);
+    assert.match(dashboardHtml, /style\.css\?v=053/);
     assert.match(read('tms/resource-po.html'), /resource-po\.js\?v=044/);
     assert.match(style, /\.job-operations-form/);
     assert.match(style, /\.job-issue-form/);

@@ -117,6 +117,22 @@ test('installs the callback session before saving and routes a Resource to its p
     assert.equal(harness.storage.size, 0);
 });
 
+test('returns a registration recovery to the registration handoff after saving', async () => {
+    const harness = createHarness({
+        search: '?from=register',
+        hash: '#access_token=access&refresh_token=refresh&type=recovery',
+    });
+    await settle();
+    await submitted(harness);
+
+    assert.deepEqual(
+        harness.calls.find(call => call[0] === 'replace'),
+        ['replace', 'register.html?password_reset=complete'],
+    );
+    assert.ok(!harness.calls.some(call => call[0] === 'accessIsEnabled'));
+    assert.equal(harness.storage.size, 0);
+});
+
 test('exchanges a PKCE callback and routes a company role to the company Dashboard', async () => {
     const harness = createHarness({
         search: '?code=pkce-code',

@@ -146,8 +146,8 @@ test('Update 049 uses only forward migration 048 and current UI cache keys', () 
   assert.match(migration, /BEGIN;/);
   assert.match(migration, /COMMIT;/);
   assert.match(migration, /requires the operational core and migration 047/);
-  assert.match(resourceHtml, /style\.css\?v=052/);
-  assert.match(resourceHtml, /resource\.js\?v=052/);
-  assert.match(portalHtml, /style\.css\?v=052/);
-  assert.match(portalHtml, /resource-dashboard\.js\?v=052/);
+  assert.match(resourceHtml, /style\.css\?v=053/);
+  assert.match(resourceHtml, /resource\.js\?v=053/);
+  assert.match(portalHtml, /style\.css\?v=053/);
+  assert.match(portalHtml, /resource-dashboard\.js\?v=053/);
 });

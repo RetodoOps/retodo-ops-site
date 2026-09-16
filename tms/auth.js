@@ -218,8 +218,8 @@ async function signIn(email, password) {
     return _sb.auth.signInWithPassword({ email, password });
 }
 
-async function requestPasswordReset(email) {
-    const redirectTo = new URL('reset-password.html', window.location.href).href;
+async function requestPasswordReset(email, redirectPath = 'reset-password.html') {
+    const redirectTo = new URL(redirectPath, window.location.href).href;
     return _sb.auth.resetPasswordForEmail(email, { redirectTo });
 }
 
@@ -232,4 +232,3 @@ async function signOut() {
     await _sb.auth.signOut();
     window.location.href = 'index.html';
 }
-

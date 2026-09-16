@@ -1,4 +1,4 @@
-const TMS_DASHBOARD_BUILD = '052';
+const TMS_DASHBOARD_BUILD = '053';
 document.documentElement.dataset.dashboardBuild = TMS_DASHBOARD_BUILD;
 
 // ── Language → flag emoji ──────────────────────────────────────────────────

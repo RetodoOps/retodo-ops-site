@@ -8,14 +8,14 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('build 052 markers and published logo are complete', () => {
+test('build 053 markers and published logo are complete', () => {
   const build = JSON.parse(read('tms/build.json'));
-  assert.equal(build.build, '052');
-  assert.equal(build.source_baseline, 'Update 051');
+  assert.equal(build.build, '053');
+  assert.equal(build.source_baseline, 'Update 052');
   for (const file of ['dashboard.html','job.html','register.html','resource.html','resource-dashboard.html']) {
     const html = read(`tms/${file}`);
-    assert.match(html, /retodo-tms-build" content="052"/);
-    assert.match(html, /style\.css\?v=052/);
+    assert.match(html, /retodo-tms-build" content="053"/);
+    assert.match(html, /style\.css\?v=053/);
   }
   assert.ok(fs.statSync(path.join(root, 'tms/Logo-440x140.png')).size > 1000);
   assert.match(read('tms/resource.js'), /src="Logo-440x140\.png"/);
@@ -47,8 +47,8 @@ test('Job sidebar contains the complete Reports menu', () => {
 test('self-registration is explicit, current and protects an existing company session', () => {
   const html = read('tms/register.html');
   const source = read('tms/register.js');
-  assert.match(html, /register\.js\?v=052/);
-  assert.match(html, /onboarding\.js\?v=052/);
+  assert.match(html, /register\.js\?v=053/);
+  assert.match(html, /onboarding\.js\?v=053/);
   assert.match(html, /id="registerBtn" type="submit"/);
   assert.match(source, /Creating account…/);
   assert.match(source, /if \(existing\) await _sb\.auth\.signOut\(\)/);
@@ -65,7 +65,11 @@ test('agreement uses one combined ID field and produces the accepted PDF', () =>
   assert.match(source, /tax_vat_number: portalValue\('portal-agreement-registration'\)/);
   assert.match(source, /Download signed PDF/);
   assert.match(source, /downloadPortalSignedAgreementPdf/);
-  assert.match(source, /agreement-pdf-signature/);
-  assert.match(source, /agreement_sha256/);
+  const pdf = read('tms/agreement-pdf.js');
+  assert.match(pdf, /agreement-pdf-signature/);
+  assert.match(pdf, /agreement-pdf-rendering/);
+  assert.match(pdf, /agreement_sha256/);
+  assert.match(read('tms/resource.html'), /frameworkAgreementLegalText/);
+  assert.match(read('tms/resource.js'), /downloadFrameworkAgreementPdf/);
   assert.match(html, /html2pdf\.bundle\.min\.js/);
 });

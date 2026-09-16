@@ -1353,6 +1353,7 @@ body { font-size: 14.5px; line-height: 1.45; color: #182230; }
 .agreement-summary-grid strong { overflow-wrap: anywhere; color: #1e293b; font-size: 13px; }
 .agreement-summary-grid small { overflow-wrap: anywhere; color: #64748b; }
 .agreement-pdf-sheet { position: fixed; left: -20000px; top: 0; width: 760px; padding: 34px 42px; background: #fff; color: #1e293b; font: 14px/1.55 Arial, sans-serif; }
+.agreement-pdf-sheet.agreement-pdf-rendering { position: absolute; left: 0; top: 0; z-index: 2147483647; visibility: visible; opacity: 1; }
 .agreement-pdf-brand { display: flex; align-items: center; gap: 24px; padding-bottom: 18px; border-bottom: 2px solid #7c3aed; }
 .agreement-pdf-brand img { width: 176px; height: 56px; object-fit: contain; }
 .agreement-pdf-brand h1 { margin: 0 0 5px; color: #24124d; font-size: 24px; }
