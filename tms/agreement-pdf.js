@@ -1,27 +1,15 @@
 (function (global) {
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
+    function safeFilename(value) {
+        return String(value || 'signed').replace(/[^a-z0-9_-]+/gi, '_').replace(/^_+|_+$/g, '') || 'signed';
     }
 
     function formatDateTime(value) {
-        if (!value) return '—';
+        if (!value) return '-';
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return String(value);
         return new Intl.DateTimeFormat(undefined, {
-            year: 'numeric', month: 'short', day: 'numeric',
-            hour: '2-digit', minute: '2-digit',
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
         }).format(date);
-    }
-
-    function safeFilename(value) {
-        return String(value || 'signed')
-            .replace(/[^a-z0-9_-]+/gi, '_')
-            .replace(/^_+|_+$/g, '') || 'signed';
     }
 
     function agreementProviderId(provider) {
@@ -30,58 +18,136 @@
         return [...new Set(values)].join(' / ');
     }
 
-    function createSheet(agreement, provider, legalHtml) {
-        const terms = String(legalHtml || '').trim();
-        if (!terms) throw new Error('Agreement terms are unavailable. Reload the page and try again.');
-        const sheet = document.createElement('article');
-        sheet.className = 'agreement-pdf-sheet agreement-pdf-rendering';
-        sheet.setAttribute('aria-hidden', 'true');
-        const effective = String(agreement?.effective_date || '').slice(0, 10) || '—';
-        const version = agreement?.agreement_version || '1.0';
-        const providerName = provider?.service_provider_name || '—';
-        const registrationEmail = provider?.registration_email || '—';
-        const documentHash = agreement?.agreement_sha256 || 'recorded in the immutable audit trail';
-        const retodo = agreement?.retodo || {};
-        sheet.innerHTML = `<header class="agreement-pdf-brand"><img src="Logo-440x140.png" alt="Retodo Ops"><div><h1>Freelancer Framework Agreement</h1><p>Agreement version ${escapeHtml(version)} · Effective ${escapeHtml(effective)}</p></div></header><section class="agreement-pdf-parties"><h2>Retodo party</h2><dl><div><dt>Legal name</dt><dd>${escapeHtml(retodo.legal_name || 'Retodo EOOD')}</dd></div><div><dt>UIC</dt><dd>${escapeHtml(retodo.registration_number || '208524462')}</dd></div><div><dt>Address</dt><dd>${escapeHtml(retodo.address || '48A Svetla St., 1360 Sofia, Bulgaria')}</dd></div><div><dt>Contact</dt><dd>${escapeHtml(retodo.primary_contact || 'Retodo Ops Operations / ops@retodo-ops.com')}</dd></div><div><dt>Signatory</dt><dd>${escapeHtml(retodo.signatory || 'Demir Atanasov / Owner')}</dd></div></dl></section><section class="agreement-pdf-parties"><h2>Service Provider details</h2><dl><div><dt>Full legal name / company</dt><dd>${escapeHtml(providerName)}</dd></div><div><dt>ID / Tax / VAT</dt><dd>${escapeHtml(agreementProviderId(provider) || '—')}</dd></div><div><dt>Address</dt><dd>${escapeHtml(provider?.service_provider_address || '—')}</dd></div><div><dt>Registration email</dt><dd>${escapeHtml(registrationEmail)}</dd></div></dl></section><section class="agreement-pdf-terms">${terms}</section><section class="agreement-pdf-signature"><h2>Electronic signature / acceptance</h2><p class="agreement-signature-name">${escapeHtml(provider?.signatory_name || '—')}</p><p>Electronically signed and accepted through the Retodo Ops TMS by the authenticated Service Provider account.</p><p>${escapeHtml(registrationEmail)} · ${escapeHtml(formatDateTime(agreement?.accepted_at))}</p><p>Agreement version ${escapeHtml(version)} · Document SHA-256 ${escapeHtml(documentHash)}</p></section>`;
-        return sheet;
+    function legalBlocks(legalHtml) {
+        const html = String(legalHtml || '').trim();
+        if (!html) throw new Error('Agreement terms are unavailable. Reload the page and try again.');
+        const holder = document.createElement('div');
+        holder.innerHTML = html;
+        return [...holder.querySelectorAll('h1, h2, h3, h4, p, li')]
+            .map(node => ({
+                kind: /^H[1-4]$/.test(node.tagName) ? 'heading' : 'paragraph',
+                text: String(node.textContent || '').replace(/\s+/g, ' ').trim(),
+            }))
+            .filter(block => block.text);
+    }
+
+    function blobToDataUrl(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error || new Error('Logo could not be read.'));
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    async function loadLogo() {
+        try {
+            const response = await fetch('Logo-440x140.png', {cache: 'no-store'});
+            if (!response.ok) return null;
+            return await blobToDataUrl(await response.blob());
+        } catch {
+            return null;
+        }
     }
 
     async function downloadSignedAgreementPdf({agreement, provider, legalHtml, filenameBase = 'Retodo_Ops_Freelancer_Agreement'} = {}) {
         if (!agreement || agreement.status !== 'Accepted') throw new Error('Accept the Agreement before downloading the signed PDF.');
-        if (typeof global.html2pdf !== 'function') throw new Error('PDF generation is unavailable. Reload the page and try again.');
-        const sheet = createSheet(agreement, provider || agreement, legalHtml);
-        document.body.appendChild(sheet);
-        try {
-            const logo = sheet.querySelector('img');
-            if (logo?.decode) await logo.decode().catch(() => {});
-            await new Promise(resolve => {
-                if (typeof global.requestAnimationFrame === 'function') global.requestAnimationFrame(resolve);
-                else setTimeout(resolve, 0);
-            });
-            const filename = `${filenameBase}_${safeFilename(provider?.signatory_name || agreement?.signatory_name || 'signed')}.pdf`;
-            const pdf = global.html2pdf().set({
-                margin: [12, 12, 12, 12],
-                filename,
-                image: {type: 'jpeg', quality: 0.98},
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: false,
-                    backgroundColor: '#ffffff',
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: Math.max(document.documentElement.clientWidth || 0, sheet.scrollWidth + 32),
-                    windowHeight: Math.max(document.documentElement.clientHeight || 0, sheet.scrollHeight + 32),
-                },
-                jsPDF: {unit: 'mm', format: 'a4', orientation: 'portrait'},
-                pagebreak: {mode: ['css', 'legacy']},
-            });
-            await pdf.from(sheet).save();
-        } finally {
-            sheet.remove();
+        const JsPdf = global.jspdf?.jsPDF;
+        if (typeof JsPdf !== 'function') throw new Error('PDF generation is unavailable. Reload the page and try again.');
+
+        const blocks = legalBlocks(legalHtml);
+        const doc = new JsPdf({unit: 'mm', format: 'a4', orientation: 'portrait', compress: true});
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 16;
+        const contentWidth = pageWidth - (margin * 2);
+        const bottom = pageHeight - 18;
+        let y = 18;
+
+        const ensureSpace = required => {
+            if (y + required <= bottom) return;
+            doc.addPage();
+            y = 18;
+        };
+        const write = (text, {size = 10, style = 'normal', color = [30, 41, 59], gap = 3, indent = 0} = {}) => {
+            doc.setFont('helvetica', style);
+            doc.setFontSize(size);
+            doc.setTextColor(...color);
+            const lines = doc.splitTextToSize(String(text || '-'), contentWidth - indent);
+            const lineHeight = size * 0.43;
+            ensureSpace((lines.length * lineHeight) + gap);
+            doc.text(lines, margin + indent, y);
+            y += (lines.length * lineHeight) + gap;
+        };
+        const labelValue = (label, value) => {
+            ensureSpace(7);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`${label}:`, margin, y);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(30, 41, 59);
+            const valueX = margin + 39;
+            const lines = doc.splitTextToSize(String(value || '-'), pageWidth - margin - valueX);
+            doc.text(lines, valueX, y);
+            y += Math.max(5, lines.length * 4.1);
+        };
+
+        const logo = await loadLogo();
+        if (logo) doc.addImage(logo, 'PNG', margin, 13, 47, 15);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(36, 18, 77);
+        doc.text('Freelancer Framework Agreement', logo ? 68 : margin, 19);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Agreement version ${agreement.agreement_version || '1.0'} | Effective ${String(agreement.effective_date || '').slice(0, 10) || '-'}`, logo ? 68 : margin, 25);
+        y = 35;
+
+        const retodo = agreement.retodo || {};
+        write('Retodo party', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
+        labelValue('Legal name', retodo.legal_name || 'Retodo EOOD');
+        labelValue('UIC', retodo.registration_number || '208524462');
+        labelValue('Address', retodo.address || '48A Svetla St., 1360 Sofia, Bulgaria');
+        labelValue('Contact', retodo.primary_contact || 'Retodo Ops Operations / ops@retodo-ops.com');
+        labelValue('Signatory', retodo.signatory || 'Demir Atanasov / Owner');
+        y += 3;
+
+        write('Service Provider details', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
+        labelValue('Legal name', provider?.service_provider_name);
+        labelValue('ID / Tax / VAT', agreementProviderId(provider));
+        labelValue('Address', provider?.service_provider_address);
+        labelValue('Registration email', provider?.registration_email);
+        y += 5;
+
+        blocks.forEach(block => {
+            if (block.kind === 'heading') write(block.text, {size: 11, style: 'bold', color: [76, 29, 149], gap: 3});
+            else write(block.text, {size: 9.5, gap: 3});
+        });
+
+        ensureSpace(47);
+        y += 4;
+        write('Electronic signature / acceptance', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
+        write(provider?.signatory_name || '-', {size: 16, style: 'italic', color: [36, 18, 77], gap: 2});
+        write('Electronically signed and accepted through the Retodo Ops TMS by the authenticated Service Provider account.', {size: 9.5, gap: 2});
+        write(`${provider?.registration_email || '-'} | ${formatDateTime(agreement.accepted_at)}`, {size: 9.5, gap: 2});
+        write(`Agreement version ${agreement.agreement_version || '1.0'} | Document SHA-256 ${agreement.agreement_sha256 || 'recorded in the immutable audit trail'}`, {size: 8.5, color: [71, 85, 105], gap: 2});
+
+        const pages = doc.getNumberOfPages();
+        for (let page = 1; page <= pages; page += 1) {
+            doc.setPage(page);
+            doc.setDrawColor(221, 214, 254);
+            doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Retodo Ops TMS | Signed Agreement | Page ${page} of ${pages}`, margin, pageHeight - 7);
         }
+
+        const filename = `${filenameBase}_${safeFilename(provider?.signatory_name || agreement.signatory_name || 'signed')}.pdf`;
+        doc.save(filename);
     }
 
     global.tmsDownloadSignedAgreementPdf = downloadSignedAgreementPdf;
-    global.tmsAgreementPdfEscape = escapeHtml;
 })(window);

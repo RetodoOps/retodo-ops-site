@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "053",
-  "release": "Update 053 - registration and agreement PDF recovery",
-  "source_baseline": "Update 052",
-  "built_on": "2026-09-14"
+  "build": "054",
+  "release": "Update 054 - deterministic signed Agreement PDF",
+  "source_baseline": "Update 053",
+  "built_on": "2026-09-16"
 }
