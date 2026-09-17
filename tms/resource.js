@@ -252,12 +252,12 @@ function renderComplianceWorkflow(){
 function renderFrameworkAgreementSummary(){
     const card=el('frameworkAgreementCard');
     if(!card||resource?.resource_type==='Internal')return;
-    const data=frameworkAgreement||{status:'Not accepted'};
-    const accepted=data.status==='Accepted',pill=el('frameworkAgreementStatus');
+    const data=frameworkAgreement||{status:'Not issued'};
+    const accepted=['Signed','Accepted'].includes(data.status),pill=el('frameworkAgreementStatus');
     pill.textContent=data.status||'Not accepted';pill.className=`pill ${accepted?'pill-green':'pill-amber'}`;
     el('frameworkAgreementDetails').innerHTML=accepted
-        ? `<div><span>Service Provider</span><strong>${esc(data.service_provider_name||'—')}</strong></div><div><span>ID / Tax / VAT</span><strong>${esc([...new Set([data.registration_or_id_number,data.tax_vat_number].filter(Boolean))].join(" / ")||"—")}</strong></div><div><span>Address</span><strong>${esc(data.service_provider_address||'—')}</strong></div><div><span>Signatory</span><strong>${esc(data.signatory_name||'—')}</strong><small>${esc(data.registration_email||'—')}</small></div><div><span>Accepted</span><strong>${fmtDateTime(data.accepted_at)}</strong><small>Version ${esc(data.agreement_version||'1.0')}</small></div><div><span>Document SHA-256</span><strong class="agreement-hash">${esc(data.agreement_sha256||'—')}</strong></div>`
-        : '<div class="empty-compact">The current Agreement has not been accepted by this Resource.</div>';
+        ? `<div><span>Retodo signatory</span><strong>${esc(data.retodo?.signatory_name||'Demir Atanasov')}</strong><small>${esc(data.retodo?.signatory_title||'Owner')} · ${fmtDateTime(data.retodo?.signed_at)}</small></div><div><span>Service Provider</span><strong>${esc(data.service_provider_name||'—')}</strong></div><div><span>ID / Tax / VAT</span><strong>${esc([...new Set([data.registration_or_id_number,data.tax_vat_number].filter(Boolean))].join(" / ")||"—")}</strong></div><div><span>Provider signatory</span><strong>${esc(data.signatory_name||'—')}</strong><small>${esc(data.registration_email||'—')} · ${fmtDateTime(data.accepted_at)}</small></div><div><span>Effective</span><strong>${fmtDate(data.effective_date)}</strong><small>Version ${esc(data.agreement_version||'1.1')}</small></div><div><span>Document SHA-256</span><strong class="agreement-hash">${esc(data.agreement_sha256||'—')}</strong></div>`
+        : `<div class="empty-compact">${data.status==='Awaiting Service Provider signature'?'Retodo signed when Compliance was unlocked. Awaiting the Service Provider signature.':'The current Agreement has not been issued.'}</div>`;
     const link=el('frameworkAgreementDownload');
     link.onclick=null;
     if(accepted){
@@ -273,7 +273,7 @@ function renderFrameworkAgreementSummary(){
 }
 async function downloadFrameworkAgreementPdf(){
     const data=frameworkAgreement||{};
-    if(data.status!=='Accepted')return showError('Accept the Agreement before downloading the signed PDF.');
+    if(!['Signed','Accepted'].includes(data.status))return showError('Both Parties must sign the Agreement before downloading the signed PDF.');
     const legal=el('frameworkAgreementLegalText');
     try{await tmsDownloadSignedAgreementPdf({agreement:data,provider:data,legalHtml:legal?.innerHTML,filenameBase:'Retodo_Ops_Freelancer_Agreement'});}
     catch(error){showError(`Signed PDF generation failed: ${error.message}`)}
@@ -287,9 +287,9 @@ async function runComplianceWorkflow(action){
     if(!canEditCompliance())return;
     let reason=null;
     if(action==='request_changes'){reason=prompt('Describe exactly which Compliance information or evidence must be changed:','');if(reason===null)return;if(!reason.trim())return showError('Explain which Compliance changes are required.');}
-    const questions={request:'Open the Compliance phase and email this Resource?',resend:'Resend the Compliance notification email?',complete:'Mark this Compliance submission complete?'};
+    const questions={request:'Unlock Compliance, sign Agreement 1.1 for Retodo and email this Resource?',resend:'Resend the Compliance notification email?',complete:'Mark this Compliance submission complete?'};
     if(questions[action]&&!confirm(questions[action]))return;
-    try{await complianceWorkflowApi(action,reason);await loadResource();setStatus(action==='complete'?'Compliance marked complete ✓':action==='request_changes'?'Changes requested and notification sent ✓':action==='resend'?'Compliance notification resent ✓':'Compliance requested and notification sent ✓')}
+    try{await complianceWorkflowApi(action,reason);await loadResource();setStatus(action==='complete'?'Compliance marked complete ✓':action==='request_changes'?'Changes requested and notification sent ✓':action==='resend'?'Compliance notification resent ✓':'Compliance unlocked and Agreement signed by Retodo ✓')}
     catch(error){await loadResource();showError(error.workflowStatus?`${error.message} The portal task remains ${error.workflowStatus}.`:error.message)}
 }
 const readyComplianceDocument = document => {

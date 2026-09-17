@@ -51,7 +51,7 @@
     }
 
     async function downloadSignedAgreementPdf({agreement, provider, legalHtml, filenameBase = 'Retodo_Ops_Freelancer_Agreement'} = {}) {
-        if (!agreement || agreement.status !== 'Accepted') throw new Error('Accept the Agreement before downloading the signed PDF.');
+        if (!agreement || !['Signed', 'Accepted'].includes(agreement.status)) throw new Error('Both Parties must sign the Agreement before downloading the signed PDF.');
         const JsPdf = global.jspdf?.jsPDF;
         if (typeof JsPdf !== 'function') throw new Error('PDF generation is unavailable. Reload the page and try again.');
 
@@ -102,7 +102,7 @@
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(71, 85, 105);
-        doc.text(`Agreement version ${agreement.agreement_version || '1.0'} | Effective ${String(agreement.effective_date || '').slice(0, 10) || '-'}`, logo ? 68 : margin, 25);
+        doc.text(`Agreement version ${agreement.agreement_version || '1.1'} | Effective ${String(agreement.effective_date || '').slice(0, 10) || '-'}`, logo ? 68 : margin, 25);
         y = 35;
 
         const retodo = agreement.retodo || {};
@@ -111,7 +111,7 @@
         labelValue('UIC', retodo.registration_number || '208524462');
         labelValue('Address', retodo.address || '48A Svetla St., 1360 Sofia, Bulgaria');
         labelValue('Contact', retodo.primary_contact || 'Retodo Ops Operations / ops@retodo-ops.com');
-        labelValue('Signatory', retodo.signatory || 'Demir Atanasov / Owner');
+        labelValue('Signatory', [retodo.signatory_name, retodo.signatory_title].filter(Boolean).join(' / ') || retodo.signatory || 'Demir Atanasov / Owner');
         y += 3;
 
         write('Service Provider details', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
@@ -126,13 +126,17 @@
             else write(block.text, {size: 9.5, gap: 3});
         });
 
-        ensureSpace(47);
+        ensureSpace(70);
         y += 4;
-        write('Electronic signature / acceptance', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
+        write('Retodo electronic signature', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
+        write([retodo.signatory_name || 'Demir Atanasov', retodo.signatory_title || 'Owner'].filter(Boolean).join(' / '), {size: 16, style: 'italic', color: [36, 18, 77], gap: 2});
+        write('Electronically signed for Retodo EOOD when an authorized internal user unlocked the Compliance phase.', {size: 9.5, gap: 2});
+        write(`${retodo.registration_email || 'ops@retodo-ops.com'} | ${formatDateTime(retodo.signed_at)}`, {size: 9.5, gap: 5});
+        write('Service Provider electronic signature', {size: 13, style: 'bold', color: [76, 29, 149], gap: 4});
         write(provider?.signatory_name || '-', {size: 16, style: 'italic', color: [36, 18, 77], gap: 2});
-        write('Electronically signed and accepted through the Retodo Ops TMS by the authenticated Service Provider account.', {size: 9.5, gap: 2});
+        write('Electronically signed by selecting Accept and sign through the authenticated Service Provider account.', {size: 9.5, gap: 2});
         write(`${provider?.registration_email || '-'} | ${formatDateTime(agreement.accepted_at)}`, {size: 9.5, gap: 2});
-        write(`Agreement version ${agreement.agreement_version || '1.0'} | Document SHA-256 ${agreement.agreement_sha256 || 'recorded in the immutable audit trail'}`, {size: 8.5, color: [71, 85, 105], gap: 2});
+        write(`Agreement version ${agreement.agreement_version || '1.1'} | Document SHA-256 ${agreement.agreement_sha256 || 'recorded in the immutable audit trail'}`, {size: 8.5, color: [71, 85, 105], gap: 2});
 
         const pages = doc.getNumberOfPages();
         for (let page = 1; page <= pages; page += 1) {

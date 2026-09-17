@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="retodo-tms-build" content="054">
+  <meta name="retodo-tms-build" content="055">
   <title>My Work — RetodoOps Resource Portal</title>
-  <link rel="stylesheet" href="style.css?v=054">
+  <link rel="stylesheet" href="style.css?v=055">
 </head>
 <body class="resource-portal-body">
 <div class="app">
@@ -85,7 +85,7 @@
           <div class="section-card-heading portal-agreement-heading"><div><h3>Retodo Ops agreement</h3><p>Review the exact supplied agreement, confirm the Service Provider details and accept it electronically.</p></div><span id="portalAgreementPill" class="pill">Not accepted</span></div>
           <div class="agreement-parties">
             <div class="data-card"><div><strong>Retodo EOOD</strong><small>UIC 208524462 · 48A Svetla St., 1360 Sofia, Bulgaria</small><small>Retodo Ops Operations · ops@retodo-ops.com</small></div></div>
-            <div class="agreement-version"><span>Agreement version</span><strong id="portalAgreementVersion">1.0</strong><a id="portalAgreementDownload" class="table-link" href="agreements/03_Retodo_Ops_Freelancer_Framework_Agreement.docx" download>Download original DOCX</a></div>
+            <div class="agreement-version"><span>Agreement version</span><strong id="portalAgreementVersion">1.1</strong><a id="portalAgreementDownload" class="table-link" href="agreements/03_Retodo_Ops_Freelancer_Framework_Agreement.docx" download>Download original DOCX</a></div>
           </div>
           <div class="form-grid form-grid-3 agreement-provider-fields">
             <div class="field field-span-2"><label for="portal-agreement-provider-name">Service Provider full legal name / company *</label><input id="portal-agreement-provider-name"></div>
@@ -111,9 +111,9 @@
             <h4>12. Warranties and liability</h4><p>The Service Provider warrants that work is original or properly authorized, does not knowingly infringe third-party rights, and complies with applicable law. Each Party is responsible for direct loss caused by its breach. Neither Party is liable for indirect or consequential loss, except where such limitation is prohibited. Nothing limits liability for fraud, wilful misconduct, confidentiality breach, unlawful data processing, or infringement caused by the responsible Party.</p>
             <h4>13. Term and termination</h4><p>This Agreement starts on the effective date and continues until terminated by either Party on 30 days’ written notice. Retodo may suspend assignments or terminate immediately for serious confidentiality/security breach, fraud, unauthorized subcontracting or AI/MT use, repeated material quality failure, or other irremediable breach. Termination does not affect issued assignments, accrued payment rights, confidentiality, IP, data, non-circumvention or liability provisions.</p>
             <h4>14. Governing law and disputes</h4><p>Bulgarian law governs this Agreement. The Parties shall first attempt good-faith resolution; unresolved disputes fall within the jurisdiction of the competent Bulgarian courts, unless a Project PO or signed amendment expressly provides otherwise.</p>
-            <h4>15. General</h4><p>This Agreement and issued Project POs constitute the entire agreement. A Project PO overrides this Agreement only where it expressly identifies the clause being varied. Amendments must be in writing. Electronic signatures and counterparts are permitted. Notices are sent to the stated email addresses. Invalid provisions are severed and the remainder continues.</p><p><strong>Electronic execution through the TMS.</strong> The Service Provider signs this Agreement electronically in Retodo's TMS. The system shall record the signatory name, registration email, date and time, Agreement version, and an acceptance audit trail. The recorded electronic acceptance has the same effect as a handwritten signature to the extent permitted by applicable law.</p>
+<h4>15. General</h4><p>This Agreement and issued Project POs constitute the entire agreement. A Project PO overrides this Agreement only where it expressly identifies the clause being varied. Amendments must be in writing. Electronic signatures and counterparts are permitted. Notices are sent to the stated email addresses. Invalid provisions are severed and the remainder continues.</p><p><strong>Electronic execution through the TMS.</strong> Retodo signs this Agreement electronically when an authorized internal user unlocks the Compliance phase for the Service Provider. The Service Provider signs this Agreement electronically by selecting Accept and sign while authenticated in Retodo's TMS. Each Party expressly agrees, pursuant to Article 13(4) of the Bulgarian Electronic Document and Electronic Trust Services Act, that the electronic signature created through its respective TMS action has legal effect equivalent to that Party's handwritten signature. The system shall bind both actions to the exact immutable Agreement version and record the signatory identity, account, email, UTC date and time, Agreement version, document SHA-256 hash and audit trail. This Agreement becomes effective when the Service Provider applies the second and final signature.</p>
           </div></details>
-          <div id="portalAgreementAcceptControls" class="agreement-acceptance-controls"><label class="checkbox-row"><input id="portal-agreement-accept" type="checkbox"> I have read and accept the Freelancer Framework Agreement shown above.</label><button id="portalAcceptAgreementBtn" class="btn-primary" type="button" onclick="acceptPortalFrameworkAgreement()">Accept agreement electronically</button></div>
+          <div id="portalAgreementAcceptControls" class="agreement-acceptance-controls"><label class="checkbox-row"><input id="portal-agreement-accept" type="checkbox"> I have read and accept the Freelancer Framework Agreement shown above.</label><button id="portalAcceptAgreementBtn" class="btn-primary" type="button" onclick="acceptPortalFrameworkAgreement()">Accept and sign</button></div>
           <div id="portalAgreementAcceptance" class="info-banner hidden" role="status"></div>
           <p id="portalAgreementError" class="error-msg hidden" role="alert"></p>
         </fieldset>
@@ -154,12 +154,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.12.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.2/jspdf.umd.min.js"></script>
-<script src="config.js?v=054"></script>
-<script src="auth.js?v=054"></script>
-<script src="reference-data.js?v=054"></script>
-<script src="file-hash.js?v=054"></script>
-<script src="agreement-pdf.js?v=054"></script>
-<script src="resource-portal.js?v=054"></script>
-<script src="resource-dashboard.js?v=054"></script>
+<script src="config.js?v=055"></script>
+<script src="auth.js?v=055"></script>
+<script src="reference-data.js?v=055"></script>
+<script src="file-hash.js?v=055"></script>
+<script src="agreement-pdf.js?v=055"></script>
+<script src="resource-portal.js?v=055"></script>
+<script src="resource-dashboard.js?v=055"></script>
 </body>
 </html>

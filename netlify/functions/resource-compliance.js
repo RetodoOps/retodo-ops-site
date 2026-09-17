@@ -40,7 +40,7 @@ function parseBody(event) {
 }
 
 async function dispatch(action, actorId, resourceId, reason = null) {
-  return serviceRpc('resource_compliance_workflow_dispatch_048', {
+  return serviceRpc('resource_compliance_workflow_dispatch_055', {
     p_action: action,
     p_actor_id: actorId,
     p_resource_id: resourceId,

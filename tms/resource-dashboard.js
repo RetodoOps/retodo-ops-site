@@ -73,15 +73,15 @@ function portalComplianceFileCard(file) {
 }
 
 function renderPortalAgreement() {
-    const data = portalAgreement || {visible: false, status: 'Not accepted', provider: {}};
+    const data = portalAgreement || {visible: false, status: 'Not issued', provider: {}};
     const card = document.getElementById('portalAgreementCard');
     card.classList.toggle('hidden', data.visible !== true);
     if (data.visible !== true) return;
-    const accepted = data.status === 'Accepted', provider = data.provider || {};
+    const accepted = ['Signed', 'Accepted'].includes(data.status), provider = data.provider || {};
     const pill = document.getElementById('portalAgreementPill');
     pill.textContent = data.status || 'Not accepted';
     pill.className = `pill ${accepted ? 'pill-green' : 'pill-amber'}`;
-    document.getElementById('portalAgreementVersion').textContent = data.agreement_version || '1.0';
+    document.getElementById('portalAgreementVersion').textContent = data.agreement_version || '1.1';
     const download = document.getElementById('portalAgreementDownload');
     download.onclick = null;
     if (accepted) {
@@ -112,8 +112,8 @@ function renderPortalAgreement() {
     document.getElementById('portalAgreementAcceptControls').classList.toggle('hidden', accepted || !data.can_accept);
     const notice = document.getElementById('portalAgreementAcceptance');
     notice.textContent = accepted
-        ? `Accepted electronically by ${provider.signatory_name || 'the Service Provider'} on ${portalDateTime(data.accepted_at)} · Agreement version ${data.agreement_version}.`
-        : 'Complete any missing Service Provider details, read the Agreement and accept it before submitting Compliance.';
+        ? `Signed by Retodo on ${portalDateTime(data.retodo?.signed_at)} and by ${provider.signatory_name || 'the Service Provider'} on ${portalDateTime(data.accepted_at)} · Agreement version ${data.agreement_version}.`
+        : `Retodo signed this Agreement when Compliance was unlocked${data.retodo?.signed_at ? ` on ${portalDateTime(data.retodo.signed_at)}` : ''}. Complete any missing details, read the Agreement and select Accept and sign.`;
     notice.classList.toggle('hidden', !accepted && data.can_accept);
 }
 
@@ -187,7 +187,7 @@ function portalAgreementPayload() {
 
 async function downloadPortalSignedAgreementPdf() {
     const data = portalAgreement || {};
-    if (data.status !== 'Accepted') return portalShowError('Accept the Agreement before downloading the signed PDF.', 'portalAgreementError');
+    if (!['Signed', 'Accepted'].includes(data.status)) return portalShowError('Both Parties must sign the Agreement before downloading the signed PDF.', 'portalAgreementError');
     const provider = data.provider || {};
     const legal = document.querySelector('#portalAgreementCard .agreement-legal-text');
     try {
@@ -207,7 +207,7 @@ async function acceptPortalFrameworkAgreement() {
     if (!document.getElementById('portal-agreement-accept').checked) {
         return portalShowError('Confirm that you have read and accept the Agreement.', 'portalAgreementError');
     }
-    if (!confirm('Accept Agreement version 1.0 electronically with the displayed Service Provider details?')) return;
+    if (!confirm(`Accept and sign Agreement version ${portalAgreement.agreement_version || '1.1'} with the displayed Service Provider details?`)) return;
     const button = document.getElementById('portalAcceptAgreementBtn');
     button.disabled = true;
     try {
@@ -215,7 +215,7 @@ async function acceptPortalFrameworkAgreement() {
         if (error) throw error;
         portalAgreement = data;
         renderPortalAgreement();
-        document.getElementById('portalComplianceProgress').textContent = 'Framework Agreement accepted electronically.';
+        document.getElementById('portalComplianceProgress').textContent = 'Framework Agreement signed electronically by both Parties.';
     } catch (error) {
         portalShowError(error.message, 'portalAgreementError');
     } finally { button.disabled = false; }
