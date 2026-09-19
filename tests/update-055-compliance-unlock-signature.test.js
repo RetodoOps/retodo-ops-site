@@ -30,7 +30,7 @@ test('Agreement 1.1 and both HTML copies contain the electronic-signature equiva
     assert.match(html, /unlocks the Compliance phase/);
     assert.match(html, /Article 13\(4\) of the Bulgarian Electronic Document and Electronic Trust Services Act/);
     assert.match(html, /equivalent to that Party's handwritten signature/);
-    assert.match(html, /retodo-tms-build" content="055"/);
+    assert.match(html, /retodo-tms-build" content="056"/);
   }
   assert.match(read('tms/resource-dashboard.html'), />Accept and sign</);
 });
@@ -47,8 +47,8 @@ test('final PDF contains both Retodo and Service Provider signature records', ()
 
 test('build, migration and audit sequence is forward-only', () => {
   const build = JSON.parse(read('tms/build.json'));
-  assert.equal(build.build, '055');
-  assert.equal(build.source_baseline, 'Update 054');
+  assert.equal(build.build, '056');
+  assert.equal(build.source_baseline, 'Update 055');
   assert.ok(fs.existsSync(path.join(root, 'tms/migrations/051_update_055_compliance_unlock_retodo_signature.sql')));
   assert.ok(fs.existsSync(path.join(root, 'tms/audits/013_update_055_compliance_unlock_retodo_signature_audit.sql')));
 });

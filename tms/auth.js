@@ -19,6 +19,9 @@ const TMS_RESOURCE_PAGES = new Set([
 let _tmsRolePromise = null;
 let _qaObserver = null;
 let _qaUiScheduled = false;
+let _uiEnhancementObserver = null;
+let _uiEnhancementScheduled = false;
+let _roleDriftGuardInstalled = false;
 
 function currentTmsPage() {
     return location.pathname.split('/').pop() || 'index.html';
@@ -151,6 +154,91 @@ function scheduleRoleUi(role) {
         });
     }
     applyQaReadOnlyUi();
+}
+
+function isPersistentHelp(element) {
+    const id = String(element.id || '').toLowerCase();
+    return element.matches('[role="status"], [aria-live]')
+        || /(?:error|progress|status|message)/.test(id)
+        || element.querySelector('a, button, input, select, textarea');
+}
+
+function collapseHelpText(element) {
+    if (!element || element.dataset.tooltipInstalled === 'true' || isPersistentHelp(element)) return;
+    const message = String(element.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!message) return;
+    const tip = document.createElement('button');
+    tip.type = 'button';
+    tip.className = 'help-tip';
+    tip.dataset.tooltip = message;
+    tip.setAttribute('aria-label', `Help: ${message}`);
+    tip.textContent = '?';
+    element.textContent = '';
+    element.append(tip);
+    element.classList.add('field-help-collapsed');
+    element.dataset.tooltipInstalled = 'true';
+}
+
+function enhanceAction(control) {
+    if (!control || control.dataset.visualActionChecked === 'true') return;
+    control.dataset.visualActionChecked = 'true';
+    const text = String(control.textContent || control.getAttribute?.('aria-label') || '').replace(/\s+/g, ' ').trim();
+    if (/^upload\b/i.test(text)) {
+        control.classList.remove('btn-secondary');
+        control.classList.add('btn-primary', 'action-upload');
+    }
+    if (/^(open|download|view|print|export)\b/i.test(text)
+        && !control.classList.contains('btn-primary')
+        && !control.classList.contains('btn-danger')) {
+        control.classList.add('action-prominent');
+    }
+}
+
+function applyGlobalUiEnhancements(root = document) {
+    root.querySelectorAll?.('.field-help, .compliance-help').forEach(collapseHelpText);
+    root.querySelectorAll?.('button, a.table-action, a.table-link').forEach(enhanceAction);
+}
+
+function installGlobalUiEnhancements() {
+    applyGlobalUiEnhancements();
+    if (_uiEnhancementObserver || !document.body) return;
+    _uiEnhancementObserver = new MutationObserver(() => {
+        if (_uiEnhancementScheduled) return;
+        _uiEnhancementScheduled = true;
+        queueMicrotask(() => {
+            _uiEnhancementScheduled = false;
+            applyGlobalUiEnhancements();
+        });
+    });
+    _uiEnhancementObserver.observe(document.body, {subtree:true, childList:true});
+}
+
+function installRoleDriftGuard() {
+    if (_roleDriftGuardInstalled) return;
+    _roleDriftGuardInstalled = true;
+    _sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'INITIAL_SESSION' || !session?.user) return;
+        _tmsRolePromise = null;
+        setTimeout(async () => {
+            try {
+                const role = await currentAppRole(true);
+                if (role && !routeMatchesRole(role)) location.replace(homeForRole(role));
+            } catch (error) {
+                console.error('TMS role-change check failed', error);
+                redirectToLogin('session-changed');
+            }
+        }, 0);
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        installGlobalUiEnhancements();
+        installRoleDriftGuard();
+    }, {once:true});
+} else {
+    installGlobalUiEnhancements();
+    installRoleDriftGuard();
 }
 
 async function requireAuth() {

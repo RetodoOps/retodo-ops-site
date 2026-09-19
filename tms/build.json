@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "055",
-  "release": "Update 055 - Compliance unlock Retodo signature",
-  "source_baseline": "Update 054",
-  "built_on": "2026-09-17"
+  "build": "056",
+  "release": "Update 056 - Global visual system refresh",
+  "source_baseline": "Update 055",
+  "built_on": "2026-09-18"
 }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Settings — RetodoOps TMS</title>
-  <link rel="stylesheet" href="style.css?v=045">
+  <link rel="stylesheet" href="style.css?v=056">
 </head>
 <body>
 <div class="app">
@@ -93,6 +93,6 @@
 <div id="retentionPolicyModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="retentionPolicyTitle"><div class="modal modal-small settings-modal"><div class="modal-header"><h3 id="retentionPolicyTitle">Add retention override</h3><button class="modal-close" type="button" aria-label="Close" onclick="closeRetentionPolicy()">×</button></div><div class="modal-body"><input id="rp-id" type="hidden"><div class="form-grid"><div class="field"><label for="rp-scope-type">Scope</label><select id="rp-scope-type"><option>Default</option><option selected>Client</option><option>Account</option></select></div><div class="field"><label for="rp-scope-id">Client / Account</label><select id="rp-scope-id"></select></div><div class="field"><label for="rp-archive-months">Archive after approval (months)</label><input id="rp-archive-months" type="number" min="1" max="120" step="1" value="3"></div><div class="field"><label for="rp-delete-months">Permanent deletion after archive (months)</label><input id="rp-delete-months" type="number" min="2" max="240" step="1" value="24"></div><div class="field field-full"><label class="checkbox-row"><input id="rp-hold" type="checkbox"> Retention Hold — pause automatic archive and deletion</label></div><div id="rp-hold-reason-wrap" class="field field-full hidden"><label for="rp-hold-reason">Hold reason *</label><textarea id="rp-hold-reason" rows="3" maxlength="500"></textarea></div></div><p id="retentionPolicyError" class="error-msg hidden" role="alert"></p></div><div class="modal-footer"><button class="btn-secondary" type="button" onclick="closeRetentionPolicy()">Cancel</button><button id="saveRetentionPolicyBtn" class="btn-primary" type="button" onclick="saveRetentionPolicy()">Save policy</button></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=019"></script><script src="auth.js?v=039"></script><script src="reference-data.js?v=033"></script><script src="settings.js?v=045"></script>
+<script src="config.js?v=019"></script><script src="auth.js?v=056"></script><script src="reference-data.js?v=033"></script><script src="settings.js?v=045"></script>
 </body>
 </html>
