@@ -173,8 +173,15 @@ function collapseHelpText(element) {
     tip.dataset.tooltip = message;
     tip.setAttribute('aria-label', `Help: ${message}`);
     tip.textContent = '?';
+    const card = element.closest('.section-card, .pane-toolbar, .modal-body, .field');
+    const anchor = card?.querySelector('.section-title, .section-card-heading h2, .section-card-heading h3, .pane-toolbar h2, legend, label');
     element.textContent = '';
-    element.append(tip);
+    if (anchor && !anchor.querySelector('.help-tip')) {
+        anchor.classList.add('heading-with-help');
+        anchor.append(tip);
+    } else {
+        element.append(tip);
+    }
     element.classList.add('field-help-collapsed');
     element.dataset.tooltipInstalled = 'true';
 }
