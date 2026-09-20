@@ -62,3 +62,12 @@ The edits must not be treated as repository truth unless recovered and verified 
 This protocol patch is documentation-only.
 
 No TMS application code, migration, Netlify deployment or production configuration change is part of this bootstrap.
+
+## 2026-09-20 — CONTINUITY-RECOVERY-20260920 / checkpoint 1
+
+- Verified bootstrap commit `441eb03888a7fa9b7c4c33802c6111ef37494bba` on main; prior upload-pending status is stale.
+- Main advanced during startup to `15b5922473585256f6e8c590b8f3a6d80c8b04b4`, build 057. Used that clean clone as task base; no production acceptance inferred.
+- Created `dev/continuity-recovery-20260920`; corrected CURRENT_WORK before further recovery review.
+- Existing dirty workspaces were inspected without alteration. No private Master read.
+- Next: inspect context-history commits and recoverable branch/stash/diff evidence, then wait as instructed.
+- This documentation-only checkpoint changes CURRENT_WORK and DEV_WORKLOG; no application update, migration, deployment or production mutation.
