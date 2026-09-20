@@ -11,15 +11,14 @@
 
 ## Current task
 
-Reconcile the verified continuity-protocol upload, recover/review interrupted context-reconciliation work if available, then wait for the next functional TMS instruction. Task ID: CONTINUITY-RECOVERY-20260920.
+Verify core Dashboard / Project / Scoop / Job flows and prepare read-only Reports architecture. Task ID: REPORTS-DESIGN-20260920. User approved verification and architecture, not production changes. No numbered application release or build increment for this assessment.
 
 ## Status
 
-`TESTED` — continuity correction and available recovery-evidence review completed; waiting for the next functional TMS instruction. The specific interrupted 20-file diff remains UNRESOLVED, not recovered or accepted. Protocol bootstrap is VERIFIED on main at `441eb03888a7fa9b7c4c33802c6111ef37494bba`; uploading it again is not required.
+`IN_PROGRESS` — source inspection and isolated test planning. Historical continuity recovery below is retained; the interrupted 20-file diff remains unresolved.
 
-- Task branch: `dev/continuity-recovery-20260920`.
-- Starting HEAD: `15b5922473585256f6e8c590b8f3a6d80c8b04b4` (main advanced during startup).
-- Latest durable checkpoint before this record: `90ad5359c04732b144c5cf9b35841409dacb97f0`. The subsequent recovery-review checkpoint is the commit containing this revision, resolved from the remote task-branch tip (not a self-referential SHA).
+- Task branch: `dev/reports-architecture-20260920`.
+- Starting HEAD and latest durable checkpoint before this task: `938c28a4c4edc362398ef3a46f79fdd3ad386b4f`. Main remains `15b5922`, build 057. Subsequent checkpoint: commit containing this revision on the task branch.
 - Working tree at task start: clean fresh clone; older dirty workspaces preserved.
 - Current changed files: CURRENT_WORK.md and DEV_WORKLOG.md only.
 - Completed checks: remote identity, main HEAD, protocol ancestry and four-file patch, build 057, branch inventory.
@@ -90,7 +89,7 @@ Unless those edits are independently recovered and verified in an actual Git bra
 
 ## Next exact action
 
-Wait for the user's next functional TMS instruction. Resume from the remote tip of `dev/continuity-recovery-20260920`. If the exact interrupted workspace/diff becomes available, review it before recreating any reconciliation work. Do not merge, deploy or change production without explicit approval.
+Inspect authoritative financial/status queries, run safe isolated tests, record gaps and propose report grains, permissions and calculation contracts. Do not merge, deploy or mutate production. Relevant result record: docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md (to be created).
 
 ## Do not do
 

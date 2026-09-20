@@ -80,3 +80,10 @@ No TMS application code, migration, Netlify deployment or production configurati
 - Protocol verification and source-state checks PASS; application tests/live UI not run (documentation-only task). Main advanced independently to build 057; no production acceptance inferred.
 - Changed files: CURRENT_WORK and this append-only log. No numbered TMS update created, build changed, Master read, main push/merge, PR, deployment, migration, environment/auth/data mutation.
 - Next exact action: wait for the user's next functional instruction. Recovery-review checkpoint is the commit containing this entry on the named remote task branch.
+
+## 2026-09-20 — REPORTS-DESIGN-20260920 / start
+
+- User approved core-flow verification and Reports architecture. Prior continuity task complete at 938c28a; exact interrupted 20-file diff remains unresolved.
+- Clean branch dev/reports-architecture-20260920 starts at 938c28a; fetched main remains 15b5922 / build 057.
+- Read AGENTS, CURRENT_WORK, architecture and development rules. Newer AGENTS/user instructions override older development-rule text requesting a full Master read; no Master needed for this bounded source assessment.
+- Next: inspect calculations/status/permission boundaries, run isolated tests and produce proposed architecture. No UI implementation, migration or production writes authorized by this task.
