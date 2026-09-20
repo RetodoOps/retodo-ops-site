@@ -1,8 +1,8 @@
 # Retodo Ops — Master Context
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Canonical date:** 2026-09-19  
-**Purpose:** Durable source of truth for Retodo Ops TMS product and operating context.
+**Purpose:** Repo-safe operational context for Retodo Ops TMS. The private daily `Retodo_Ops_Master_Context_and_Decisions.md` remains the cross-business canonical decision/evidence register when available.
 
 ---
 
@@ -28,7 +28,7 @@ Commercial positioning:
 - readiness for sensitive/specialized content such as medical, IFU, patents and legal;
 - the new Retodo brand must not imply inherited client relationships, logos, testimonials or delivery history that Retodo itself has not earned.
 
-The project repository and context pack must serve as the durable source of truth for business rules, system architecture, implementation decisions and operating procedures.
+The private daily Master is the cross-business source of truth. This repository context pack is the Codex/development mirror and must be reconciled against the Master and current code.
 
 ---
 
@@ -64,14 +64,14 @@ Supporting modules include:
 
 Known architectural baseline from prior TMS sessions:
 
-- frontend/application: Next.js-based web application;
+- frontend/application: static HTML/JavaScript/CSS under `/tms`, with Netlify Functions for server-side actions;
 - authentication/database: Supabase;
 - hosting/deployment: Netlify;
 - file/object storage: **Cloudflare R2** for the TMS file-storage direction;
 - email: implementation has evolved (Gmail OAuth / provider-backed sending in prior work); the currently active provider and production delivery path must be verified in code/environment before changing it;
 - memoQ integration: planned later, not a current dependency.
 
-Important: an older Supabase-storage / Google-Drive archival concept was superseded for TMS operational files by the Cloudflare R2 direction.
+Repository: `RetodoOps/retodo-ops-site`, branch `main`; the same repository contains the public site and the TMS. `RetodoOps/Retodo-App` is a separate HR/Luma People application.\n\nImportant: an older Supabase-storage / Google-Drive archival concept was superseded for new TMS operational file bytes by the Cloudflare R2 direction.
 
 ---
 
@@ -247,7 +247,7 @@ Locked direction:
 
 - one PO relationship per Job with immutable/versioned revisions;
 - active version is the operational one;
-- older versions remain visible as `Overridden`/`Superseded` history;
+- older versions remain visible in PO history; the exact historical display/status label is not locked and must not be invented from `Overridden`/`Superseded` examples;
 - normal dashboards/lists show only active POs;
 - resource PO acceptance was removed;
 - sending/issuing the PO implies assignment;
@@ -278,7 +278,7 @@ These must not be collapsed.
 
 ### Self-registration
 
-Self-registration is allowed. It creates/links authentication through the registration/email-confirmation flow while work approval/eligibility remains an admin/business decision.
+Self-registration is allowed and is distinct from staff-created invitation flow. The exact activation/pending-approval behavior is currently unresolved because earlier decisions and the observed existing-account recovery path conflict. Do not invent or generalize a stage until the exact policy is recovered/approved.
 
 ### Permissions
 
@@ -304,7 +304,7 @@ Current strategic storage decision:
 - TMS-mediated authorization;
 - short-lived presigned links where appropriate;
 - external Resource access remains available for relevant completed Jobs, subject to permissions;
-- no automatic R2 object deletion solely because a file reached an age threshold.
+- Update 045 package source contains a 3-month archive / 24-month archived-binary deletion mechanism with holds, but those timings are implementation-package behavior and were not recovered as a locked business retention policy. Do not promote them to policy or remove them without reconciliation.
 
 Project/application archival may exist separately from physical file deletion.
 
@@ -437,7 +437,30 @@ Sales/outreach sequence:
 
 ---
 
-## 16. Durable-memory rule
+## 16. Current repository snapshot — 2026-09-19
+
+Verified in `RetodoOps/retodo-ops-site` `main`:
+
+- Update 055 source was committed to `main`.
+- Update 056 Global Visual System was committed to `main`.
+- `tms/build.json` reports build `056`, release `Update 056 - Global visual system refresh`, source baseline `Update 055`.
+- Context Pack v1.0 was subsequently added to `main`; v1.2 supersedes those context files.
+
+Update 056 changes UI/auth-session behavior only and declares no new migration, database audit, or environment variable.
+
+Repository presence does **not** prove:
+- migration 051 was executed in production;
+- audit 013 passed in production;
+- Netlify currently serves build 056;
+- the two-signature Agreement flow passed live acceptance;
+- invitation delivery is fixed.
+
+Separate Admin and Resource browser profiles/incognito remain the recommended simultaneous-session test setup.
+
+
+---
+
+## 17. Durable-memory rule
 
 No material product decision should live only in a ChatGPT conversation.
 

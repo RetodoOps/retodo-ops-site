@@ -1,30 +1,52 @@
 # Retodo Ops AI Context Pack — Start Here
 
-This package is designed to let a second ChatGPT profile and Codex Desktop work on Retodo Ops TMS without relying on the memory of one account.
+**Version:** 1.2  
+**Reconciled:** 2026-09-19
 
-## Install into the TMS repository
+This repository pack is the AI-readable technical/operational context for the Retodo Ops TMS. It is designed for parallel use by a secondary ChatGPT profile and Codex Desktop.
 
-Copy:
+## Important: two context layers
 
-- `AGENTS.md` to the repository root.
-- `docs/context/` into the repository.
+There are two different context layers and they should not be confused:
 
-Do not place the package into a repository until you have confirmed it is the actual TMS codebase.
+1. **Private daily Master:** `Retodo_Ops_Master_Context_and_Decisions.md`
+   - cross-business source covering Retodo Ops, launch, legal/commercial rules, TMS history and evidence;
+   - updated daily;
+   - contains internal information and must **not** be copied into the public GitHub repository.
 
-The GitHub connection inspected while creating this package exposed `RetodoOps/Retodo-App`, but that repository currently appeared to contain HR/Luma People code. It is therefore intentionally **not** hard-coded as the TMS repo.
+2. **Repository context pack:** `AGENTS.md` + `docs/context/`
+   - repo-safe operational extraction for Codex and development sessions;
+   - contains no live secrets/bank data;
+   - must be reconciled when the private Master or implementation state changes materially.
 
-## First use
+## Verified repository
 
-1. Open the TMS repository in Codex Desktop.
-2. Let Codex read `AGENTS.md`.
-3. In the secondary ChatGPT profile, use `docs/context/09_SECOND_PROFILE_BOOTSTRAP_PROMPT.md` as the first prompt.
-4. Start each workstream on a separate branch.
-5. Keep material decisions synchronized back to `01_DECISION_REGISTER.md`.
+The TMS codebase is:
 
-## Canonical precedence
+`RetodoOps/retodo-ops-site` → branch `main`
 
-Newest explicit user instruction → newer LOCKED decision → Current State → Master Context → latest handover → older history.
+It contains the public website and the TMS under `/tms`.
+
+`RetodoOps/Retodo-App` is a different HR/Luma People application and is not the TMS repository.
+
+## Current repository state at reconciliation
+
+- Update 055 source exists on `main`.
+- Update 056 Global Visual System source exists on `main`.
+- `tms/build.json` reports build `056` with source baseline Update 055.
+- The original Context Pack v1.0 was also added to `main`.
+- This v1.2 pack supersedes those context files.
+
+This proves repository source state, not production database migration/audit execution or live Netlify acceptance.
+
+## First use in the secondary profile
+
+Create/open a **Retodo Ops Project** in the secondary ChatGPT account and upload the current private Master plus the secondary-profile handoff bundle. Start a **Work chat inside that Project** for substantial coordination/QA tasks.
+
+Codex remains a separate software-development surface. Open the local clone of `RetodoOps/retodo-ops-site` in Codex; `AGENTS.md` supplies the repository instructions.
+
+Use `docs/context/09_SECOND_PROFILE_BOOTSTRAP_PROMPT.md` as the first Work message.
 
 ## Security
 
-This pack contains no live secrets and must remain that way.
+Do not put the private daily Master in this public repository. Never place passwords, tokens, bank details, service-role keys, OAuth secrets, or private contact data in repo context.

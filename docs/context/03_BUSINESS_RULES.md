@@ -1,6 +1,6 @@
 # Retodo Ops TMS — Business Rules
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Date:** 2026-09-19
 
 ---
@@ -169,7 +169,7 @@ Because Retodo operates as a white-label provider for other LSPs:
 ## 12. Files and retention
 
 - Operational file bytes use R2 direction.
-- No automatic deletion solely by object age.
+- Do not promote package lifecycle mechanics into business policy. Update 045 source implements archive/deletion timing (3 months to archive; deletion after 24 continuous archived months with holds), but user approval/live acceptance of that exact policy is unresolved.
 - Completed Jobs may remain accessible to the authorized Resource.
 - Project archival and file deletion are separate concepts.
 - Duplicate Compliance/evidence files can be deleted by authorized roles.
@@ -203,3 +203,16 @@ The initial sales wave prioritizes probability of engagement, not prestige:
 - probable end-client needs in Nordic markets.
 
 Use early outreach feedback to refine the pitch before approaching the most strategic prospects.
+
+
+---
+
+## 15. PO contractual reduction scope
+
+The current locked PO work is **narrow**:
+
+- add/preserve the approved contractual sentence covering reasonable PO reduction/documented correction costs;
+- do not infer from that clause a new adjustment workflow;
+- do not change PO totals, supplier/project expense, profit, margin, Financials, statuses, or new negative-line mechanics unless separately approved.
+
+Any earlier broad adjustment-workflow proposal is superseded for current scope.

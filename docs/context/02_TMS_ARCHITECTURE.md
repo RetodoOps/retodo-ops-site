@@ -1,6 +1,6 @@
 # Retodo Ops TMS — Architecture
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Date:** 2026-09-19
 
 ---
@@ -39,8 +39,9 @@ Users / Roles
 Core infrastructure:
 
 ```text
-Next.js UI/API
+Static TMS HTML / JavaScript / CSS (`/tms`)
    |
+   +-- Netlify Functions (`/netlify/functions`) for server-side actions
    +-- Supabase Auth
    +-- Supabase PostgreSQL + RLS
    +-- Cloudflare R2 file objects
@@ -105,9 +106,11 @@ Model conceptually:
 ```text
 Job
   └─ PO series
-       ├─ V1  Superseded
-       ├─ V2  Superseded
+       ├─ V1  Historical
+       ├─ V2  Historical
        └─ V3  Active
+
+The UI may render historical versions with a label such as `Superseded`; the exact label is not a locked business enum unless confirmed by current code and an explicit decision.
 ```
 
 Only active version drives current supplier cost.
@@ -235,13 +238,15 @@ Work approval remains separate.
 ```text
 Public registration
        |
-Auth/email confirmation
+Existing/new Auth handling
        |
 Resource profile created/linked
        |
-Portal access
+Activation/access behavior = CURRENTLY UNRESOLVED
        |
 Business approval/qualification remains separate
+
+Do not infer that public registration follows the staff-invitation activation rule. The observed existing-account path has produced `User already registered` → `Invalid login credentials`, and Update 053 prepared a recovery route that still requires live acceptance.
 ```
 
 Flows must be duplicate-safe and retryable.
@@ -354,3 +359,15 @@ Every handover must explicitly label:
 - migration executed;
 - deployed;
 - browser-tested in production.
+
+
+---
+
+## 12. Repository implementation boundary — reconciled 2026-09-19
+
+- Code repository: `RetodoOps/retodo-ops-site`, branch `main`.
+- TMS frontend: `/tms`.
+- Server functions: `/netlify/functions`.
+- Build marker: `/tms/build.json`.
+- Update 056 is the current verified repository build marker at reconciliation.
+- Repository source state is not equivalent to Netlify live state or Supabase migration state.

@@ -1,27 +1,30 @@
 # Retodo Ops TMS Context Directory
 
-This directory is the canonical, AI-readable project memory for parallel work across ChatGPT profiles, Codex Desktop, and future development sessions.
+**Pack version:** 1.2  
+**Reconciled:** 2026-09-19
 
-## Files
+This directory is the **repo-safe development context** for parallel work across ChatGPT/Work and Codex.
 
-- `00_MASTER_CONTEXT.md` — stable company/TMS context and overall product model.
-- `01_DECISION_REGISTER.md` — material decisions with status and precedence.
-- `02_TMS_ARCHITECTURE.md` — entities, ownership, workflows, security boundaries, integrations.
-- `03_BUSINESS_RULES.md` — operational and commercial rules.
-- `04_UI_UX_RULES.md` — canonical visual and interaction rules.
-- `05_DEVELOPMENT_RULES.md` — coding, migration, testing, packaging and deployment rules.
-- `06_CURRENT_STATE.md` — current known implementation state.
-- `07_OPEN_ISSUES.md` — unresolved bugs, missing tests and backlog.
-- `08_PARALLEL_WORKFLOW.md` — coordination protocol for multiple GPT/Codex workstreams.
-- `09_SECOND_PROFILE_BOOTSTRAP_PROMPT.md` — first prompt for a new ChatGPT profile.
-- `10_SECRET_REFERENCES.md` — secret-handling policy and reference registry (never actual values).
-- `handovers/TMS4_CURRENT_HANDOVER.md` — current TMS4 handover.
-- `handovers/TMS_TMS2_TMS3_CONSOLIDATED_HISTORY.md` — historical continuity and supersessions.
+The private daily `Retodo_Ops_Master_Context_and_Decisions.md` is the cross-business decision/evidence authority when available. Do not commit that private file to this public repository.
 
-## Maintenance rule
+Files:
+- `00_MASTER_CONTEXT.md`
+- `01_DECISION_REGISTER.md`
+- `02_TMS_ARCHITECTURE.md`
+- `03_BUSINESS_RULES.md`
+- `04_UI_UX_RULES.md`
+- `05_DEVELOPMENT_RULES.md`
+- `06_CURRENT_STATE.md`
+- `07_OPEN_ISSUES.md`
+- `08_PARALLEL_WORKFLOW.md`
+- `09_SECOND_PROFILE_BOOTSTRAP_PROMPT.md`
+- `10_SECRET_REFERENCES.md`
+- `11_MASTER_SYNC_POLICY.md`
+- `12_CONTEXT_RECONCILIATION_2026-09-19.md`
+- `handovers/RETODO_OPS_FULL_PROJECT_HANDOFF_2026-09-19.md`
+- `handovers/TMS4_CURRENT_HANDOVER.md`
+- `handovers/TMS_TMS2_TMS3_CONSOLIDATED_HISTORY.md`
 
-Material decisions must not remain only in chat. Once approved, add them to `01_DECISION_REGISTER.md` and update the current-state/open-issues files.
+Conflict rule: newest explicit user instruction → exact approved source/legal wording → newest private Master decision → current implementation evidence → newer repo `LOCKED` decision → current state → handover/history.
 
-## Conflict rule
-
-Newest explicit user instruction wins. After that, newer `LOCKED` decisions take precedence over older documentation and implementation.
+A bug is not a decision, and repository presence is not proof of production deployment.

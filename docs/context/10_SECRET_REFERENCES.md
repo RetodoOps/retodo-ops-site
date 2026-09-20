@@ -46,3 +46,8 @@ Do not fill `Secret location` with the secret itself.
 3. Rotate/revoke it at the provider.
 4. Update environment variables.
 5. Note only that rotation occurred and where the new secret is stored.
+
+
+## Public-repository warning
+
+`RetodoOps/retodo-ops-site` is public. Therefore the private daily `Retodo_Ops_Master_Context_and_Decisions.md` must not be committed there. Only repo-safe distilled rules belong under `docs/context/`.

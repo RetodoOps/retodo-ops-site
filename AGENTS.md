@@ -1,119 +1,154 @@
 # Retodo Ops TMS — Agent Instructions
 
-**Context Pack version:** 1.0  
-**Canonical date:** 2026-09-19  
-**Scope:** Retodo Ops Translation Management System (TMS)
+**Context Pack version:** 1.2  
+**Reconciled:** 2026-09-19  
+**Repository:** `RetodoOps/retodo-ops-site`  
+**Default branch:** `main`  
+**Production TMS origin:** `https://tms.retodo-ops.com/`
 
 ## 1. Mandatory startup sequence
 
 Before changing code, schema, UI, workflows, permissions, emails, PDFs, pricing, statuses, or business logic:
 
-1. Read `docs/context/00_MASTER_CONTEXT.md`.
-2. Read `docs/context/01_DECISION_REGISTER.md`.
-3. Read `docs/context/06_CURRENT_STATE.md`.
-4. Read `docs/context/07_OPEN_ISSUES.md`.
-5. Read the latest file in `docs/context/handovers/`.
-6. For UI work, also read `docs/context/04_UI_UX_RULES.md`.
-7. For implementation work, also read `docs/context/05_DEVELOPMENT_RULES.md`.
+1. If the current private `Retodo_Ops_Master_Context_and_Decisions.md` is available in the ChatGPT Project/session, read it first. It is the daily cross-business decision/evidence register and may be newer than this repository snapshot.
+2. Read this `AGENTS.md`.
+3. Read `docs/context/12_CONTEXT_RECONCILIATION_2026-09-19.md`.
+4. Read `docs/context/00_MASTER_CONTEXT.md`.
+5. Read `docs/context/01_DECISION_REGISTER.md`.
+6. Read `docs/context/06_CURRENT_STATE.md`.
+7. Read `docs/context/07_OPEN_ISSUES.md`.
+8. Read `docs/context/handovers/RETODO_OPS_FULL_PROJECT_HANDOFF_2026-09-19.md`.
+9. Read `docs/context/handovers/TMS4_CURRENT_HANDOVER.md`.
+10. For UI work, also read `docs/context/04_UI_UX_RULES.md`.
+11. For implementation work, also read `docs/context/05_DEVELOPMENT_RULES.md`.
+12. Verify the current repository state (`git remote`, branch/HEAD, and `tms/build.json`) before changing anything.
 
 Do not begin from assumptions based only on the current chat/thread.
 
-## 2. Source-of-truth precedence
+## 2. Authority and conflict resolution
 
-When sources conflict, use this precedence:
+Use this precedence when sources conflict:
 
 1. The user's newest explicit instruction.
-2. A newer `LOCKED` decision in `01_DECISION_REGISTER.md`.
-3. `06_CURRENT_STATE.md`.
-4. `00_MASTER_CONTEXT.md`.
-5. Latest handover.
-6. Older handovers / implementation reports.
-7. Historical chat summaries.
+2. The exact wording of the currently approved legal/source document when working on that document.
+3. The newest entry in the private daily `Retodo_Ops_Master_Context_and_Decisions.md`, when available.
+4. Current repository/schema/application behavior as evidence of implementation state only. A bug is not automatically an approved business rule.
+5. Newer `LOCKED` entries in this repository context pack.
+6. `06_CURRENT_STATE.md`.
+7. Latest handover.
+8. Older implementation reports/history.
 
-Never silently reinterpret a `LOCKED` decision.
+Never silently reinterpret a `LOCKED` decision. Record unresolved conflicts.
 
-## 3. Decision statuses
+## 3. Evidence labels
 
-Use only these labels for material decisions:
+Use these labels consistently:
 
 - `LOCKED` — explicitly decided/approved by the user.
 - `SUPERSEDED` — replaced by a later decision.
 - `PROPOSED` — suggested but not approved.
-- `IMPLEMENTED-REPORTED` — reported as implemented/deployed but not independently verified here.
-- `VERIFIED` — directly verified by code, migration, test, or application behavior.
-- `UNRESOLVED` — discussed but not completed/decided.
+- `IMPLEMENTED-REPORTED` — reported implemented/deployed but not independently verified.
+- `VERIFIED` — directly verified by code, migration, test, repository, or application evidence.
+- `UNRESOLVED` — discussed but not completed/decided/verified.
 
-A code change does not convert a `PROPOSED` decision into `LOCKED`.
+A code change, migration file, ZIP, commit, or completion claim alone does not convert a proposal into a user decision.
 
-## 4. Change authority
+## 4. Repository facts
+
+The actual TMS codebase is in `RetodoOps/retodo-ops-site`. It contains the public site plus the TMS under `/tms` and Netlify Functions under `/netlify/functions`.
+
+Do not use `RetodoOps/Retodo-App` for TMS work; that is a separate HR/Luma People application.
+
+At reconciliation time:
+- Update 055 source is present on `main`.
+- Update 056 source is present on `main`.
+- `tms/build.json` in `main` reports build `056`, release `Update 056 - Global visual system refresh`, source baseline `Update 055`.
+- Context Pack v1.0 was subsequently added to `main`; v1.2 supersedes those repository context files.
+
+Repository presence is not proof that a Supabase migration/audit was executed or that Netlify/live acceptance passed.
+
+## 5. Change authority
 
 - You may implement an existing `LOCKED` decision.
 - You may repair bugs without changing intended business behavior.
-- You may propose an alternative, but mark it `PROPOSED` and do not implement it if it changes a locked workflow without explicit approval.
-- If current code contradicts a `LOCKED` decision, treat the code as the implementation defect unless a later explicit user decision supersedes the register.
+- You may propose alternatives, clearly marked `PROPOSED`.
+- Do not implement a workflow/business-policy change without explicit approval.
+- If code contradicts a newer locked decision, treat the code as an implementation defect unless a newer user decision says otherwise.
 
-## 5. Repository and deployment safety
+## 6. Deployment safety
 
-The exact TMS GitHub repository must be established from the active TMS working copy. Do **not** assume that `RetodoOps/Retodo-App` is the TMS repository; the connected repository inspected on 2026-09-19 appears to contain an HR/Luma People application.
+Unless the user explicitly changes this rule for a specific task:
 
-Unless the user explicitly changes this rule:
+- Codex may inspect/edit/test the local working tree and use a task branch/worktree.
+- Do **not** push, merge, deploy Netlify, or run production migrations automatically.
+- Deliver GitHub changes as one upload-only ZIP containing only complete add/replace files with paths preserved.
+- State deletions separately.
+- Deliver each new SQL migration as a separate forward-only `.sql` file and state execution order.
+- Never ask the user to reconstruct source from snippets.
+- Never include live secrets, passwords, OAuth tokens, service-role keys, bank details, or private personal data in the public repository.
 
-- Codex may edit the local working tree and create a task branch.
-- Do **not** push to GitHub, merge, deploy to Netlify, or run production migrations automatically.
-- Deliver repository changes as complete files / a complete ZIP, not as scattered snippets.
-- SQL migrations are delivered as separate `.sql` files, not mixed into the GitHub ZIP when the user is following the established manual deployment workflow.
-- Preserve existing `config.js` behavior/file where present unless the task explicitly requires changing it.
-- Never include secrets, tokens, passwords, service-role keys, OAuth client secrets, or live credentials in commits, ZIPs, prompts, logs, screenshots, or documentation.
+## 7. Database and security
 
-## 6. Database rules
+- Migrations are forward-only; never edit an already executed production migration.
+- Inspect migration/schema state before running or proposing a retry.
+- Preserve RLS and least privilege.
+- Test both allowed and denied paths for security-sensitive changes.
+- External Resources may see only their own operational data and the minimal Project/Scoop context required to work; Client/Account identity and company financials remain hidden unless explicitly authorized.
 
-- Migrations are forward-only.
-- Never edit an already executed production migration.
-- New schema changes require a new numbered migration.
-- Preserve RLS unless a locked decision explicitly requires a policy change.
-- State migration dependencies and execution order.
-- For security-sensitive RPC/policy changes, test both allowed and denied paths.
+## 8. High-risk business rules not to improvise
 
-## 7. Required implementation report
-
-For every material implementation, report:
-
-- objective;
-- branch/workstream;
-- changed files;
-- new migration(s);
-- environment/config changes;
-- business rules affected;
-- tests run and results;
-- manual test steps;
-- deployment status;
-- unresolved risks;
-- context documents that must be updated.
-
-## 8. Parallel work
-
-Never allow two agents to independently modify the same workflow/schema without coordination.
-
-Use one workstream per branch, for example:
-
-- `codex/compliance-pdf-fix`
-- `codex/resource-profile-ui`
-- `codex/invitation-delivery`
-- `codex/reports-module`
-
-Before starting, write the scope and forbidden areas. Before merging, reconcile against the latest `LOCKED` decisions and any merged work from other branches.
+- Registration, portal access, Compliance, agreement signing, and work eligibility are distinct.
+- The exact public self-registration activation rule remains unresolved; do not invent one.
+- PO issue/send implies assignment; there is no mandatory Resource PO-acceptance step.
+- Only active/current PO versions belong in operational lists. Historical label wording (`Superseded`/`Overridden` or another label) is not a locked business enum unless current code and a user decision establish it.
+- Do not rebuild a broad PO adjustment workflow. The current locked scope is the approved contractual reduction sentence only; financial adjustment mechanics are not authorized by that sentence.
+- Agreement wording must come from the approved versioned source; do not make unsolicited legal edits.
+- Compliance unlock/request is Retodo's electronic signature; the Service Provider's authenticated `Accept and sign` is the second/final signature.
+- R2 lifecycle timings found in package source are implementation behavior, not automatically a locked retention policy.
 
 ## 9. UI quality gate
 
-Do not fix only the specifically mentioned misalignment. Review the whole affected screen for hierarchy, spacing, alignment, containment, contrast, consistency, responsive behavior, and readability. Follow `04_UI_UX_RULES.md`.
+Do not fix only the specifically mentioned defect. Review the whole affected screen for hierarchy, spacing, alignment, containment, contrast, consistency, responsive behavior and readability.
 
-## 10. Context maintenance
+Update 056 establishes a global visual system:
+- darker bounded field surfaces;
+- consistent hierarchy;
+- consistent card geometry/spacing;
+- compact status/date pills;
+- prominent Open/Download/View/Print/Export actions;
+- purple Upload actions;
+- accessible `?` help tooltips;
+- responsive behavior.
 
-After any material user-approved decision or completed implementation:
+Admin and Resource should be tested in separate browser profiles/incognito when simultaneous sessions are needed. Update 056 also contains a role-drift guard, but separate profiles remain the recommended QA method.
 
+## 10. Required implementation report
+
+For each material task report:
+
+- objective;
+- branch/workstream/base commit;
+- locked decisions implemented;
+- changed files;
+- new migration(s)/audit(s);
+- environment/manual configuration;
+- tests and exact results;
+- manual acceptance steps;
+- GitHub state;
+- Netlify/live state;
+- production DB state;
+- unresolved risks;
+- context files that require synchronization.
+
+Do not collapse local test, GitHub commit, Netlify deployment, migration execution, and user acceptance into one status.
+
+## 11. Context maintenance
+
+After a material approved decision or implementation:
 - update `01_DECISION_REGISTER.md`;
 - update `06_CURRENT_STATE.md`;
 - update `07_OPEN_ISSUES.md`;
-- create/update the latest handover if the session materially changes the project state.
+- update the latest TMS handover;
+- produce a `MASTER_DELTA_FOR_RECONCILIATION` for the primary OPS/daily Master maintainer. The primary process is the default single writer of the private Master; do not create a competing Master.
 
-The repository context is the durable project memory. Chat history is supporting evidence, not the sole source of truth.
+See `docs/context/11_MASTER_SYNC_POLICY.md`.

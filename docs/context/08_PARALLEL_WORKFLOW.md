@@ -1,7 +1,17 @@
 # Retodo Ops — Parallel GPT + Codex Workflow
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Date:** 2026-09-19
+
+## Recommended product setup
+
+Use a **ChatGPT Project** in the secondary account as the persistent project container. Put the current private Master and private handoff files there.
+
+For substantial coordination/QA, start a **Work chat inside that Project**. Work uses the Project context.
+
+Use **Codex Desktop as a separate development surface** for the local clone of `RetodoOps/retodo-ops-site`. Codex history is separate from ChatGPT/Work history, so the bridge between them is the repository (`AGENTS.md` + `docs/context/`) plus explicit handovers.
+
+Do not start an important standalone Work chat outside the Retodo Ops Project unless there is a specific reason.
 
 ---
 
@@ -30,7 +40,7 @@ Use for:
 - coordinating one or more Codex tasks;
 - producing handover reports.
 
-It must use the repository context pack rather than building a separate private source of truth.
+It must read the latest private daily Master first, then use the repository context pack for technical coordination. It must not build a separate competing source of truth.
 
 ### Codex Desktop — Execution agent
 
@@ -145,7 +155,7 @@ Save important handovers in `docs/context/handovers/`.
 ## 7. Production control
 
 Default established rule:
-- user performs upload/push/deploy/migrations manually.
+- user performs upload/push/deploy/migrations manually unless explicitly authorizing a specific connected action.
 
 Therefore parallel agents should stop at:
 - locally tested branch/files;
@@ -183,3 +193,17 @@ To minimize cross-branch conflicts:
 8. Reports.
 
 UI-only work can run in parallel with server-side PDF/email investigation if the branches avoid shared files.
+
+
+---
+
+## 10. Session-end synchronization
+
+At the end of each substantial secondary-profile Work session:
+
+1. Produce a concise implementation/decision handoff.
+2. Update/prep repository context files affected by the task.
+3. Produce `MASTER_DELTA_FOR_RECONCILIATION.md` for the primary profile/daily Master maintainer.
+4. Do **not** independently create a second Master; the primary daily reconciliation process is the default single writer.
+5. Do not put the private Master or sensitive source material in the public repo.
+6. Before another parallel task starts, verify `main`/base build and migration numbering again.

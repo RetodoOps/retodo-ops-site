@@ -113,11 +113,11 @@ This register is intentionally conservative. Where a historical detail is uncert
 **Decision:** Earlier generic numbering existed; later P0/contextual naming rules take precedence where they conflict.  
 **Impact:** Do not reintroduce old generic-only display naming.
 
-### DR-035 — Post-delivery commercial adjustments
-**Status:** LOCKED  
-**Source:** Consolidated TMS2 implementation specification  
-**Decision:** Commercial adjustments after delivery must remain explicit/versioned (including negative adjustment lines where required) rather than destructively rewriting historical commercial records.  
-**Impact:** PO auditability, financial history.
+### DR-035 — PO contractual reduction clause; no new adjustment workflow
+**Status:** LOCKED / earlier broad adjustment proposal SUPERSEDED  
+**Source:** Current Master D009 and current Agreement/PO scope  
+**Decision:** The approved task is the contractual reduction/correction-cost sentence in generated Freelancer POs. That clause does **not** authorize building a new adjustment workflow, negative-line mechanism, new statuses, or changes to PO totals, supplier/project expense, profit, margin, or Financials. Preserve existing versioning and immutable history.  
+**Impact:** PO generation only unless a later explicit decision expands scope.
 
 ---
 
@@ -141,9 +141,9 @@ This register is intentionally conservative. Where a historical detail is uncert
 **Impact:** Resource status/qualification.
 
 ### DR-043 — Self-registration
-**Status:** LOCKED  
-**Decision:** Resource self-registration is allowed; profile/auth flow is distinct from admin-created invitation flow.  
-**Impact:** Public registration and resource onboarding.
+**Status:** LOCKED in principle / activation behavior UNRESOLVED  
+**Decision:** Resource self-registration is allowed and is distinct from admin-created invitation flow. The exact public-registration activation/pending-admin-approval behavior is not currently recovered consistently. Existing-account registration has a verified failure path; Update 053 prepared recovery but live acceptance remains unverified.  
+**Impact:** Do not apply staff-invitation activation rules to public registration by assumption.
 
 ### DR-044 — Resource permissions
 **Status:** LOCKED  
@@ -171,10 +171,10 @@ This register is intentionally conservative. Where a historical detail is uncert
 **Decision:** Earlier storage concept was replaced by R2 for TMS operational files.  
 **Impact:** Do not build new functionality around the old storage architecture.
 
-### DR-052 — Resource access to completed-job files
-**Status:** LOCKED  
-**Decision:** R2 strategy should support authorized Resource access to relevant completed Jobs; do not delete solely by file age.  
-**Impact:** Retention and authorization.
+### DR-052 — Resource access and lifecycle policy boundary
+**Status:** LOCKED access requirement / retention timing UNRESOLVED  
+**Decision:** R2 strategy must preserve authorized Resource access according to job/role rules. Update 045 package source contains 3-month archive and 24-month archived-binary deletion mechanics with retention holds, but those exact timings are not promoted to locked business policy without explicit approval/live reconciliation.  
+**Impact:** Authorization is locked; lifecycle timing remains an implementation/policy reconciliation item.
 
 ### DR-053 — Duplicate-file deletion
 **Status:** LOCKED  
@@ -259,9 +259,34 @@ This register is intentionally conservative. Where a historical detail is uncert
 **Impact:** All frontend work.
 
 ### DR-081 — Resource profile visual corrections
-**Status:** UNRESOLVED  
+**Status:** LOCKED requirements / acceptance UNRESOLVED  
 **Decision/requirements:** Fix small heading text above test card, alignment of Tests & Qualifications, Save changes vs Assign Test, Compliance phase and Account Qualifications headings; keep help/question icons inline with headings; ensure helper text stays inside bubbles/cards; consistent button size/color/type; align comparable cards such as Master's degree and Diploma upload.  
 **Impact:** Current Resource profile UI task.
+
+
+### DR-082 — Daily cross-business Master
+**Status:** LOCKED  
+**Source:** Current Master D001 / new-session instructions  
+**Decision:** `Retodo_Ops_Master_Context_and_Decisions.md` is the portable cross-business decision/evidence register. Read it before substantive new-session work, keep one canonical identity/version history, and reconcile it at the end of each work session/day. The rolling TMS handoff supplements rather than replaces it.  
+**Impact:** Context synchronization.
+
+### DR-083 — Actual TMS repository
+**Status:** VERIFIED  
+**Source:** Master deployment history + GitHub inspection 2026-09-19  
+**Decision/evidence:** TMS code is in `RetodoOps/retodo-ops-site`, branch `main`, under `/tms`; `RetodoOps/Retodo-App` is a different HR/Luma People application.  
+**Impact:** Codex/repository selection.
+
+### DR-084 — Current repository build 056
+**Status:** VERIFIED repository state / live acceptance UNRESOLVED  
+**Source:** GitHub `main`, `tms/build.json`, Update 056 README  
+**Decision/evidence:** `main` contains Update 055 source and Update 056 Global Visual System; `tms/build.json` reports build `056`, source baseline Update 055. Update 056 is UI/auth-session work only and declares no new migration/audit/env variable.  
+**Impact:** New work must start from build 056 source; production DB/Netlify/live acceptance must be checked separately.
+
+### DR-085 — Separate browser profiles for role QA
+**Status:** LOCKED operational QA rule  
+**Source:** User TMS4 acknowledgement + Update 056 README  
+**Decision:** Test Admin and Resource simultaneously in separate browser profiles or Incognito. Do not rely on two roles sharing one Supabase session in one browser profile.  
+**Impact:** Acceptance testing and false RLS/session-error avoidance.
 
 ---
 
@@ -316,7 +341,7 @@ This register is intentionally conservative. Where a historical detail is uncert
 ### DR-102 — Update 044
 **Status:** IMPLEMENTED-REPORTED / state uncertain
 **Source:** 2026-09-09 onward  
-**Scope:** active-only PO views, Superseded labels, private Job-file lifecycle, staff issue workflow.  
+**Scope:** active-only PO views, historical PO display, private Job-file lifecycle, staff issue workflow. Exact historical PO label remains unresolved.  
 **Note:** Prepared/not-deployed status appeared in earlier handover; later work continued. Confirm production state rather than assuming.
 
 ### DR-103 — Updates 048–049
@@ -335,6 +360,6 @@ This register is intentionally conservative. Where a historical detail is uncert
 **Reported:** deployed; Cancelled flow PASS.
 
 ### DR-106 — Updates 053–055
-**Status:** UNRESOLVED
-**Source:** TMS4 consolidated state / 2026-09-18  
-**Reported:** prepared but not implemented/deployed as of the latest available handover. Production migrations/audits/build status unconfirmed.
+**Status:** VERIFIED PRESENT IN GITHUB SOURCE / LIVE ACCEPTANCE UNRESOLVED  
+**Source:** GitHub `main` inspection 2026-09-19  
+**Evidence:** Updates 053, 054 and 055 source commits exist on `main`. Update 056 is based on Update 055. This advances repository source state only; migration 051/audit 013, Netlify live state, registration recovery, and two-signature/PDF acceptance remain unverified.

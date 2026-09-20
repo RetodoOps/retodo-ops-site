@@ -1,187 +1,153 @@
 # Retodo Ops TMS — Open Issues and Backlog
 
-**Snapshot:** 2026-09-19
+**Snapshot:** 2026-09-19 after repository reconciliation to build 056
 
-Priority labels:
+Priority:
 - `P0` blocking/security/data-integrity
 - `P1` important workflow/reliability
 - `P2` product completion/quality
+- `PROCESS` context/release discipline
 
----
-
-## P0 — Agreement PDF correctness
-
+## P0 — Production state of Update 055 Agreement flow
 **Status:** UNRESOLVED
 
-Reported:
-- Agreement PDFs blank/identical.
-- Real two-sided signing/PDF validation not complete.
+Update 055 source is verified on GitHub `main`, and Update 056 builds on it. Still verify separately:
+- migration 051 production history;
+- audit 013 output;
+- Retodo unlock/request signature record;
+- Resource second/final signature;
+- exact version/hash binding;
+- complete Resource signed PDF;
+- complete internal signed PDF;
+- matching signature/audit metadata.
+
+Do not rerun migrations blindly.
+
+## P0 — Signed Agreement PDF correctness
+**Status:** UNRESOLVED
+
+Two historical downloaded PDFs were blank/identical. Deterministic PDF source (054) and two-signature source (055) are in `main`, but real live output must still be accepted.
 
 Acceptance:
-- filled vendor/resource data visible;
-- Retodo signature visible in correct state;
-- Resource `Accept and sign` final signature visible;
-- final PDF downloadable;
-- admin can download/view filled signed PDF;
-- no accidental blank/duplicate version;
-- authorization correct.
+- correct agreement terms;
+- provider details;
+- Retodo signature;
+- Service Provider signature;
+- version/hash/audit metadata;
+- pagination/readability;
+- Resource and internal downloads match expected final document.
 
----
-
-## P0 — Production-state reconciliation for Updates 053–055
-
+## P1 — Netlify/live correlation for build 056
 **Status:** UNRESOLVED
 
-Latest state says prepared/not implemented or deploy unconfirmed.
+GitHub `main` verifies `tms/build.json = 056`, but record:
+- Netlify deployment status/commit;
+- live `/tms/build.json`;
+- hard-refresh application behavior;
+- no stale static assets.
 
-Need:
-- determine exact files already in production;
-- determine latest executed migration;
-- run schema/audit checks;
-- run production build;
-- document deployment and browser verification.
+## P1 — Global visual system acceptance
+**Status:** SOURCE-VERIFIED / LIVE ACCEPTANCE OPEN
 
-Do not execute old migrations blindly; inspect migration history first.
+Update 056 source defines darker fields, hierarchy/card consistency, compact pills, prominent actions, purple Upload, accessible `?` help, responsive behavior and a role-drift guard.
 
----
+Acceptance-test Dashboard, Project, Job, Resource and Resource Portal on desktop and narrower width.
 
 ## P1 — Real invitation email delivery
-
 **Status:** UNRESOLVED
 
-Reported recipient:
-`[redacted Resource address at beconnected.no]`
-
-Issue:
-- invitation not received;
-- test email alone is insufficient evidence.
+The external test Resource did not receive the access invitation even though a separate test email arrived.
 
 Need:
-- verify active email provider;
-- provider logs;
-- sender/domain;
-- recipient;
-- bounce/rejection;
-- invitation URL validity;
-- retry idempotence.
+- invocation/function log;
+- provider/API message identifier;
+- delivery/suppression/bounce result;
+- actual received invitation;
+- single-use link/password setup;
+- Resource portal landing.
 
----
-
-## P1 — Resource profile visual consistency
-
+## P1 — Public existing-account registration recovery
 **Status:** UNRESOLVED
 
-Apply all rules in `04_UI_UX_RULES.md`.
+Verified historical failure: `User already registered` → `Invalid login credentials`.
 
-Specific current problems:
-- small test heading text;
-- misaligned section headings/actions;
-- question icons below headings;
-- overflow text outside bubbles;
-- inconsistent buttons;
-- inconsistent evidence card sizes;
-- insufficient field-background contrast.
+Update 053 source is now on `main`, but live recovery must prove:
+- no duplicate Auth/Resource;
+- password setup/recovery works;
+- entered profile data is retained/linked;
+- final activation follows the explicitly approved policy.
 
-Acceptance:
-- full page passes holistic visual QA at desktop and narrower width.
-
----
+Exact public self-registration activation/pending-approval rule remains unresolved.
 
 ## P1 — PO/Dashboard regression retest
-
 **Status:** UNRESOLVED
 
-Regression history:
-- deadline/V3 problems;
-- missing Resource in Dashboard after Update 050;
-- Update 051 prepared.
-
-Retest:
-- Resource display;
-- active PO only;
-- V1/V2/V3 history;
+Retest on current build:
+- assigned Resource display;
+- status-only Delivered → Approved with historical deadline unchanged;
+- no unintended new PO revision;
+- active PO only in operational view;
+- immutable V1/V2/V3 history;
 - supplier cost propagation;
-- deadline sync;
-- cancelled flow;
-- reassignment.
+- cancelled/reassignment path.
 
----
+Do not invent a historical label enum.
 
 ## P1 — File lifecycle/R2 end-to-end verification
-
 **Status:** UNRESOLVED
 
 Verify:
 - admin upload;
 - Resource authorized download;
-- unauthorized Resource denial;
-- Completed Job access;
-- delivery file path;
-- issue attachments;
-- duplicate Compliance file deletion;
-- metadata/history;
+- other-Resource denial;
+- PDF/CSV/XLS and other relevant formats;
+- delivery/issue files;
+- duplicate Compliance evidence deletion;
+- metadata/audit;
 - presigned URL expiry;
-- no unintended age deletion.
+- archive/restore/hold/deletion worker behavior.
 
----
+Policy question: package 3-month/24-month lifecycle timings are not yet established here as a locked business policy.
 
-## P1 — Compliance end-to-end state machine
-
+## P1 — Compliance state-machine regression
 **Status:** UNRESOLVED
 
-Verify actual production path:
+Verify:
+- unlock/request after passed General test;
 - draft/save;
 - submit;
 - admin review;
-- request changes;
+- Request changes;
 - Resource edit/resubmit;
-- Retodo signature stage;
+- calculated experience;
+- internal ISO rationale;
+- Retodo signature;
 - Resource final signature;
 - final PDF;
-- email notifications;
-- calculated experience;
-- ISO eligibility rationale.
-
----
+- submission/review emails;
+- least-privilege permissions.
 
 ## P2 — Reports module
+**Status:** UNRESOLVED / NOT IMPLEMENTED
 
+Define requirements/data/filters/permissions before implementation. Do not invent report stages or duplicate Financials source of truth.
+
+## P2 — Blind CV final outputs
 **Status:** UNRESOLVED
 
-Reports menu exists but submodules are not complete.
+Explicitly accept preview/DOCX/PDF logo, language pairs, qualification/experience fields and no financial/client-confidential data.
 
-Before implementation:
-- define reports/KPIs;
-- confirm data source and filters;
-- avoid duplicating Financials source of truth.
-
----
-
-## P2 — Blind CV completion
-
+## P2 — Invoice-cycle UI reconciliation
 **Status:** UNRESOLVED
 
-Verify/build:
-- Retodo branding/header;
-- stacked language pairs;
-- education evidence;
-- calculated experience;
-- qualifications;
-- no client-confidential data;
-- PDF/export formatting if required.
+One legacy Resource screen showed `15th and 30th`, while the current Agreement says `15th and last working day`. Inspect actual profile/config/calculation before changing global payment logic.
 
----
+## PROCESS — Private Master vs repository context
+**Status:** ACTIVE
 
-## P2 — Context synchronization discipline
-
-**Status:** ACTIVE PROCESS
-
-Prior rolling handover became stale around earlier updates.
-
-This pack replaces that weakness with:
-- canonical decision register;
-- current-state file;
-- latest handover;
-- required end-of-update context maintenance.
-
-Every future material update must maintain these files.
+- private daily Master = cross-business decision/evidence authority;
+- repository context = Codex/development mirror;
+- private Master must never be copied into the public repo;
+- primary OPS/daily process is the default single writer of the Master;
+- secondary profile produces `MASTER_DELTA_FOR_RECONCILIATION`;
+- rolling TMS handoff remains supplementary.

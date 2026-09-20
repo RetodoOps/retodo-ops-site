@@ -1,6 +1,6 @@
 # Retodo Ops TMS — Development Rules
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Date:** 2026-09-19
 
 ---
@@ -9,16 +9,17 @@
 
 For each task:
 
-1. Read context and latest handover.
-2. Define scope.
-3. Identify affected locked decisions.
-4. Inspect current code/schema.
-5. Implement on a dedicated branch/worktree where possible.
-6. Run static/build/unit/integration tests available.
-7. Run targeted business-flow checks.
-8. Produce a complete implementation report.
-9. Update context files when the user approves/implementation state changes.
-10. Package complete repository files and separate SQL migrations according to the user's established workflow.
+1. Read the latest private Master if available, then repo context/latest handover.
+2. Verify local remote = `RetodoOps/retodo-ops-site`, current base branch/HEAD and `tms/build.json`.
+3. Define scope.
+4. Identify affected locked decisions.
+5. Inspect current code/schema.
+6. Implement on a dedicated branch/worktree where possible.
+7. Run static/build/unit/integration tests available.
+8. Run targeted business-flow checks.
+9. Produce a complete implementation report.
+10. Update/prep repo context and `MASTER_DELTA_FOR_RECONCILIATION` when state changes.
+11. Package complete repository files and separate SQL migrations according to the user's established workflow.
 
 ---
 

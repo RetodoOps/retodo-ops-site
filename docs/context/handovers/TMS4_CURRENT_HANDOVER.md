@@ -1,7 +1,7 @@
 # Retodo Ops TMS — TMS4 Current Handover
 
 **Handover date:** 2026-09-19  
-**Purpose:** Start a new GPT/Codex workstream without reconstructing TMS4 from chat.
+**Purpose:** Start a new GPT/Codex workstream without reconstructing TMS4 from chat. Reconciled against private Master v0.15 and GitHub `main` on 2026-09-19.
 
 ---
 
@@ -48,7 +48,7 @@ Derived:
 - one Job PO series;
 - V1/V2/V3 immutable history;
 - one active version;
-- old versions Superseded/Overridden;
+- old versions remain immutable in PO history; exact historical label/status is unresolved;
 - no separate Resource acceptance;
 - PO send/issue implies assignment;
 - decline → cancellation/reassignment path.
@@ -67,7 +67,7 @@ Derived:
 - Cloudflare R2 direction;
 - Supabase-storage/Drive archival concept is superseded for main TMS file storage;
 - authorized completed-job access remains possible;
-- no automatic age-only deletion.
+- Update 045 package contains archive/delete lifecycle timings, but the exact timing policy is not locked and still requires reconciliation/live acceptance.
 
 ---
 
@@ -81,12 +81,13 @@ Latest consolidated prior-session status:
 - 050 — deployed but rejected because:
   - deadline/V3 behavior incorrect;
   - Resource missing in Dashboard.
-- 051 — prepared; latest implementation/deploy status not confirmed.
-- 052 — reported deployed; Cancelled flow PASS.
-- 053–055 — prepared; latest handover says not implemented/deployed.
-- Production migrations/audits/build for newest work not confirmed.
+- 051 — later source advances it to implemented-reported/narrowly supported.
+- 052 — reported deployed; Project/Scoop Cancelled flow PASS.
+- 053–055 — source is now present on GitHub `main`; this advances repository source state, not live acceptance.
+- 056 — Global Visual System source is present on `main`; `tms/build.json` reports build `056`, source baseline Update 055.
+- Production migration 051/audit 013, Netlify live build, and live two-signature/PDF acceptance remain unconfirmed.
 
-Do not assume a prepared update is live.
+Do not equate GitHub source presence with production migration or live acceptance.
 
 ---
 
@@ -104,7 +105,7 @@ Need real production test:
 6. confirm data/signatures/version differences.
 
 ### Invitation email
-Real invitation to `[redacted Resource address at beconnected.no]` was not received.
+Real invitation to `[redacted external Resource address]` was not received.
 
 Need:
 - provider logs;
@@ -217,3 +218,16 @@ Next handover must state:
 - current screenshot/UI result;
 - unresolved defects;
 - next task.
+
+
+---
+
+## 8. Reconciled current base — 2026-09-19
+
+Use repo `RetodoOps/retodo-ops-site`, branch `main`, TMS `/tms`, current repository build marker `056`.
+
+Before the next task:
+1. verify HEAD/build marker;
+2. confirm whether Netlify serves 056;
+3. do not rerun migration 051 or older migrations without checking production history;
+4. test Admin and Resource in separate browser profiles.

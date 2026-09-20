@@ -1,9 +1,11 @@
 # Retodo Ops TMS — UI/UX Rules
 
-**Version:** 1.0  
+**Version:** 1.2  
 **Date:** 2026-09-19
 
 These rules exist because the user explicitly does not want to identify every spacing, alignment, text-containment or consistency defect after each UI update.
+
+**Current source baseline:** Update 056 implements a global visual system across internal TMS, Resource Portal and auth screens. These rules are the acceptance criteria for that source; source presence alone is not visual acceptance.
 
 ---
 
@@ -200,3 +202,13 @@ Before declaring the current Resource profile UI complete, inspect all of the fo
 - consistent content width and left edge across sections.
 
 The user should not have to report the same class of visual defect one by one.
+
+
+---
+
+## 13. Session-role QA
+
+When Admin and Resource are tested simultaneously:
+- use separate browser profiles or Incognito;
+- do not intentionally share one Supabase session between roles;
+- Update 056 contains a role-drift redirect guard, but this is not a replacement for clean isolated QA sessions.

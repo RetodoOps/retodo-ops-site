@@ -1,192 +1,158 @@
 # Retodo Ops TMS — Current State
 
 **Context snapshot:** 2026-09-19  
-**Confidence note:** Based on prior session reports and user confirmations. Where production state was not directly re-verified in this context-building session, it is labeled accordingly.
+**Reconciled against:** private Master v0.15 (last reviewed 2026-09-18), current GitHub `main`, and the latest TMS4 UI work.
 
----
+## 1. Verified repository identity and baseline
 
-## 1. Product baseline
+The TMS codebase is:
+- repository: `RetodoOps/retodo-ops-site`
+- branch: `main`
+- TMS path: `/tms`
+- server functions: `/netlify/functions`
+- production TMS origin: `https://tms.retodo-ops.com/`
 
-Reported/established:
+`RetodoOps/Retodo-App` is a separate HR/Luma People application.
 
-- TMS hierarchy: Client → Account → Project → Scoop → Job → Resource/PO → Financials.
-- P0 architecture baseline was reported completed.
-- Account price cards and Resource rate cards exist conceptually/through implementation iterations.
-- Project/Scoop/Job naming and breadcrumbs have been iterated.
-- PO versioning is an established core feature.
-- Resource onboarding/invitation has been substantially implemented.
-- Compliance/Agreement work is the major current workstream.
-- Cloudflare R2 is the accepted file-storage direction.
-- Reports remains incomplete.
+Current repository evidence:
+- Update 055 source commit exists on `main`;
+- Update 056 Global Visual System source exists on `main`;
+- `tms/build.json` reports build `056`, source baseline `Update 055`;
+- Context Pack v1.0 was added to `main` after Update 056.
 
----
+Repository state is **VERIFIED**. Netlify live state, production Supabase migration state and end-to-end acceptance are separate evidence levels.
 
-## 2. Latest known update progression
+## 2. Update progression — reconciled
 
-From the latest consolidated TMS4 state available on 2026-09-18:
+- 048–049: user-reported deployed; narrow screenshots support Compliance form/submitted state.
+- 050: deployment block reported, but frontend acceptance failed (historical deadline/V3 and Dashboard Resource regressions).
+- 051: later source advances it to implemented-reported/narrowly supported.
+- 052: deployment block reported; Project/Scoop `Cancelled` acceptance PASS; Reports and other items remained incomplete.
+- 053: source package was prepared and later uploaded to GitHub `main`; live registration/PDF recovery acceptance is not established.
+- 054: deterministic PDF source was prepared and later uploaded to GitHub `main`; live complete PDF acceptance is not established.
+- 055: two-signature Agreement 1.1 source is now **VERIFIED PRESENT ON GITHUB MAIN**. Production migration 051/audit 013 execution and live two-party acceptance remain unverified.
+- 056: Global Visual System source is **VERIFIED PRESENT ON GITHUB MAIN** and `tms/build.json` = `056`. It changes interface/session-safety behavior and declares no migration, audit or new environment variable.
 
-- Update 044: static/test work reported; production history needs reconciliation.
-- Update 045: partial.
-- Updates 048–049: reported deployed.
-- Update 050: deployed but frontend result rejected because of deadline/V3 issues and missing Resource in Dashboard.
-- Update 051: prepared; implementation/deployment not confirmed in latest state.
-- Update 052: reported deployed; `Cancelled` flow PASS.
-- Updates 053–055: prepared but not implemented/deployed as of the latest available handover.
-- Production migration/audit/build status for the most recent prepared updates remained unconfirmed.
+Do not downgrade repository source to “not uploaded”, but also do not call it production-accepted without live evidence.
 
-This context pack does not upgrade any of those items to `VERIFIED`.
+## 3. Update 056 — current UI baseline
 
----
+Update 056 applies a global interface refresh across internal TMS, Resource Portal, sign-in, registration and password setup:
+- darker bounded field backgrounds;
+- consistent heading/label/supporting-copy hierarchy;
+- shared card geometry/spacing;
+- compact status/date bubbles;
+- prominent Open/Download/View/Print/Export actions;
+- purple Upload actions;
+- explanatory help collapsed into accessible `?` tooltips;
+- responsive behavior;
+- role-drift guard when the active Supabase login changes in one browser profile.
 
-## 3. Resource invitation
+For simultaneous Admin/Resource testing, separate browser profiles or Incognito remain recommended.
 
-Previously verified/reported:
+Acceptance across the entire live application is still to be recorded explicitly; source presence alone is not visual acceptance.
 
-- Update 042 / migration 041 enabled invitation → password → Resource dashboard.
-- Password activation/direct Resource dashboard was user-confirmed.
+## 4. Resource invitation
 
-Current delivery issue:
+Known:
+- staff invitation/password/resource-dashboard path has been user-tested historically;
+- invitation wording/correction work has been iterated;
+- a fresh invitation to an external test Resource produced no visible send error but was **not received**;
+- a separate normal test email did arrive.
 
-- invitation to `[redacted Resource address at beconnected.no]` was reported not received;
-- only test email behavior had been observed;
-- provider/delivery-log verification remained missing.
+Status: invitation delivery remains **UNRESOLVED / NOT ACCEPTED**. Inspect function/provider logs and obtain a real delivered invitation + valid link/password/portal test.
 
-Therefore:
-- invitation mechanics may work;
-- real production delivery remains an open issue.
+## 5. Public self-registration
 
----
+Self-registration is allowed, but exact activation/pending-admin-approval behavior remains unresolved.
 
-## 4. Compliance
+Verified defect:
+- existing Auth email → `User already registered`;
+- finish-registration route → `Invalid login credentials`.
 
-Locked model is documented in the decision register.
+Update 053 prepared an existing-account recovery path; live no-duplicate recovery acceptance remains unverified.
 
-Current work has covered:
+## 6. Compliance / Agreement
 
-- education evidence;
-- professional-since dates;
-- dynamic experience;
-- qualification logic;
-- tests;
-- agreement/signing;
-- resource/admin views.
+Locked evidence model and workflow remain in force.
 
-Latest UI still requires a holistic cleanup of the Resource profile/Tests & Qualifications/Compliance presentation.
+Agreement:
+- Retodo signature = authorized internal Compliance request/unlock action;
+- Service Provider `Accept and sign` = second/final signature;
+- no separate Send Agreement action;
+- exact Agreement version/hash must be bound immutably;
+- final PDF must contain both signature records and be available to Resource and internal user.
 
----
+Historical failure:
+- two signed-PDF downloads were blank/identical.
 
-## 5. Agreement/PDF
+Current source:
+- Update 054 deterministic PDF generator and Update 055 two-signature flow are present on `main`.
 
-Latest known blocker before the current UI-focused work:
+Still unverified:
+- production migration 051/audit 013;
+- live Retodo signature record;
+- live Resource final signature;
+- matching complete Resource/internal PDFs;
+- final version/hash/audit snapshot.
 
-- both Agreement PDFs were reported blank/identical;
-- real two-sided signing/PDF validation was not complete;
-- Update 054/055 work was prepared in response but latest deploy status was not confirmed.
+## 7. PO / Dashboard
 
-Treat final PDF generation as **not production-verified** until:
-- populated first-signature PDF is confirmed;
-- Resource final signature is confirmed;
-- final PDF differs appropriately and contains data/signatures;
-- admin and Resource download paths both work.
+Preserve:
+- versioned immutable PO history;
+- active/current PO only in normal lists;
+- no separate Resource acceptance;
+- PO issue/send implies assignment.
 
----
+Do not treat `Superseded` or `Overridden` as a locked database/business status merely because packages/UI examples use those words.
 
-## 6. PO / Dashboard
+Historical regressions requiring explicit retest:
+- status-only approval vs historical deadline;
+- unintended V3 records after manual deadline edits;
+- assigned Resource visibility in Dashboard;
+- active-version/cost propagation.
 
-Known recent regression:
+Project/Scoop `Cancelled` path was reported PASS under Update 052.
 
-- Update 050 introduced/revealed deadline/V3 issues;
-- Resource was missing from Dashboard;
-- follow-up Update 051 was prepared.
+The earlier broad commercial-adjustment workflow proposal is not current scope. The locked PO change is the approved contractual reduction sentence only unless a later decision expands it.
 
-Cancelled flow:
-- Update 052 reported deployed and PASS.
+## 8. Files / R2
 
-Before new financial/PO work, retest:
-- active PO version;
-- supplier cost;
-- dashboard Resource;
-- deadline;
-- V3 history;
-- cancelled reassignment.
+Cloudflare R2 remains the storage direction for new TMS operational file bytes.
 
----
+Narrow live evidence exists for one Ready TXT file and assigned-Resource access. Full format/RLS/lifecycle acceptance is incomplete.
 
-## 7. Files / R2
+Update 045 package source includes 3-month archive and 24-month archived-binary deletion mechanics with holds. Treat those timings as package implementation, not locked retention policy, until explicitly reconciled.
 
-Strategic storage decision is locked to Cloudflare R2.
+## 9. Reports
 
-However, full end-to-end current production verification of:
-- upload;
-- Resource download;
-- Completed Job access;
-- deletion;
-- duplicate Compliance document deletion;
-- issues/delivery file lifecycle
+Reports remains **UNRESOLVED / NOT IMPLEMENTED** in the accepted product sense. Job navigation/links existed, but no complete report module/page/specification was accepted.
 
-should be treated as incomplete unless the latest working session has since verified it.
+## 10. Blind CV
 
----
+Requirements/source corrections exist; definitive live preview/DOCX/PDF logo/output acceptance remains unresolved.
 
-## 8. Reports
+## 11. Commercial/legal correction from the daily Master
 
-Reports menu exists/planned, but report submodules are not considered built/complete.
+Current Freelancer Framework Agreement invoicing cycle:
+- 15th; and
+- last working day of the month.
 
-Status: `UNRESOLVED`.
+Payment:
+- 60 calendar days from the applicable invoicing date for undisputed amounts.
 
----
+Older `15th and 30th` wording is superseded. A legacy Resource UI value still showed it in one test; do not change payment calculations incidentally without inspecting the record/code.
 
-## 9. Blind CV
+## 12. Context state
 
-Requirements are known, but completion/production verification is not established in the latest handover.
+The private cross-business Master was last reviewed 2026-09-18 and therefore does not yet contain the GitHub-verified Update 056/context-pack commits from 2026-09-19.
 
-Status: `UNRESOLVED`.
+The old rolling `/OPS/Retodo_Ops_TMS_Latest_Changes.md` was stale at Update 051 in the Master review. It should be reconciled, but the daily Master remains the higher-value cross-business handoff.
 
----
+## 13. Deployment responsibility
 
-## 10. Current UI task
-
-Latest user feedback requires Resource profile UI cleanup.
-
-Outstanding visual defects/class of defects:
-
-- text above `Test Test` too small;
-- `Tests & Qualifications` alignment;
-- `Save changes` misaligned relative to `+ Assign Test`;
-- `Compliance phase` alignment differs from fields;
-- `Account Qualifications from approved jobs` heading alignment;
-- question/help icons placed below rather than inline with heading;
-- explanatory text overflow/outside bubbles;
-- inconsistent button sizes/colors/types;
-- mismatched sizes of Master's degree and Diploma upload blocks;
-- field backgrounds need stronger/darker distinction;
-- overall page should be reviewed by canonical aesthetic/readability rules rather than only patching individually listed defects.
-
-This is the highest-confidence immediate UI requirement.
-
----
-
-## 11. Repository identity warning
-
-The GitHub connector available during context-pack creation exposed:
-
-- `RetodoOps/retodo-ops-site`
-- `RetodoOps/Retodo-App`
-
-Inspection of `RetodoOps/Retodo-App` showed HR/Luma People routes and dependencies. Therefore it must **not** be assumed to be the current TMS repository.
-
-Before Codex work:
-- open the actual local TMS working copy;
-- confirm remote URL/repository;
-- place this context pack in that repository root;
-- only then start TMS modifications.
-
----
-
-## 12. Deployment responsibility
-
-Established current workflow:
-
-- user controls GitHub upload/push and Netlify deployment;
-- SQL migrations are manually executed/provided separately;
-- agents prepare/test/package changes unless explicitly authorized otherwise.
+Default workflow remains:
+- user controls GitHub upload/push, Netlify deployment and production migrations unless explicitly authorizing otherwise;
+- agents inspect/edit/test/package;
+- deliver complete add/replace files in an upload-only ZIP;
+- SQL migrations remain separate forward-only files.
