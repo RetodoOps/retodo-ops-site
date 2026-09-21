@@ -132,6 +132,12 @@ Verify:
 
 Define requirements/data/filters/permissions before implementation. Do not invent report stages or duplicate Financials source of truth.
 
+2026-09-20 assessment: proposed architecture is in `docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md`; not yet implemented/accepted. New core-flow gates:
+- RPT-01 VERIFIED local defect: Scoop/Dashboard/project expense aggregation can mix currencies without conversion; Job screen has a mismatch guard. Reproduced by actual-function fixture.
+- RPT-02 VERIFIED local partial-write window: Dashboard bulk updates Scoops and Projects separately; one may persist if the other fails. Source plus mocked-failure test; not a claim of production occurrence.
+- RPT-03/RPT-04 source risks: unpaginated Dashboard loads and synthetic no-Scoop zero/Assign fallback require scope/completeness checks.
+- Existing JS regression suite is not green; full current-chain browser/staging acceptance remains NOT_TESTED. Do not treat these as resolved by the architecture proposal.
+
 ## P2 — Blind CV final outputs
 **Status:** UNRESOLVED
 

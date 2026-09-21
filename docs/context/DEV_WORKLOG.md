@@ -87,3 +87,22 @@ No TMS application code, migration, Netlify deployment or production configurati
 - Clean branch dev/reports-architecture-20260920 starts at 938c28a; fetched main remains 15b5922 / build 057.
 - Read AGENTS, CURRENT_WORK, architecture and development rules. Newer AGENTS/user instructions override older development-rule text requesting a full Master read; no Master needed for this bounded source assessment.
 - Next: inspect calculations/status/permission boundaries, run isolated tests and produce proposed architecture. No UI implementation, migration or production writes authorized by this task.
+
+## 2026-09-20 — REPORTS-DESIGN-20260920 / assessment and design checkpoint
+
+- Inspected Dashboard reload/bulk status, Project cost/financial aggregation, Job PO cost/signing-send sequence, Scoop status helper, migrations 022/025/033/036/038, existing Reports links and relevant financial decision entries.
+- Actual-function tests: 7 PASS, 1 explicit TODO reproducing RPT-01 mixed-currency defect. RPT-02 partial-write window reproduced with successful Scoop update and failed Project update. No application fixes made.
+- Existing suite initially 87 PASS / 28 FAIL. Reused available local dependencies, added assessment: 100 PASS / 22 FAIL / 1 TODO. Remaining failures need triage; old cache/build/hash expectations and ZIP fixture failure are not silently waived.
+- Isolated PGlite tests: Update 044 14 PASS; Update 050 7 PASS. Three core JS syntax checks PASS. No full migration-chain or production/browser test; historical fixtures are limited evidence.
+- Created proposed report contract (Project, Job, Margin grains; no duplicated revenue; currency-separated totals; effective-PO provenance; server permission/pagination/export boundaries). Invoice report deferred. Marked open issues and CURRENT_WORK PARTIAL.
+- Files: docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md, tests/reports-core-flow-assessment.test.js, CURRENT_WORK, DEV_WORKLOG and 07_OPEN_ISSUES.
+- Next: user review of proposal and remediation scope, then safe full-flow acceptance. No build increment, application/schema modification, main push, merge, deployment or production mutation.
+- Durable checkpoint is the commit containing this entry on dev/reports-architecture-20260920.
+
+## 2026-09-21 — REPORTS-DESIGN-20260920 / checkpoint preparation
+
+- Resumed from `dev/reports-architecture-20260920` at `938c28a4c4edc362398ef3a46f79fdd3ad386b4f`; no alternate checkout was used for task work.
+- Re-ran `node --test tests/reports-core-flow-assessment.test.js`: 7 PASS, 1 intentional TODO for RPT-01, 0 unexpected failures. `git diff --check` PASS.
+- Strengthened CURRENT_WORK with explicit task-specific locked rules, required context, next action and do-not-redo controls. No application code, schema, build or production state changed.
+- Created the local assessment checkpoint (`docs: assess core flows and reports architecture`) including the assessment, test and continuity records; the exact checkpoint is the current branch HEAD.
+- Next: push only to `dev/reports-architecture-20260920`; then obtain user review of the proposed report contract before any separate remediation task.

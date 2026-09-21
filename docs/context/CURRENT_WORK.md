@@ -5,7 +5,7 @@
 **Default branch:** `main`  
 **Last repository baseline checked:** `15b5922473585256f6e8c590b8f3a6d80c8b04b4`
 **Build at baseline:** `057`
-**Last updated:** 2026-09-20
+**Last updated:** 2026-09-21
 
 > This file records operational work state only. It does not override LOCKED business decisions or the private Master.
 
@@ -15,15 +15,24 @@ Verify core Dashboard / Project / Scoop / Job flows and prepare read-only Report
 
 ## Status
 
-`IN_PROGRESS` — source inspection and isolated test planning. Historical continuity recovery below is retained; the interrupted 20-file diff remains unresolved.
+`PARTIAL` — local source/fixture verification completed and Reports architecture proposed. RPT-01 currency mixing reproduced; RPT-02 bulk partial-write window reproduced. Full end-to-end/live verification remains NOT_TESTED. See docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md.
 
 - Task branch: `dev/reports-architecture-20260920`.
-- Starting HEAD and latest durable checkpoint before this task: `938c28a4c4edc362398ef3a46f79fdd3ad386b4f`. Main remains `15b5922`, build 057. Subsequent checkpoint: commit containing this revision on the task branch.
+- Starting HEAD and latest durable checkpoint before this task: `938c28a4c4edc362398ef3a46f79fdd3ad386b4f`. Main remains `15b5922`, build 057. The current branch HEAD is the local checkpoint containing this revision; push is pending.
 - Working tree at task start: clean fresh clone; older dirty workspaces preserved.
-- Current changed files: CURRENT_WORK.md and DEV_WORKLOG.md only.
+- Current changed files: CURRENT_WORK.md, DEV_WORKLOG.md, 07_OPEN_ISSUES.md, docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md, tests/reports-core-flow-assessment.test.js.
 - Completed checks: remote identity, main HEAD, protocol ancestry and four-file patch, build 057, branch inventory.
-- Incomplete: recovery of the exact interrupted 20-file diff; production/UI acceptance not tested by this task.
+- Completed this task: 7 new assessment PASS / 1 TODO reproducing defect; 14 Update 044 + 7 Update 050 isolated PostgreSQL checks PASS; 3 core scripts syntax PASS. Full JS suite with dependencies: 100 PASS / 22 FAIL / 1 TODO; not green.
+- Revalidated 2026-09-21: `node --test tests/reports-core-flow-assessment.test.js` reports 7 PASS / 1 TODO / 0 unexpected failures; `git diff --check` PASS.
+- Incomplete: full-chain/browser/production acceptance, legacy-test triage and report-design approval. Historical exact interrupted 20-file diff remains unresolved.
 - No numbered application update is being implemented; no build increment.
+
+## Task-specific LOCKED rules
+
+- This is an unnumbered, read-only assessment; do not implement Reports, invoice logic, application workflow changes or migrations in this task.
+- Do not perform production writes, production migration, production deployment, production environment/auth/data changes or merge to `main`.
+- Do not infer currency conversion, invoice recognition, report permissions or parent/sibling bulk-status semantics without explicit approval.
+- Checkpoint only this assessment and its continuity records on `dev/reports-architecture-20260920`.
 
 ## Starting repository state
 
@@ -87,11 +96,18 @@ Unless those edits are independently recovered and verified in an actual Git bra
 - Update 057 is present in main at the task base. No docs/updates/UPDATE_057.md existed at inspection; this task does not certify that UI release or start functional work.
 - No private Master was read. No fresh reconciliation was performed. Recovery is limited to evidence accessible in this environment; missing diff may exist in another Codex workspace.
 
+## REQUIRED CONTEXT
+
+- Read this file first for normal continuation.
+- The proposed report contract and evidence are in `docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md`.
+- The executable source assessment is `tests/reports-core-flow-assessment.test.js`; its TODO is an intentional RPT-01 defect reproduction, not a green functional assertion.
+- Main baseline is `15b5922473585256f6e8c590b8f3a6d80c8b04b4`, build `057`; this task branch starts from `938c28a4c4edc362398ef3a46f79fdd3ad386b4f`.
+
 ## Next exact action
 
-Inspect authoritative financial/status queries, run safe isolated tests, record gaps and propose report grains, permissions and calculation contracts. Do not merge, deploy or mutate production. Relevant result record: docs/reports/CORE_FLOW_AND_REPORTS_ARCHITECTURE.md (to be created).
+Push the current branch HEAD containing the assessment, test and continuity records to the current non-main task branch. Then review proposed report grains/currency/date/permissions with the user. A later, separately approved development task should address verified currency mixing and bulk-write consistency, then complete core-flow acceptance before financial Reports implementation.
 
-## Do not do
+## DO NOT REDO
 
 - Do not increment the TMS application build solely for this documentation protocol.
 - Do not deploy Netlify for this documentation-only patch.
