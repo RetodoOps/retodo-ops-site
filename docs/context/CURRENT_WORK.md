@@ -3,21 +3,32 @@
 **Purpose:** crash-safe operational continuation point for Retodo Ops TMS work.  
 **Repository:** `RetodoOps/retodo-ops-site`  
 **Default branch:** `main`  
-**Last repository baseline checked:** `21e9ff676f5a1815368b9537859dc62430becaa9`  
-**Build at baseline:** `056`  
+**Last repository baseline checked:** `15b5922473585256f6e8c590b8f3a6d80c8b04b4`
+**Build at baseline:** `057`
 **Last updated:** 2026-09-20
 
 > This file records operational work state only. It does not override LOCKED business decisions or the private Master.
 
 ## Current task
 
-Introduce the crash-safe repository continuity protocol so future GPT/Work/Codex sessions can resume from durable repository checkpoints without relying on an end-of-session handoff.
+Reconcile the verified continuity-protocol upload, recover/review interrupted context-reconciliation work if available, then wait for the next functional TMS instruction. Task ID: CONTINUITY-RECOVERY-20260920.
 
 ## Status
 
-`IN_PROGRESS` until this patch is uploaded and verified in the repository.
+`TESTED` — continuity correction and available recovery-evidence review completed; waiting for the next functional TMS instruction. The specific interrupted 20-file diff remains UNRESOLVED, not recovered or accepted. Protocol bootstrap is VERIFIED on main at `441eb03888a7fa9b7c4c33802c6111ef37494bba`; uploading it again is not required.
+
+- Task branch: `dev/continuity-recovery-20260920`.
+- Starting HEAD: `15b5922473585256f6e8c590b8f3a6d80c8b04b4` (main advanced during startup).
+- Latest durable checkpoint before this record: `90ad5359c04732b144c5cf9b35841409dacb97f0`. The subsequent recovery-review checkpoint is the commit containing this revision, resolved from the remote task-branch tip (not a self-referential SHA).
+- Working tree at task start: clean fresh clone; older dirty workspaces preserved.
+- Current changed files: CURRENT_WORK.md and DEV_WORKLOG.md only.
+- Completed checks: remote identity, main HEAD, protocol ancestry and four-file patch, build 057, branch inventory.
+- Incomplete: recovery of the exact interrupted 20-file diff; production/UI acceptance not tested by this task.
+- No numbered application update is being implemented; no build increment.
 
 ## Starting repository state
+
+The following is the historical protocol-bootstrap starting state, not this recovery task's starting HEAD listed above.
 
 - Repository: `RetodoOps/retodo-ops-site`
 - Branch: `main`
@@ -66,12 +77,20 @@ Unless those edits are independently recovered and verified in an actual Git bra
 - do not assume the context reconciliation is complete;
 - recover/review the diff if available before redoing the work from zero.
 
+### Recovery review completed 2026-09-20
+
+- Existing durable reconciliation is available at `21e9ff676f5a1815368b9537859dc62430becaa9`, relative to context-pack commit `55759530fe406f796b5ad43c81542b12b655069f`: 19 files, including the reconciliation note. Reviewed its file inventory and reconciliation-note diff; did not redo a full business/legal audit.
+- Recovery command: `git diff 55759530fe406f796b5ad43c81542b12b655069f 21e9ff676f5a1815368b9537859dc62430becaa9 -- AGENTS.md CONTEXT_PACK_START_HERE.md MANIFEST.md docs/context`.
+- That existing commit predates the bootstrap warning. There is no evidence establishing identity with the interrupted 20-file attempt; do not mark that attempt completed.
+- Searched available workspace context/patch filenames and inspected available historical TMS clones' branches, working diffs/status, context history and stashes. No separate context-reconciliation diff or stash was found. Old application/UI edits were preserved, not repurposed.
+- Remote inventory before this task: main, update-052-codex and three claude branches. No separate reconciliation checkpoint branch was found. Fresh clone has no prior local reflog or stash from the interrupted session.
+- Historical reconciliation-note unresolved entries for agreement signing/PDF and invitations are superseded by the user-confirmed evidence in current AGENTS.md; they are not reopened by this review.
+- Update 057 is present in main at the task base. No docs/updates/UPDATE_057.md existed at inspection; this task does not certify that UI release or start functional work.
+- No private Master was read. No fresh reconciliation was performed. Recovery is limited to evidence accessible in this environment; missing diff may exist in another Codex workspace.
+
 ## Next exact action
 
-1. Upload this continuity-protocol patch to the repository.
-2. Verify the resulting repository HEAD and these four files.
-3. Recover/review the interrupted context-reconciliation diff if available.
-4. Create a non-main task branch for further material work and begin checkpointing there.
+Wait for the user's next functional TMS instruction. Resume from the remote tip of `dev/continuity-recovery-20260920`. If the exact interrupted workspace/diff becomes available, review it before recreating any reconciliation work. Do not merge, deploy or change production without explicit approval.
 
 ## Do not do
 

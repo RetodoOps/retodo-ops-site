@@ -62,3 +62,21 @@ The edits must not be treated as repository truth unless recovered and verified 
 This protocol patch is documentation-only.
 
 No TMS application code, migration, Netlify deployment or production configuration change is part of this bootstrap.
+
+## 2026-09-20 — CONTINUITY-RECOVERY-20260920 / checkpoint 1
+
+- Verified bootstrap commit `441eb03888a7fa9b7c4c33802c6111ef37494bba` on main; prior upload-pending status is stale.
+- Main advanced during startup to `15b5922473585256f6e8c590b8f3a6d80c8b04b4`, build 057. Used that clean clone as task base; no production acceptance inferred.
+- Created `dev/continuity-recovery-20260920`; corrected CURRENT_WORK before further recovery review.
+- Existing dirty workspaces were inspected without alteration. No private Master read.
+- Next: inspect context-history commits and recoverable branch/stash/diff evidence, then wait as instructed.
+- This documentation-only checkpoint changes CURRENT_WORK and DEV_WORKLOG; no application update, migration, deployment or production mutation.
+
+## 2026-09-20 — CONTINUITY-RECOVERY-20260920 / checkpoint 2
+
+- Durable checkpoint 1: `90ad5359c04732b144c5cf9b35841409dacb97f0`, pushed to `dev/continuity-recovery-20260920` through the configured GitHub connector. Shell git push lacked HTTPS credentials; no credentials were extracted or configuration changed. Local equivalent commit `d258da9` is not the remote continuation point.
+- Reviewed available reconciliation history: `5575953..21e9ff6` changes 19 context files; the reconciliation note records existing work. Preserved it; did not recreate or claim it is the interrupted 20-file attempt.
+- Available local context/patch searches, historical clone status/branch/context-history/stash checks and remote branch inventory did not expose the exact interrupted diff. Recovery remains UNRESOLVED, scoped to accessible evidence, not proof that it never existed.
+- Protocol verification and source-state checks PASS; application tests/live UI not run (documentation-only task). Main advanced independently to build 057; no production acceptance inferred.
+- Changed files: CURRENT_WORK and this append-only log. No numbered TMS update created, build changed, Master read, main push/merge, PR, deployment, migration, environment/auth/data mutation.
+- Next exact action: wait for the user's next functional instruction. Recovery-review checkpoint is the commit containing this entry on the named remote task branch.
