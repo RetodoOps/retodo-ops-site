@@ -1,101 +1,96 @@
 # CURRENT WORK
 
-**Purpose:** crash-safe operational continuation point for Retodo Ops TMS work.  
-**Repository:** `RetodoOps/retodo-ops-site`  
-**Default branch:** `main`  
-**Last repository baseline checked:** `15b5922473585256f6e8c590b8f3a6d80c8b04b4`
-**Build at baseline:** `057`
-**Last updated:** 2026-09-20
+Repository: RetodoOps/retodo-ops-site
+Current branch: dev/lightweight-continuity
+Starting HEAD: c5b60306635fb37803ebe145fe8f139bcb580614
+Latest durable checkpoint commit: The commit containing this revision on `dev/lightweight-continuity`; resolve its SHA from the pushed branch tip (avoids a self-referential hash).
+Build: 057 — Update 057 — Canonical UI layout system (unchanged)
+Last updated: 2026-09-22
 
-> This file records operational work state only. It does not override LOCKED business decisions or the private Master.
+## CURRENT TASK
 
-## Current task
+READY FOR NEXT FUNCTIONAL TMS TASK
 
-Reconcile the verified continuity-protocol upload, recover/review interrupted context-reconciliation work if available, then wait for the next functional TMS instruction. Task ID: CONTINUITY-RECOVERY-20260920.
+## STATUS
 
-## Status
+READY
 
-`TESTED` — continuity correction and available recovery-evidence review completed; waiting for the next functional TMS instruction. The specific interrupted 20-file diff remains UNRESOLVED, not recovered or accepted. Protocol bootstrap is VERIFIED on main at `441eb03888a7fa9b7c4c33802c6111ef37494bba`; uploading it again is not required.
+## OBJECTIVE
 
-- Task branch: `dev/continuity-recovery-20260920`.
-- Starting HEAD: `15b5922473585256f6e8c590b8f3a6d80c8b04b4` (main advanced during startup).
-- Latest durable checkpoint before this record: `90ad5359c04732b144c5cf9b35841409dacb97f0`. The subsequent recovery-review checkpoint is the commit containing this revision, resolved from the remote task-branch tip (not a self-referential SHA).
-- Working tree at task start: clean fresh clone; older dirty workspaces preserved.
-- Current changed files: CURRENT_WORK.md and DEV_WORKLOG.md only.
-- Completed checks: remote identity, main HEAD, protocol ancestry and four-file patch, build 057, branch inventory.
-- Incomplete: recovery of the exact interrupted 20-file diff; production/UI acceptance not tested by this task.
-- No numbered application update is being implemented; no build increment.
+Continue from this record when the user provides the next functional TMS task.
+The lightweight continuity migration is complete; no functional task is selected.
 
-## Starting repository state
+## TASK-SPECIFIC LOCKED RULES
 
-The following is the historical protocol-bootstrap starting state, not this recovery task's starting HEAD listed above.
+- Normal startup reads only this file and inspects branch, HEAD, working tree and `tms/build.json`; do not manually read AGENTS.md.
+- Extra context is read only when listed under REQUIRED CONTEXT or a real blocking contradiction exists. Context reconciliation is not a startup prerequisite.
+- For normal development, the mandatory continuity write is this file, updated after every MATERIAL checkpoint: root cause, selected approach, coherent change, migration creation, meaningful test, blocker, user confirmation or material status change.
+- Commit code and this record together, and push checkpoints only to the current non-main task branch. Do not rely on an end-of-session handoff.
+- DEV_WORKLOG.md and UPDATE_NNN.md are optional historical/detail records, never normal startup reads or mandatory checkpoint writes. Update a numbered record only when a numbered release/update exists; update DEV_WORKLOG only for useful durable historical events.
+- Main merge, production deployment, production migrations and production configuration/data/auth changes require explicit user approval.
+- This migration changes only AGENTS.md and this file; application code and build remain unchanged. No deployment or migration is authorized by it.
 
-- Repository: `RetodoOps/retodo-ops-site`
-- Branch: `main`
-- Starting HEAD: `21e9ff676f5a1815368b9537859dc62430becaa9`
-- Build marker: `056`
-- Application-code change required: no
-- Migration required: no
-- Netlify deployment required: no
+## USER-CONFIRMED WORKING
 
-## Files in this continuity-protocol patch
+- Agreement two-party signing works.
+- Retodo Compliance unlock/signature works.
+- Resource Accept and sign works.
+- Final signed Agreement PDF works for Resource.
+- Final signed Agreement PDF works for Admin.
+- Resource access invitation delivery works.
 
-- `AGENTS.md` — replace
-- `docs/context/CURRENT_WORK.md` — add
-- `docs/context/DEV_WORKLOG.md` — add
-- `docs/updates/UPDATE_TEMPLATE.md` — add
+These user-confirmed facts are carried forward, not independently retested here.
+Do not reopen them without new regression evidence.
 
-## Completed
+## COMPLETED
 
-- Defined repository-based crash-safe continuity model.
-- Defined `CURRENT_WORK.md` as the mandatory first operational continuation source.
-- Defined append-only `DEV_WORKLOG.md`.
-- Defined one durable `UPDATE_NNN.md` record per material numbered update.
-- Authorized checkpoint commit/push only to non-main task branches.
-- Preserved explicit approval requirement for merge to `main`, production deployment, production migration and production configuration/data changes.
-- Preserved the private Master as separate cross-business canonical decision/evidence source.
+- Checked live main and freshly cloned baseline c5b60306635fb37803ebe145fe8f139bcb580614; initial working tree was clean.
+- Read only AGENTS.md and this file; inspected branch, HEAD, working tree and build marker.
+- Replaced long AGENTS.md with compact permanent guardrails.
+- Rebuilt this file as the complete normal continuation source and reset task/status to READY.
+- Previous continuity recovery is complete enough for continuity purposes and is not the current functional task.
+- Removed historical 20-file reconciliation recovery as a prerequisite to future development.
+- Simplified mandatory checkpoint writing to this file.
 
-## Important current evidence
+## FILES CHANGED
 
-User-confirmed working as of 2026-09-20:
-- Agreement two-party signing flow.
-- Retodo Compliance unlock/signature.
-- Resource `Accept and sign`.
-- Final signed Agreement PDF download from Resource side.
-- Final signed Agreement PDF download from Admin side.
-- Resource access invitation delivery.
+- AGENTS.md
+- docs/context/CURRENT_WORK.md
 
-These are not active blockers unless new regression evidence appears.
+## TEST RESULTS
 
-## Interrupted work that must not be mistaken for completed repository work
+- Live main baseline and build 057 verified; initial working tree clean.
+- Documentation checks: required sections and user-confirmed facts retained; REQUIRED CONTEXT is NONE; AGENTS.md is within the 60-line maximum.
+- Changed-file scope and whitespace checked before commit; no application or build changes.
+- No application tests required or run for this documentation-only change.
 
-A prior Codex session attempted a context-only reconciliation and displayed edits to 20 files inside a Codex/ChatGPT project workspace. Usage credits expired before a final review/report.
+## UNRESOLVED / NOT TESTED
 
-Unless those edits are independently recovered and verified in an actual Git branch/commit:
-- do not treat them as accepted;
-- do not assume they were pushed;
-- do not assume the context reconciliation is complete;
-- recover/review the diff if available before redoing the work from zero.
+- No next functional task has been specified.
+- Historical interrupted 20-file reconciliation remains unrecovered/unaccepted; it is not a development prerequisite or active blocker.
+- Application behavior, deployment state and production migration state were not independently verified in this task.
 
-### Recovery review completed 2026-09-20
+## REQUIRED CONTEXT
 
-- Existing durable reconciliation is available at `21e9ff676f5a1815368b9537859dc62430becaa9`, relative to context-pack commit `55759530fe406f796b5ad43c81542b12b655069f`: 19 files, including the reconciliation note. Reviewed its file inventory and reconciliation-note diff; did not redo a full business/legal audit.
-- Recovery command: `git diff 55759530fe406f796b5ad43c81542b12b655069f 21e9ff676f5a1815368b9537859dc62430becaa9 -- AGENTS.md CONTEXT_PACK_START_HERE.md MANIFEST.md docs/context`.
-- That existing commit predates the bootstrap warning. There is no evidence establishing identity with the interrupted 20-file attempt; do not mark that attempt completed.
-- Searched available workspace context/patch filenames and inspected available historical TMS clones' branches, working diffs/status, context history and stashes. No separate context-reconciliation diff or stash was found. Old application/UI edits were preserved, not repurposed.
-- Remote inventory before this task: main, update-052-codex and three claude branches. No separate reconciliation checkpoint branch was found. Fresh clone has no prior local reflog or stash from the interrupted session.
-- Historical reconciliation-note unresolved entries for agreement signing/PDF and invitations are superseded by the user-confirmed evidence in current AGENTS.md; they are not reopened by this review.
-- Update 057 is present in main at the task base. No docs/updates/UPDATE_057.md existed at inspection; this task does not certify that UI release or start functional work.
-- No private Master was read. No fresh reconciliation was performed. Recovery is limited to evidence accessible in this environment; missing diff may exist in another Codex workspace.
+NONE
 
-## Next exact action
+## NEXT EXACT ACTION
 
-Wait for the user's next functional TMS instruction. Resume from the remote tip of `dev/continuity-recovery-20260920`. If the exact interrupted workspace/diff becomes available, review it before recreating any reconciliation work. Do not merge, deploy or change production without explicit approval.
+Wait for the user's next functional TMS instruction, then set the current task, objective and task-specific rules here and begin that work from the latest pushed non-main checkpoint. Do not initiate historical diff recovery or context reconciliation.
 
-## Do not do
+## DO NOT REDO
 
-- Do not increment the TMS application build solely for this documentation protocol.
-- Do not deploy Netlify for this documentation-only patch.
-- Do not run a migration.
-- Do not mark the interrupted 20-file reconciliation as complete without evidence.
-- Do not commit the private Master.
+- Do not restart the completed continuity-recovery task or repeat this migration.
+- Do not recover the old 20-file diff as a prerequisite to functional development.
+- Do not routinely read private Master, AGENTS.md, DEV_WORKLOG.md, old handovers, old UPDATE files, decision registers or broad context packs.
+- Do not reopen the user-confirmed working flows without new regression evidence.
+- Do not increment build, deploy, run migrations or alter production for this documentation-only task.
+
+## PRODUCTION STATE
+
+- Repository implementation: documentation-only continuity migration on dev/lightweight-continuity; application baseline remains build 057.
+- Main merge: not performed for this migration; live main checked at the starting HEAD above.
+- Netlify deployment: not performed; current deployed revision not verified.
+- Production migrations: none executed; existing execution state not verified.
+- Live test: not performed in this task.
+- User acceptance: the six working facts above are user-confirmed; no broader production acceptance is inferred.
