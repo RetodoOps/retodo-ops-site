@@ -12,7 +12,7 @@ Last updated: 2026-09-24
 Build Reports: Projects, Jobs and Margin.
 
 ## STATUS
-IN_PROGRESS — first reporting implementation drafted; validation pending.
+IN_PROGRESS — reporting database and UI/export unit tests pass; browser verification pending.
 
 ## TASK-SPECIFIC LOCKED RULES
 - User selected Projects, Jobs, Margin: read-only filters, CSV export, separate currency totals and unreliable-margin warnings.
@@ -34,14 +34,21 @@ IN_PROGRESS — first reporting implementation drafted; validation pending.
 - tms/reports.js
 - tms/reports.css
 - tms/migrations/052_read_only_reports.sql
+- tests/reports-db.mjs
+- tests/reports-ui.test.js
 
 ## TEST RESULTS
-Reports JavaScript syntax check PASS. Database and browser validation pending.
+- Reports JavaScript syntax PASS.
+- Isolated PGlite fixture: 17 checks PASS (cardinality, currencies, estimates, incomplete records, PO versions, dates, roles/RLS and 1,103-row paging/export).
+- UI/export unit tests: 5 PASS (CSV injection, metadata, escaping and warnings).
+- Browser verification pending; Chromium runtime being prepared.
+- Fixture tests are not production or full migration-chain acceptance.
 
 ## UNRESOLVED / INCOMPLETE
 - Reports page/API drafted with Projects/Jobs/Margin, filters, pagination and bounded CSV export.
 - Existing company-role read permissions preserved via invoker RPC and table RLS; inactive/external users denied.
-- Need database tests and browser fixtures before review.
+- Database tests pass. Browser fixture and final review remain.
+- Empty Scoops and unallocated Jobs suppress margins.
 - Prior mixed-currency arithmetic and bulk partial-write findings remain unresolved outside new report scope.
 - Prior assessment is evidence/proposal, not proof of production correctness.
 
@@ -49,7 +56,7 @@ Reports JavaScript syntax check PASS. Database and browser validation pending.
 NONE — inspect relevant application source and schema as needed.
 
 ## NEXT EXACT ACTION
-Run isolated database and browser tests; correct calculation/permission/UI defects; checkpoint tests and results.
+Complete browser fixture verification; finalize build metadata and review PR.
 
 ## DO NOT REDO
 - Do not restart context reconciliation.

@@ -70,8 +70,9 @@ BEGIN
     ), scoop_metrics AS MATERIALIZED (
         SELECT s.id, s.project_id, s.scoop_number name, s.status, s.source_language, s.target_language,
             s.price client_value, s.deadline, p.currency,
+            (SELECT count(*) FROM job_base j WHERE j.project_id=p.id AND j.project_scoop_id IS NULL) unallocated_job_count,
             (SELECT count(*) FROM job_base j WHERE j.project_scoop_id=s.id) job_count,
-            (SELECT count(*) FROM public.project_jobs j WHERE j.project_scoop_id=s.id AND j.status IN ('Cancelled','Declined')) excluded_job_count,
+            (SELECT count(*) FROM public.project_jobs j WHERE j.project_scoop_id=s.id AND j.status IN ('Cancelled','Declined') AND scope='active') excluded_job_count,
             COALESCE((SELECT jsonb_object_agg(x.cost_currency,x.amount) FROM (
                 SELECT COALESCE(NULLIF(j.cost_currency,''),'Unknown') cost_currency, sum(j.cost) amount
                 FROM job_base j WHERE j.project_scoop_id=s.id GROUP BY 1) x),'{}'::jsonb) costs,
@@ -85,8 +86,9 @@ BEGIN
         SELECT p.*,
             (SELECT sum(s.client_value) FROM scoop_metrics s WHERE s.project_id=p.id) client_value,
             (SELECT count(*) FROM scoop_metrics s WHERE s.project_id=p.id) scoop_count,
+            (SELECT count(*) FROM scoop_metrics s WHERE s.project_id=p.id AND s.job_count=0) empty_scoop_count,
             (SELECT count(*) FROM job_base j WHERE j.project_id=p.id) job_count,
-            (SELECT count(*) FROM public.project_jobs j WHERE j.project_id=p.id AND j.status IN ('Cancelled','Declined')) excluded_job_count,
+            (SELECT count(*) FROM public.project_jobs j WHERE j.project_id=p.id AND j.status IN ('Cancelled','Declined') AND scope='active') excluded_job_count,
             (SELECT count(*) FROM job_base j WHERE j.project_id=p.id AND j.cost_basis='Estimate') estimate_count,
             (SELECT count(*) FROM job_base j WHERE j.project_id=p.id AND j.cost IS NULL) unknown_cost_count,
             (SELECT count(*) FROM job_base j WHERE j.project_id=p.id AND (j.po_warning OR j.active_po_count>1)) po_warning_count,
@@ -101,12 +103,12 @@ BEGIN
         SELECT p.id,p.id project_id,p.name,p.status,p.client,p.account,p.pm,
             p.project_date::text date,p.currency,
             to_jsonb(p) - 'numeric_cost' || jsonb_build_object('project_id',p.id,'date',p.project_date,
-                'profit',CASE WHEN p.scoop_count>0 AND p.job_count>0 AND p.unknown_cost_count=0 AND p.po_warning_count=0 AND p.currency_warning_count=0 AND p.unallocated_job_count=0 AND NULLIF(p.currency,'') IS NOT NULL THEN p.client_value-p.numeric_cost END) row
+                'profit',CASE WHEN p.scoop_count>0 AND p.empty_scoop_count=0 AND p.job_count>0 AND p.unknown_cost_count=0 AND p.po_warning_count=0 AND p.currency_warning_count=0 AND p.unallocated_job_count=0 AND NULLIF(p.currency,'') IS NOT NULL THEN p.client_value-p.numeric_cost END) row
         FROM project_metrics p WHERE p_type='projects'
         UNION ALL
         SELECT s.id,p.id,s.name,s.status,p.client,p.account,p.pm,p.project_date::text,p.currency,
             to_jsonb(s) - 'numeric_cost' || jsonb_build_object('project_id',p.id,'project_name',p.name,'client',p.client,'account',p.account,'pm',p.pm,'date',p.project_date,
-                'profit',CASE WHEN s.job_count>0 AND s.unknown_cost_count=0 AND s.po_warning_count=0 AND s.currency_warning_count=0 AND NULLIF(p.currency,'') IS NOT NULL THEN s.client_value-s.numeric_cost END)
+                'profit',CASE WHEN s.job_count>0 AND s.unallocated_job_count=0 AND s.unknown_cost_count=0 AND s.po_warning_count=0 AND s.currency_warning_count=0 AND NULLIF(p.currency,'') IS NOT NULL THEN s.client_value-s.numeric_cost END)
         FROM scoop_metrics s JOIN project_base p ON p.id=s.project_id WHERE p_type='margin'
         UNION ALL
         SELECT j.id,p.id,j.job_number,j.status,p.client,p.account,p.pm,
