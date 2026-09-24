@@ -4,7 +4,9 @@ Repository: RetodoOps/retodo-ops-site
 Base: main
 Active task branch: dev/reports-implementation-20260924
 Starting HEAD: d7c3cb5b8dcc948a7820774c7448ae01df2baa49
-Latest durable checkpoint: this commit on the active task branch; resolve branch HEAD
+Latest durable implementation checkpoint: 1f9675e27d478a6d587ec519e94d352fb736c12d
+Latest continuity checkpoint: this commit; resolve task branch HEAD
+Draft PR: https://github.com/RetodoOps/retodo-ops-site/pull/24
 Build: 058 on task branch; main/live baseline remains 057
 Last updated: 2026-09-24
 
@@ -27,6 +29,9 @@ IMPLEMENTED — local fixture checks pass; pending PR review and explicit releas
 - Created task branch from current main.
 - Inspected prior Reports assessment from existing local assessment branch because current main records proposal as partial and contains no detailed requirements.
 - Current main application source matches local assessment checkout; only continuity documents differ.
+- Implemented Projects, Jobs and Margin reporting plus migration 052.
+- Completed 17 DB checks, 5 unit tests and Chromium browser fixture.
+- Pushed code and continuity checkpoints; opened draft PR #24.
 
 ## CHANGED FILES
 - docs/context/CURRENT_WORK.md
@@ -49,7 +54,7 @@ IMPLEMENTED — local fixture checks pass; pending PR review and explicit releas
 - Fixture tests are not production or full migration-chain acceptance.
 
 ## UNRESOLVED / INCOMPLETE
-- Reports page/API drafted with Projects/Jobs/Margin, filters, pagination and bounded CSV export.
+- Reports page/API implemented with Projects/Jobs/Margin, filters, pagination and bounded CSV export; awaiting review/release.
 - Existing company-role read permissions preserved via invoker RPC and table RLS; inactive/external users denied.
 - Database and browser fixture tests pass; production/current full migration-chain acceptance not run.
 - Migration 052 is prepared only, not executed on production.
@@ -64,7 +69,7 @@ IMPLEMENTED — local fixture checks pass; pending PR review and explicit releas
 NONE — inspect relevant application source and schema as needed.
 
 ## NEXT EXACT ACTION
-Open the task-branch draft PR for review. After explicit approval, coordinate merge and migration/deployment; do not execute them automatically.
+Review draft PR #24 with the user. Before release, run staging/current migration-chain acceptance. Merge and production migration/deployment require explicit user approval; do not execute automatically.
 
 ## DO NOT REDO
 - Do not restart context reconciliation.
