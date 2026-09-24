@@ -1,77 +1,62 @@
 # CURRENT WORK
-
 Repository: RetodoOps/retodo-ops-site
 Base: main
-Active task branch: dev/post-merge-reports-continuity-20260924
-Starting HEAD: caca40fe65764f95426337b7d1fe43818b1383e9
-Latest durable checkpoint: this continuity commit; resolve task branch HEAD
-Build: 058 on main
+Active task branch: dev/reports-upgrade-059-20260924
+Starting HEAD: 5f8435615f4b9fa63ce1b986bfd063380f04bad5
+Latest durable checkpoint: local implementation c0c6cc8; final verification checkpoint is this commit (resolve local branch HEAD). Remote publication uses a snapshot commit; resolve remote task branch HEAD after publication.
+Build: 059 on local task branch; main baseline 058
 Last updated: 2026-09-24
 
 ## CURRENT TASK
-Reports release follow-through after merge of Projects, Jobs and Margin reporting.
+Apply approved REPORTS_REVIEW_UPDATE_059_PROPOSAL: reliable Reports query, controls, layouts, diagnostics and spreadsheet exports; deliver changed-files ZIP and non-main review branch.
 
 ## STATUS
-MERGED TO MAIN — PR #24 merged at main commit caca40fe65764f95426337b7d1fe43818b1383e9. Production migration/deployment has not been executed by the assistant and live state is not assumed.
+IMPLEMENTED / LOCALLY VERIFIED — packaging review branch and changed-files ZIP. User explicitly approved branch publication. Publishing verified snapshot through connected GitHub app; real-schema/live acceptance remains blocked; no production actions. Migration 053 is unused; use a forward-only replacement for report RPC plus read-only selector metadata. Retain migration 052 unchanged.
 
 ## TASK-SPECIFIC LOCKED RULES
-- Reports scope remains Projects, Jobs and Margin: read-only filters, CSV export, separate currency totals and unreliable-margin warnings.
-- Do not execute production migration 052, production deployment, production environment/configuration, production data or authentication changes without explicit user approval.
-- Preserve existing permissions; no exchange-rate assumptions or accounting recognition.
-- No unrelated context reconciliation or signing-flow changes.
-- Checkpoint changes through non-main branches.
+- User authorizes implementation and autonomous merge/pull. This package specifically requests a non-main reviewable branch and ZIP.
+- Checkpoint code and this record on the task branch.
+- Production migration, deployment, data/auth/configuration changes remain separately authorized.
+- Preserve invoker rights/RLS, report grain, full Project/Scoop totals, currency separation, margin suppression, CSV text safety and 10,000-row cap.
+- No invoicing, FX policy, unrelated Dashboard or signing changes.
 
 ## COMPLETED
-- Implemented Projects, Jobs and Margin reports in build 058.
-- Completed the recorded database, unit and Chromium fixture validation before merge.
-- PR #24 was merged to main.
-- Verified remote main HEAD is caca40fe65764f95426337b7d1fe43818b1383e9.
-- Verified `tms/build.json` on main reports build 058.
-- Synchronized continuation state from the merged main baseline.
+- Built forward migration 053, typed flat CSV, report-specific layouts, selector/status metadata, URL state, quality drilldowns, grouped summaries and PO-version links.
+- Read attached proposal and current main work record; fetched main 5f84356, build 058.
+- Confirmed available migration slot 053 and existing query/test architecture.
 
 ## CHANGED FILES
-Merged through PR #24:
 - docs/context/CURRENT_WORK.md
-- tms/reports.html
-- tms/reports.js
-- tms/reports.css
-- tms/build.json
-- tms/migrations/052_read_only_reports.sql
+- tms/migrations/053_reports_functional_upgrade.sql
 - tests/reports-db.mjs
-- tests/reports-ui.test.js
-- tests/reports-browser.cjs
-
-Current continuity checkpoint:
-- docs/context/CURRENT_WORK.md
+- tests/reports-chain.mjs
+- tests/reports-ui.test.js and tests/reports-browser.cjs
+- docs/releases/UPDATE_059_README.md
+- tms/reports.html, tms/reports.js, tms/reports.css, tms/build.json
+- tms/job.js and tms/job.html (validated PO-version deep links)
 
 ## TEST RESULTS
-- Reports JavaScript syntax PASS.
-- Isolated PGlite fixture: 17 checks PASS.
-- UI/export unit tests: 5 PASS.
-- Chromium/Playwright browser fixture PASS.
-- Fixture tests are not production or full migration-chain acceptance.
+- 28 isolated PGlite database checks PASS, including disabled company users and stable PM grouping.
+- 7 Node export/UI unit tests PASS; finite signed numbers and precision preserved, text formula protection retained.
+- Chromium fixture PASS: selectors/statuses/URL refresh-back-tabs, paging/export/cap, QA, source-link construction, XSS, distinct error/retry states, script-load fallback and responsive overflow.
+- Desktop filters/results and mobile results inspected visually.
+- JavaScript syntax and diff whitespace checks PASS.
+- Actual repository migration chain applied setup and 001–036; blocked at 038 because 037 is missing. PGlite uses platform auth shims and omits unsupported pgcrypto CREATE EXTENSION (built-in gen_random_uuid used). No full-chain/live acceptance claimed.
+- Native Excel/Calc CSV import unavailable in this environment; remains an explicit staging acceptance check.
 
 ## UNRESOLVED / INCOMPLETE
-- Migration 052 is merged but has not been executed on production by the assistant.
-- Production deployment/live build is not verified and must not be inferred from the main merge.
-- Full current migration-chain/staging acceptance remains outstanding.
-- Invoice reporting remains unavailable in this release.
-- Prior mixed-currency arithmetic and bulk partial-write findings remain outside this report scope.
-- Empty Scoops and unallocated Jobs suppress margins by design.
-
-## PRODUCTION STATE
-- Repository main contains build 058 and migration 052.
-- No production migration, deployment, configuration, data or authentication change was executed by the assistant as part of this merge/pull follow-through.
-- Live application state is not claimed without verification.
+- Local implementation/regressions complete. Authenticated actual-schema reporting and exact PO-version navigation need staging acceptance; native CSV import needs the intended spreadsheet app.
+- Actual chain successfully applied setup and migrations 001–036, then failed at 038 because required 037 is absent from the repository. Do not fabricate its trusted audit function or claim full-chain acceptance.
+- User explicitly approved publication after automatic-review rejection. Git CLI push failed for missing credentials; use authenticated GitHub connector to publish the same verified application snapshot and updated continuity record.
+- Authenticated production reporting and migration availability remain unverified.
+- Attempt actual repository migration chain in isolated PGlite with Supabase platform shims only; report any chain blockers accurately.
 
 ## REQUIRED CONTEXT
-NONE.
+NONE — approved scope captured above; inspect Reports source/schema/tests as needed.
 
 ## NEXT EXACT ACTION
-Before any production release action, run staging/current migration-chain acceptance. Production migration/deployment requires explicit user approval.
+Deliver changed-files ZIP. Finish authorized publication and open draft review PR. Restore authoritative missing 037 or obtain actual-schema staging access; run documented acceptance before release.
 
 ## DO NOT REDO
-- Do not reimplement or retest the completed fixture scope unless a regression or relevant change requires it.
-- Do not restart context reconciliation.
-- Do not claim existing Dashboard/Project arithmetic or bulk writes are fixed.
-- Do not reopen user-confirmed signing/PDF/invitation behavior without regression evidence.
+- Do not rewrite migration 052 or assume it has run in production.
+- Do not reconcile unrelated context or change existing financial/accounting policy.
