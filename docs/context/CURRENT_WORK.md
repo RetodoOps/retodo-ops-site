@@ -12,7 +12,7 @@ Last updated: 2026-09-24
 Build Reports: Projects, Jobs and Margin.
 
 ## STATUS
-IN_PROGRESS — scope selected by user; inspecting data model and access rules.
+IN_PROGRESS — first reporting implementation drafted; validation pending.
 
 ## TASK-SPECIFIC LOCKED RULES
 - User selected Projects, Jobs, Margin: read-only filters, CSV export, separate currency totals and unreliable-margin warnings.
@@ -30,13 +30,18 @@ IN_PROGRESS — scope selected by user; inspecting data model and access rules.
 
 ## CHANGED FILES
 - docs/context/CURRENT_WORK.md
+- tms/reports.html
+- tms/reports.js
+- tms/reports.css
+- tms/migrations/052_read_only_reports.sql
 
 ## TEST RESULTS
-No implementation tests yet.
+Reports JavaScript syntax check PASS. Database and browser validation pending.
 
 ## UNRESOLVED / INCOMPLETE
-- Reports page/API not yet implemented.
-- Need confirm schema, financial access boundaries and calculation behavior.
+- Reports page/API drafted with Projects/Jobs/Margin, filters, pagination and bounded CSV export.
+- Existing company-role read permissions preserved via invoker RPC and table RLS; inactive/external users denied.
+- Need database tests and browser fixtures before review.
 - Prior mixed-currency arithmetic and bulk partial-write findings remain unresolved outside new report scope.
 - Prior assessment is evidence/proposal, not proof of production correctness.
 
@@ -44,7 +49,7 @@ No implementation tests yet.
 NONE — inspect relevant application source and schema as needed.
 
 ## NEXT EXACT ACTION
-Prepare isolated current-main working copy; implement read-only reporting with server-enforced permissions, currency-safe calculations and tests.
+Run isolated database and browser tests; correct calculation/permission/UI defects; checkpoint tests and results.
 
 ## DO NOT REDO
 - Do not restart context reconciliation.

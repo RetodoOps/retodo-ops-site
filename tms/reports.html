@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="retodo-tms-build" content="058"><title>Reports — RetodoOps TMS</title>
+<link rel="stylesheet" href="style.css?v=057"><link rel="stylesheet" href="reports.css?v=058"></head>
+<body><div class="app">    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="b-name">RetodoOps</div>
+            <div class="b-sub">TMS</div>
+        </div>
+        <nav class="nav">
+
+            <a class="nav-item" href="dashboard.html">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Dashboard
+            </a>
+
+            <a class="nav-item" href="quotes.html">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm1 7V3.5L19.5 9zM8 13h8v2H8zm0 4h8v2H8z"/></svg>
+                Quotes
+            </a>
+
+            <div class="nav-item" onclick="toggleSub('sub-res',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                Resources
+                <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub" id="sub-res">
+                <a href="resources.html?type=internal">Internal Resource</a>
+                <a href="resources.html?type=external">External Resource</a>
+            </div>
+
+            <div class="nav-item" onclick="toggleSub('sub-cli',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                Clients
+                <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub" id="sub-cli">
+                <a href="clients.html">Client List</a>
+                <a href="accounts.html">Accounts</a>
+            </div>
+
+            <div class="nav-item" onclick="toggleSub('sub-rep',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                Reports
+                <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub" id="sub-rep" style="display:block">
+                <a href="reports.html?type=projects">Project Report</a>
+                <a href="reports.html?type=jobs">Jobs Report</a>
+                <a href="reports.html?type=margin">Margin Report</a>
+                <a href="reports.html?type=invoices">Invoice Report</a>
+            </div>
+
+            <div class="nav-item" onclick="toggleSub('sub-inv',this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                Invoice
+                <span class="nav-arrow">▾</span>
+            </div>
+            <div class="nav-sub" id="sub-inv">
+                <a href="invoice.html?type=client">Client Invoice</a>
+                <a href="invoice.html?type=linguist">Linguist Invoice</a>
+            </div>
+
+            <hr class="nav-divider">
+            <div class="sidebar-bottom">
+                <a class="nav-item" href="profile.html">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    Profile
+                </a>
+                <a class="nav-item" href="#" onclick="signOut(); return false;">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                    Sign Out
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+
+<main class="main reports-main">
+<header class="module-header"><div><h1>Reports</h1><p>Operational and commercial reporting</p></div><button id="exportReport" class="btn-secondary" type="button" disabled>Export CSV</button></header>
+<nav class="tabs-bar" aria-label="Report type"><a class="record-tab" href="reports.html?type=projects">Projects</a><a class="record-tab" href="reports.html?type=jobs">Jobs</a><a class="record-tab" href="reports.html?type=margin">Margin</a></nav>
+<form id="reportFilters" class="section-card report-filters">
+<div class="field"><label for="search">Search</label><input id="search" name="search" type="search" placeholder="Name, language, resource…"></div>
+<div class="field"><label for="client">Client</label><input id="client" name="client"></div>
+<div class="field"><label for="account">Account</label><input id="account" name="account"></div>
+<div class="field"><label for="pm">Project manager</label><input id="pm" name="pm"></div>
+<div class="field"><label for="status">Status</label><select id="status" name="status"><option value="">All statuses</option></select></div>
+<div class="field"><label for="from">From date</label><input type="date" id="from" name="from"></div>
+<div class="field"><label for="to">To date (inclusive)</label><input type="date" id="to" name="to"></div>
+<div class="field"><label for="scope">Scope</label><select id="scope" name="scope"><option value="active">Exclude cancelled / inactive work</option><option value="all">Include cancelled / inactive work</option></select></div>
+<div class="field"><label for="sort">Sort by</label><select id="sort"><option value="name">Name</option><option value="date">Date</option><option value="status">Status</option><option value="client">Client</option></select></div>
+<div class="field"><label for="direction">Order</label><select id="direction"><option value="asc">Ascending</option><option value="desc">Descending</option></select></div>
+<div class="report-filter-actions"><button class="btn-primary" type="submit">View report</button><button class="btn-secondary" type="reset">Clear filters</button></div>
+</form>
+<p id="reportBasis" class="report-note"></p>
+<div id="reportMessage" role="status" aria-live="polite"></div>
+<div id="reportSummary" class="report-summary"></div>
+<div id="reportWarnings" class="report-note" role="status"></div>
+<div class="table-card report-table-wrap"><table class="module-table" id="reportTable"><caption class="sr-only">Report results</caption><thead></thead><tbody></tbody></table></div>
+<footer class="report-pagination"><button id="previousPage" class="btn-secondary" disabled>Previous</button><span id="reportCount"></span><button id="nextPage" class="btn-secondary" disabled>Next</button></footer>
+<p class="report-note">Client value is commercial value, not invoiced or paid revenue. Costs use current issued or acknowledged POs; saved amounts are labelled estimates. Currencies are never converted. Margin is unavailable where data is incomplete.</p>
+</main></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js?v=057"></script><script src="reports.js?v=058"></script></body></html>
