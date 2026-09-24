@@ -3,16 +3,16 @@
 Repository: RetodoOps/retodo-ops-site
 Base: main
 Active task branch: dev/reports-review-20260924
-Starting HEAD: 5f8435615f4b9fa63ce1b986bfd063380f04bad5
-Latest durable checkpoint: this publication commit when retrieved from the remote task branch; resolve branch HEAD. Review source: local b427594; prior blocked-publication record: local 416f91d.
+Starting HEAD: adb01a2991d22684289bd943a879470b161099f0 (post-merge continuity follow-through)
+Latest durable checkpoint: review merged to main at adb01a2991d22684289bd943a879470b161099f0; this follow-through checkpoint on dev/reports-review-20260924, resolve branch HEAD.
 Build: 058 — unchanged
 Last updated: 2026-09-24
 
 ## CURRENT TASK
-Inspect the other profile's Reports implementation and suggest a concrete update package.
+Reports review completed and merged; awaiting implementation instruction for the proposed update.
 
 ## STATUS
-REVIEW COMPLETE / UPDATE 059 PROPOSED — documentation publication explicitly authorized; no application changes.
+REVIEW MERGED / UPDATE 059 PROPOSED — PR #26 merged by user; implementation has not started.
 
 ## TASK-SPECIFIC LOCKED RULES
 - Inspect current Reports source, dependencies, schema and focused behavior; no broad context reconciliation.
@@ -27,8 +27,15 @@ REVIEW COMPLETE / UPDATE 059 PROPOSED — documentation publication explicitly a
 - Created isolated worktree from main 5f84356; previous local branch preserved.
 - Inspected Reports UI/RPC and relevant schema/workflows; migration 052 remains unverified in production.
 - Completed focused reproductions and wrote the prioritized Update 059 proposal with concrete files, acceptance gates and scope boundaries.
+- Published both approved documents at ada5914.
+- User reported merge/push; verified PR #26 merge on remote main adb01a2, with ada5914 in its ancestry and identical file tree. Build remains 058.
+- Fast-forwarded the local review branch to the merged baseline and recorded post-merge continuation state.
 
 ## CHANGED FILES
+This post-merge checkpoint:
+- docs/context/CURRENT_WORK.md
+
+Already merged via PR #26:
 - docs/context/CURRENT_WORK.md
 - docs/reports/REPORTS_REVIEW_UPDATE_059_PROPOSAL.md
 
@@ -38,7 +45,7 @@ Five isolated reproductions confirmed: Project number search omission, Projects 
 ## UNRESOLVED / INCOMPLETE
 - Update 059 remains proposed, not implemented.
 - Authenticated backend/migration/schema verification remains outstanding; public probe alone does not prove migration absent.
-- Earlier automatic-review denials were followed by the user explicitly authorizing both files and the exact repository/branch. The subsequent shell push reached a missing Git credential error; publication uses the authenticated GitHub connector. When this record is read from the remote task branch, publication is complete.
+- Publication blockage is resolved; use the authenticated GitHub connector for task-branch checkpoints because command-line Git lacks write credentials.
 - Prior Dashboard mixed-currency and bulk partial-write findings remain outside this review's implementation scope.
 
 ## REQUIRED CONTEXT
@@ -52,4 +59,4 @@ Await the user's implementation instruction for the proposed update. Then refres
 - Do not mark unverified live behavior as PASS or FAIL from fixture evidence.
 
 ## PRODUCTION STATE
-Main and live build endpoint contain 058. No production writes performed. Anonymous RPC lookup returned PGRST202; migration/schema availability for authenticated users is not yet verified.
+Repository main contains the merged review at adb01a2 and build 058. The earlier live build check returned 058; live state was not rechecked for this documentation-only confirmation. No production writes performed. Earlier anonymous RPC lookup returned PGRST202; migration/schema availability for authenticated users is not yet verified.
