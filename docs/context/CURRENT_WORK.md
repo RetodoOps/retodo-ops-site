@@ -2,94 +2,51 @@
 
 Repository: RetodoOps/retodo-ops-site
 Base: main
-Active task branch: NONE
-Starting HEAD: N/A — set when next functional task starts
-Latest durable checkpoint: current main; resolve live at startup
-Build: 057 — current live build
-Last updated: 2026-09-22
+Active task branch: dev/reports-implementation-20260924
+Starting HEAD: d7c3cb5b8dcc948a7820774c7448ae01df2baa49
+Latest durable checkpoint: this commit on the active task branch; resolve branch HEAD
+Build: 057 (unchanged)
+Last updated: 2026-09-24
 
 ## CURRENT TASK
-
-READY FOR NEXT FUNCTIONAL TMS TASK
+Build Reports: Projects, Jobs and Margin.
 
 ## STATUS
-
-READY
-
-## OBJECTIVE
-
-Continue from the next explicit functional TMS instruction using this file
-as the self-contained operational continuation source.
+IN_PROGRESS — scope selected by user; inspecting data model and access rules.
 
 ## TASK-SPECIFIC LOCKED RULES
-
-- This post-merge cleanup changes only docs/context/CURRENT_WORK.md.
-- Do not change AGENTS.md, application code, database files or tms/build.json.
-- Do not deploy, execute migrations or change production configuration/data.
-- No context reconciliation or unrelated tests are part of this cleanup.
-- Update this record at material checkpoints together with related work.
-
-## USER-CONFIRMED WORKING
-
-- Agreement two-party signing works.
-- Retodo Compliance unlock/signature works.
-- Resource Accept and sign works.
-- Final signed Agreement PDF works for Resource.
-- Final signed Agreement PDF works for Admin.
-- Resource access invitation delivery works.
+- User selected Projects, Jobs, Margin: read-only filters, CSV export, separate currency totals and unreliable-margin warnings.
+- No merge/main push, production deployment, production migration, production data/auth/environment changes.
+- Preserve existing permissions; no exchange-rate assumptions or accounting recognition.
+- No unrelated context reconciliation or signing-flow changes.
+- Checkpoint code and this record together on the active non-main branch.
 
 ## COMPLETED
+- Verified current main and build 057.
+- User explicitly requested Reports implementation and selected the three-report scope.
+- Created task branch from current main.
+- Inspected prior Reports assessment from existing local assessment branch because current main records proposal as partial and contains no detailed requirements.
+- Current main application source matches local assessment checkout; only continuity documents differ.
 
-- Reduced AGENTS.md to permanent guardrails.
-- Replaced this record with a self-contained lightweight continuation format.
-- Preserved the six user-confirmed working behaviors.
-- Lightweight continuity configuration merged to main through PR #21.
-- Made READY metadata branch-neutral and removed obsolete pre-merge state.
-- Closed the configuration scope; no functional task is automatically resumed.
-
-## FILES CHANGED
-
+## CHANGED FILES
 - docs/context/CURRENT_WORK.md
 
 ## TEST RESULTS
+No implementation tests yet.
 
-Documentation-only checks: inspected current main HEAD and tms/build.json;
-verified READY metadata, NONE required context and post-merge production wording.
-No application or database tests run.
-
-## UNRESOLVED / NOT TESTED
-
-- No new functional task has been assigned.
-- Prior Reports assessment remains proposed/partial, not approved implementation.
-  Previously recorded currency-mixing and bulk partial-write findings are not
-  resolved by this configuration; full-flow acceptance remains untested.
-- The historical interrupted reconciliation attempt remains unaccepted.
-  It is not the current task, a prerequisite or a blocker.
-- Production deployment/migration state has not been reverified here.
+## UNRESOLVED / INCOMPLETE
+- Reports page/API not yet implemented.
+- Need confirm schema, financial access boundaries and calculation behavior.
+- Prior mixed-currency arithmetic and bulk partial-write findings remain unresolved outside new report scope.
+- Prior assessment is evidence/proposal, not proof of production correctness.
 
 ## REQUIRED CONTEXT
-
-NONE
+NONE — inspect relevant application source and schema as needed.
 
 ## NEXT EXACT ACTION
-
-Wait for the user's next functional TMS task. When one is given, create the task branch, record it here, then begin implementation.
+Prepare isolated current-main working copy; implement read-only reporting with server-enforced permissions, currency-safe calculations and tests.
 
 ## DO NOT REDO
-
-- Do not restart the historical context-reconciliation attempt.
-- Do not read broad context packs or old update history at normal startup.
-- Do not reopen confirmed signing, PDF or invitation behavior without new evidence.
-- Do not automatically resume Reports work or claim its known findings are fixed.
-- Do not increment the build for this documentation configuration.
-
-## PRODUCTION STATE
-
-- GitHub implementation: lightweight continuity configuration merged to main
-  through PR #21. Main HEAD inspected for this cleanup:
-  9ca5afe164f8ef98af1a8211afde6ab48944e1b4.
-  This post-merge cleanup changes only this continuity record.
-- Netlify deployment: none performed; current live deployment not inspected.
-- Migrations: no database files changed and no migrations executed.
-- Live/user acceptance: the six behaviors above are user-confirmed working;
-  this does not establish unrelated functionality or production release acceptance.
+- Do not restart context reconciliation.
+- Do not claim existing Dashboard/Project arithmetic or bulk writes are fixed.
+- Do not reopen user-confirmed signing/PDF/invitation behavior without regression evidence.
