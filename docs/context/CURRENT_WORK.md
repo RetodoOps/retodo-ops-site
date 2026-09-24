@@ -3,7 +3,8 @@ Repository: RetodoOps/retodo-ops-site
 Base: main
 Active task branch: dev/reports-upgrade-059-20260924
 Starting HEAD: 5f8435615f4b9fa63ce1b986bfd063380f04bad5
-Latest durable checkpoint: local implementation c0c6cc8; final verification checkpoint is this commit (resolve local branch HEAD). Remote publication uses a snapshot commit; resolve remote task branch HEAD after publication.
+Latest durable checkpoint: a9b153bc41b4f0dccb6626e85fb0f2af73729034 (published verified implementation snapshot); this continuity commit follows it. Resolve remote task branch HEAD.
+Draft PR: https://github.com/RetodoOps/retodo-ops-site/pull/27
 Build: 059 on local task branch; main baseline 058
 Last updated: 2026-09-24
 
@@ -11,7 +12,7 @@ Last updated: 2026-09-24
 Apply approved REPORTS_REVIEW_UPDATE_059_PROPOSAL: reliable Reports query, controls, layouts, diagnostics and spreadsheet exports; deliver changed-files ZIP and non-main review branch.
 
 ## STATUS
-IMPLEMENTED / LOCALLY VERIFIED — packaging review branch and changed-files ZIP. User explicitly approved branch publication. Publishing verified snapshot through connected GitHub app; real-schema/live acceptance remains blocked; no production actions. Migration 053 is unused; use a forward-only replacement for report RPC plus read-only selector metadata. Retain migration 052 unchanged.
+PUBLISHED FOR REVIEW — verified application snapshot and continuity record published to the authorized task branch; draft PR #27. No production actions. ZIP delivered. Real-schema/live acceptance remains blocked.
 
 ## TASK-SPECIFIC LOCKED RULES
 - User authorizes implementation and autonomous merge/pull. This package specifically requests a non-main reviewable branch and ZIP.
@@ -47,7 +48,8 @@ IMPLEMENTED / LOCALLY VERIFIED — packaging review branch and changed-files ZIP
 ## UNRESOLVED / INCOMPLETE
 - Local implementation/regressions complete. Authenticated actual-schema reporting and exact PO-version navigation need staging acceptance; native CSV import needs the intended spreadsheet app.
 - Actual chain successfully applied setup and migrations 001–036, then failed at 038 because required 037 is absent from the repository. Do not fabricate its trusted audit function or claim full-chain acceptance.
-- User explicitly approved publication after automatic-review rejection. Git CLI push failed for missing credentials; use authenticated GitHub connector to publish the same verified application snapshot and updated continuity record.
+- Git CLI lacks credentials; publication completed through the authenticated GitHub connector after explicit user approval.
+- PR #27 reports mergeable=false; main advanced to adb01a2991d22684289bd943a879470b161099f0. Inspect relevant upstream changes and resolve conflicts before considering merge; do not overwrite newer work.
 - Authenticated production reporting and migration availability remain unverified.
 - Attempt actual repository migration chain in isolated PGlite with Supabase platform shims only; report any chain blockers accurately.
 
@@ -55,7 +57,7 @@ IMPLEMENTED / LOCALLY VERIFIED — packaging review branch and changed-files ZIP
 NONE — approved scope captured above; inspect Reports source/schema/tests as needed.
 
 ## NEXT EXACT ACTION
-Deliver changed-files ZIP. Finish authorized publication and open draft review PR. Restore authoritative missing 037 or obtain actual-schema staging access; run documented acceptance before release.
+Review draft PR #27 against current main, resolve relevant upstream conflicts, and verify migration/build numbering. Restore authoritative missing 037 or obtain actual-schema staging access; run documented acceptance before release.
 
 ## DO NOT REDO
 - Do not rewrite migration 052 or assume it has run in production.
