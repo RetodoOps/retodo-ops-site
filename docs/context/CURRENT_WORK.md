@@ -5,14 +5,14 @@ Base: main
 Active task branch: dev/reports-implementation-20260924
 Starting HEAD: d7c3cb5b8dcc948a7820774c7448ae01df2baa49
 Latest durable checkpoint: this commit on the active task branch; resolve branch HEAD
-Build: 057 (unchanged)
+Build: 058 on task branch; main/live baseline remains 057
 Last updated: 2026-09-24
 
 ## CURRENT TASK
 Build Reports: Projects, Jobs and Margin.
 
 ## STATUS
-IN_PROGRESS — reporting database and UI/export unit tests pass; browser verification pending.
+IMPLEMENTED — local fixture checks pass; pending PR review and explicit release approval.
 
 ## TASK-SPECIFIC LOCKED RULES
 - User selected Projects, Jobs, Margin: read-only filters, CSV export, separate currency totals and unreliable-margin warnings.
@@ -33,21 +33,29 @@ IN_PROGRESS — reporting database and UI/export unit tests pass; browser verifi
 - tms/reports.html
 - tms/reports.js
 - tms/reports.css
+- tms/build.json
 - tms/migrations/052_read_only_reports.sql
 - tests/reports-db.mjs
 - tests/reports-ui.test.js
+- tests/reports-browser.cjs
 
 ## TEST RESULTS
 - Reports JavaScript syntax PASS.
 - Isolated PGlite fixture: 17 checks PASS (cardinality, currencies, estimates, incomplete records, PO versions, dates, roles/RLS and 1,103-row paging/export).
 - UI/export unit tests: 5 PASS (CSV injection, metadata, escaping and warnings).
-- Browser verification pending; Chromium runtime being prepared.
+- Chromium/Playwright browser fixture PASS: report tabs, filters, pagination, empty/error states, CSV download, export limit, QA controls, sidebar, hostile-name escaping, and narrow-screen overflow.
+- Desktop and mobile screenshots inspected. Fixed results-table flex collapse and hidden-form styling.
+- Standard Chromium download failed; npm-packaged Chromium used successfully.
 - Fixture tests are not production or full migration-chain acceptance.
 
 ## UNRESOLVED / INCOMPLETE
 - Reports page/API drafted with Projects/Jobs/Margin, filters, pagination and bounded CSV export.
 - Existing company-role read permissions preserved via invoker RPC and table RLS; inactive/external users denied.
-- Database tests pass. Browser fixture and final review remain.
+- Database and browser fixture tests pass; production/current full migration-chain acceptance not run.
+- Migration 052 is prepared only, not executed on production.
+- Export is a fresh consistent snapshot, capped at 10,000 rows; larger datasets require narrower filters.
+- Invoice reporting remains explicitly unavailable.
+- Production merge/deployment/migration need explicit user approval.
 - Empty Scoops and unallocated Jobs suppress margins.
 - Prior mixed-currency arithmetic and bulk partial-write findings remain unresolved outside new report scope.
 - Prior assessment is evidence/proposal, not proof of production correctness.
@@ -56,9 +64,24 @@ IN_PROGRESS — reporting database and UI/export unit tests pass; browser verifi
 NONE — inspect relevant application source and schema as needed.
 
 ## NEXT EXACT ACTION
-Complete browser fixture verification; finalize build metadata and review PR.
+Open the task-branch draft PR for review. After explicit approval, coordinate merge and migration/deployment; do not execute them automatically.
 
 ## DO NOT REDO
 - Do not restart context reconciliation.
 - Do not claim existing Dashboard/Project arithmetic or bulk writes are fixed.
 - Do not reopen user-confirmed signing/PDF/invitation behavior without regression evidence.
+
+## VALIDATION COMMANDS
+
+- `node --check tms/reports.js`
+- `node --test tests/reports-ui.test.js`
+- `PGLITE_MODULE=/absolute/path/to/@electric-sql/pglite/dist/index.js node tests/reports-db.mjs` (tested with 0.5.8)
+- Serve repository locally, then `PLAYWRIGHT_MODULE=/absolute/path/to/playwright REPORT_BASE_URL=http://127.0.0.1:8765/tms/ node tests/reports-browser.cjs`; installed Chromium required. Optional `CHROMIUM_MODULE` points to @sparticuz/chromium/build/index.js.
+
+## REVIEW BOUNDARIES
+
+- No production data, configuration, authentication or deployment changes.
+- Company-role read access follows existing RLS; no new permission grants to underlying tables.
+- Project date filters for Projects/Margin; UTC deadline dates for Jobs.
+- Active scope excludes cancelled Projects, inactive/cancelled Scoops and cancelled/declined Jobs. All scope explicitly includes them.
+- Margin uses full Scoop costs, never job-allocated client revenue. Estimates are labelled; incomplete/incompatible/conflicting costs suppress profit and margin.

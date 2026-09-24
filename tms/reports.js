@@ -117,3 +117,9 @@ if (typeof document !== 'undefined') {
         await load();
     })();
 }
+
+function toggleSub(id,item) {
+    const sub=document.getElementById(id);
+    const open=sub.classList.toggle('open');
+    item.classList.toggle('open',open);
+}
