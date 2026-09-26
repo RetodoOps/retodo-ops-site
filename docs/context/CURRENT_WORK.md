@@ -2,17 +2,17 @@
 
 Repository: RetodoOps/retodo-ops-site
 Base: main
-Active task branch: dev/update-059-zip (local only)
-Starting HEAD: adb01a2991d22684289bd943a879470b161099f0
-Latest durable checkpoint: Update 059 ZIP handover; user commit pending
-Build: 058 production baseline; 059 in delivered package
-Last updated: 2026-09-25
+Active task branch: dev/update-060-csv-zip (local only)
+Starting HEAD: fef44a3852ab82c660cb407aafd1dd8240664ef7
+Latest durable checkpoint: main fef44a3 contains Update 059; Update 060 ZIP prepared locally
+Build: 059 user-confirmed installed baseline; 060 in this package
+Last updated: 2026-09-26
 
 ## CURRENT TASK
-Functional Reports Update 059 — ZIP delivery for user upload and direct commit to main.
+Update 060 — fix CSV columns when opened directly in regional Excel; ZIP delivery.
 
 ## STATUS
-READY FOR USER INSTALLATION — implemented and locally tested; not deployed.
+READY FOR USER INSTALLATION — Update 060 export fix; Update 059 committed and initially functional per user.
 
 ## TASK-SPECIFIC LOCKED RULES
 - USER OVERRIDE: ZIP updates with complete changed files only. The user uploads and commits directly to main. Do not push, merge, create PRs or deploy for this task.
@@ -30,21 +30,24 @@ READY FOR USER INSTALLATION — implemented and locally tested; not deployed.
 - Added standalone migration 053 (052 optional), versioned filter-options RPC, schema preflight, grants/RLS preservation and read-only audit 014.
 - Updated build marker and asset cache versions to 059. No production changes made.
 
+## UPDATE 060 CHANGES AND CONFIRMATION
+- 2026-09-26: user confirmed Update 059 was committed; Reports seem functional at first glance. Supplied screenshot shows the Jobs export containing 17 rows, opened as comma-separated text in Excel column A.
+- Read-only fetch verified main fef44a3 (Add files via upload). Affected files match the delivered 059 files. No independent production SQL/audit acceptance is claimed.
+- CSV now begins with UTF-8 BOM plus Excel's `sep=,` directive. This addresses delimiter detection on direct open without changing Windows regional settings.
+- Existing report data, quoting, formula-text protection, signed numbers, summaries, filters and database API 059 are retained. No SQL changes.
+- Updated frontend build marker and JavaScript cache version to 060.
+
 ## CHANGED FILES IN ZIP
-- tms/reports.html — workspace layout and filters.
-- tms/reports.css — scoped responsive styling.
-- tms/reports.js — functional controls, tables, grouping, state and CSV.
-- tms/build.json — build 059.
-- tms/migrations/053_reports_functional_upgrade.sql — reporting/query/options functions.
-- tms/audits/014_update_059_reports_audit.sql — read-only installation checks.
-- tests/reports-ui.test.js — updated CSV/escaping checks.
-- tests/reports-browser.cjs — Update 059 browser fixture checks.
-- tests/update-059-reports-db.mjs — 23 reporting database regressions.
-- tests/update-059-schema-compatibility.mjs — reporting-schema compatibility and audit checks.
-- UPDATE_059_MANUAL_UPLOAD.md — full installation, test and acceptance instructions.
-- docs/context/CURRENT_WORK.md — this continuity record.
+- tms/reports.js — explicit Excel comma-separator directive.
+- tms/reports.html — build marker and JavaScript cache version 060.
+- tms/build.json — release 060.
+- docs/context/CURRENT_WORK.md — 059 confirmation, 060 fix and remaining acceptance.
+- UPDATE_060_MANUAL_UPLOAD.md — upload instructions and existing-file workaround.
 
 ## TEST RESULTS
+Update 060: existing 6 CSV/escaping checks pass; CSV round-trip preserves Unicode, commas, quotes, newlines and signed decimal text. JavaScript syntax/diff checks pass. Microsoft Excel desktop is not available in this environment; direct-open acceptance on the user’s Excel is pending.
+
+Prior Update 059 results:
 - PASS: 23 isolated PostgreSQL reporting checks, including access/RLS and 1,103-row totals/pagination/export.
 - PASS: 6 JavaScript CSV/escaping/warning checks.
 - PASS: Chromium fixtures for three report views, linked filters, multi-status, sorting/grouping, URL reload, reset, paging, CSV/cap, errors, QA controls, sidebar and mobile overflow. Desktop/mobile screenshots inspected.
@@ -53,16 +56,16 @@ READY FOR USER INSTALLATION — implemented and locally tested; not deployed.
 - PASS: JavaScript syntax and diff whitespace checks.
 
 ## UNRESOLVED / INCOMPLETE
-- User installation: migration 053 → audit 014 → upload extracted ZIP contents at main root → commit → Reports acceptance.
-- Authenticated production data/permissions remain unverified. Do not claim the update is live until the user confirms installation.
-- Historical migration archive gaps 037/040 remain outside this package; do not reconstruct or change unrelated migrations for Reports.
-- Invoice reporting, dashboard currency arithmetic and bulk-write changes remain outside this update.
+- Upload Update 060 extracted contents to main, commit, refresh Reports and download a NEW CSV. Old CSV files are unchanged.
+- Confirm new CSV opens across columns in the user's Excel. Numeric/date interpretation still depends on Excel locale; for explicit decimal typing, import using comma delimiter and English (United States) numeric locale. No native XLSX export is included.
+- User reports initial 059 functionality; full production financial/permissions acceptance and SQL audit output are not independently verified.
+- Historical migration archive gaps 037/040 and Invoice reporting remain outside this patch.
 
 ## REQUIRED CONTEXT
 NONE
 
 ## NEXT EXACT ACTION
-Hand over RetodoOps_Update_059_Functional_Reports.zip and installation order. After the user's installation confirmation, record the new main commit/build and acceptance result here. Diagnose any reported issue against the installed 059 code.
+Hand over RetodoOps_Update_060_Excel_CSV_Fix.zip. User uploads/commits; no SQL. On confirmation, update this record with main/build and Excel column-opening result.
 
 ## DO NOT REDO
 - Do not resume the shell-push/approval workflow; ZIP delivery supersedes earlier branch-push instructions for this task.
@@ -71,4 +74,4 @@ Hand over RetodoOps_Update_059_Functional_Reports.zip and installation order. Af
 - Do not run old migrations or mark production accepted based solely on fixture tests.
 
 ## PRODUCTION STATE
-Last checked main/live baseline: build 058, main adb01a2. Update 059 is prepared for user installation; migration, audit, upload and production acceptance are pending user confirmation. No assistant push, merge, deployment or production SQL execution occurred.
+Main fef44a3 includes build 059, verified by read-only fetch on 2026-09-26. User reports Reports working at first glance and provided an actual Jobs CSV screenshot. Update 060 is local/packaged, pending user upload and Excel acceptance. No assistant push, merge, deployment or production SQL execution occurred.

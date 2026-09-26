@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "059",
-  "release": "Update 059 — Functional Reports",
-  "source_baseline": "Update 058",
-  "built_on": "2026-09-25"
+  "build": "060",
+  "release": "Update 060 — Excel CSV separator compatibility",
+  "source_baseline": "Update 059",
+  "built_on": "2026-09-26"
 }

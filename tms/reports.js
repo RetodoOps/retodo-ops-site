@@ -1,4 +1,4 @@
-/* Update 059. Read-only, RLS-bound reporting; monetary totals never mix currencies. */
+/* Update 060. Read-only, RLS-bound reporting; monetary totals never mix currencies. */
 const ReportUI = (() => {
     const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const number = value => value == null ? '—' : Number(value).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2});
@@ -38,7 +38,9 @@ const ReportUI = (() => {
             lines.push([],['Group','Currency','Rows','Client value','Known supplier cost','Profit','Margin %','Rows needing attention','Rows with estimates']);
             for(const s of data.groups) lines.push([s.label,s.currency,s.row_count,s.client_value,s.supplier_cost,s.profit,s.margin,s.issue_count,s.estimate_count]);
         }
-        return '\ufeff'+lines.map(line=>line.map(csvCell).join(',')).join('\r\n');
+        // Excel's direct-open path otherwise uses the Windows regional list separator.
+        // Keep UTF-8 BOM for names/languages and declare our comma delimiter explicitly.
+        return '\ufeffsep=,\r\n'+lines.map(line=>line.map(csvCell).join(',')).join('\r\n');
     }
     return {escape,number,costs,warnings,csvCell,csv};
 })();
