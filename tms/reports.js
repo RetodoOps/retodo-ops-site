@@ -1,4 +1,4 @@
-/* Update 060. Read-only, RLS-bound reporting; monetary totals never mix currencies. */
+/* Update 061. Read-only, RLS-bound reporting; monetary totals use dated EUR conversion. */
 const ReportUI = (() => {
     const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const number = value => value == null ? '—' : Number(value).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2});
@@ -7,7 +7,7 @@ const ReportUI = (() => {
         const messages = [];
         if (row.unknown_cost_count > 0) messages.push(`${row.unknown_cost_count} unknown cost(s)`);
         if (row.po_warning_count > 0) messages.push('PO conflict or missing snapshot');
-        if (row.currency_warning_count > 0) messages.push('Incompatible or missing currency');
+        if (row.currency_warning_count > 0) messages.push('Exchange rate missing or currency not specified');
         if (row.unallocated_job_count > 0) messages.push('Jobs without a Scoop');
         if (type !== 'jobs' && row.job_count === 0) messages.push('No Jobs — cost incomplete');
         if (type === 'projects' && row.scoop_count === 0) messages.push('No Scoops — value unavailable');
@@ -28,9 +28,9 @@ const ReportUI = (() => {
         const common = ['id','project_id','project_number','name','project_name','client','account','pm','status','date'];
         const fields = type === 'jobs'
             ? [...common,'scoop_id','scoop_number','deadline','service','source_language','target_language','resource','quantity','unit','currency','cost_basis','po_id','po_number','po_version']
-            : [...common,...(type==='margin'?['source_language','target_language','deadline']:[]),'currency','client_value','profit','margin','scoop_count','job_count','estimate_count','unknown_cost_count','excluded_job_count'];
+            : [...common,...['source_language','target_language','deadline'],'currency','client_value','profit','margin','scoop_count','job_count','estimate_count','unknown_cost_count','excluded_job_count'];
         const currencies = [...new Set(data.rows.flatMap(row=>Object.keys(row.costs||{})))].sort();
-        const lines = [['Report',type],['Generated at',data.generated_at],['Date basis',data.date_basis],['Filters',JSON.stringify(data.filters)],['Total rows',data.total_count],['Currency conversion','None'],[],[...fields,...currencies.map(c=>'supplier_cost_'+c),'warnings']];
+        const lines = [['Report',type],['Generated at',data.generated_at],['Date basis',data.date_basis],['Filters',JSON.stringify(data.filters)],['Total rows',data.total_count],['Reporting currency',data.reporting_currency||'EUR'],['FX date',data.fx_date],['FX source',data.fx_source],['FX rates (units per EUR)',JSON.stringify(data.fx_rates||{})],[],[...fields,...currencies.map(c=>'supplier_cost_'+c),'warnings']];
         for(const row of data.rows) lines.push([...fields.map(key=>row[key]),...currencies.map(c=>row.costs?.[c]),warnings(row,type)]);
         lines.push([],['Summary currency','Client value','Known supplier cost','Profit','Margin %','Incomplete rows','Estimated costs']);
         for(const s of data.summary_by_currency) lines.push([s.currency,s.client_value,s.supplier_cost,s.profit,s.margin,s.incomplete_rows,s.estimate_count]);
@@ -49,7 +49,7 @@ if(typeof document!=='undefined') {
     const el=id=>document.getElementById(id);
     const {escape:esc,number:num,costs,warnings}=ReportUI;
     let type=new URLSearchParams(location.search).get('type')||'projects';
-    let offset=0,generation=0,current=null,busy=false,dirty=false,choices=null;
+    let offset=0,pageSize=50,generation=0,current=null,busy=false,dirty=false,choices=null;
     let applied={filters:{},sort:'name',desc:false};
     const relationSources={client:'clients',account:'accounts',pm:'managers',resource:'resources'};
     const relationLabel=r=>`${r.name||r.internal_number||'Unnamed'} · ${r.id}`;
@@ -84,7 +84,7 @@ if(typeof document!=='undefined') {
         if(filters.client_id&&filters.account_id&&!choices.accounts.some(r=>r.id===filters.account_id&&r.client_id===filters.client_id)) throw new Error('Choose an account belonging to the selected client.');
         if(filters.from&&filters.to&&filters.from>filters.to) throw new Error('From date must be on or before Through date.');
         if(filters.margin_min!=null&&filters.margin_max!=null&&Number(filters.margin_min)>Number(filters.margin_max)) throw new Error('Minimum margin must be at most the maximum.');
-        if(['client_value','cost','profit'].includes(el('sort').value)&&!filters.currency) throw new Error('Choose a currency before sorting monetary values.');
+
         return {filters,sort:el('sort').value,desc:el('direction').value==='desc'};
     }
     function writeURL(){
@@ -93,7 +93,7 @@ if(typeof document!=='undefined') {
             if(Array.isArray(value)) value.forEach(v=>p.append('status',v));
             else if(value!==''&&value!=='all'&&value!=='none') p.set(key,value);
         }
-        p.set('sort',applied.sort);if(applied.desc)p.set('desc','1');
+        p.set('page_size',pageSize);p.set('sort',applied.sort);if(applied.desc)p.set('desc','1');
         history.replaceState(null,'','reports.html?'+p);
         document.querySelectorAll('[data-report-type]').forEach(a=>{
             const target=a.dataset.reportType,q=new URLSearchParams(p);q.set('type',target);q.delete('status');
@@ -105,6 +105,7 @@ if(typeof document!=='undefined') {
     }
     function restore(){
         const p=new URLSearchParams(location.search);
+        pageSize=[25,50,100,250].includes(Number(p.get('page_size')))?Number(p.get('page_size')):50;el('pageSize').value=pageSize;
         for(const control of el('reportFilters').elements){
             if(control.tagName==='SELECT')control.selectedIndex=0;
             else if(control.type==='checkbox')control.checked=false;
@@ -129,42 +130,43 @@ if(typeof document!=='undefined') {
     }
     function statusLabel(){const n=document.querySelectorAll('#statusOptions input:checked').length;el('statusSummary').textContent=n?`${n} status${n===1?'':'es'} selected`:'All statuses';}
     async function query(start,limit){
-        const {data,error}=await _sb.rpc('tms_report',{p_type:type,p_filters:applied.filters,p_offset:start,p_limit:limit,p_sort:applied.sort,p_desc:applied.desc});
+        const {data,error}=await _sb.rpc('tms_report_061',{p_type:type,p_filters:applied.filters,p_offset:start,p_limit:limit,p_sort:applied.sort,p_desc:applied.desc});
         if(error)throw error;
-        if(data?.api_version!=='059') throw {code:'REPORT_VERSION',message:'The reporting database needs Update 059.'};
+        if(data?.api_version!=='061') throw {code:'REPORT_VERSION',message:'The reporting database needs Update 061.'};
         return data;
     }
     function errorView(error){
         el('reportError').hidden=false;
         const setup=['PGRST202','42883','REPORT_VERSION'].includes(error.code);
         el('errorTitle').textContent=setup?'Reports need a database update':'Unable to load report';
-        el('errorText').textContent=setup?'Ask your administrator to apply the reporting migration included with Update 059, then retry.':error.code==='42501'?'Your account does not have access to this report. Contact your administrator.':error.message||'Please retry.';
+        el('errorText').textContent=setup?'Ask your administrator to apply the reporting migration 054 included with Update 061, then retry.':error.code==='42501'?'Your account does not have access to this report. Contact your administrator.':error.message||'Please retry.';
         el('errorDetails').textContent=[error.code,error.message,error.details,error.hint].filter(Boolean).join('\n');
     }
     const metric=(label,value)=>`<div class="report-metric"><dt>${esc(label)}</dt><dd class="${Number(value)<0?'report-negative':''}">${num(value)}</dd></div>`;
     function render(data){
         el('reportOverview').hidden=false;el('reportResults').hidden=false;
-        el('reportBasis').textContent=`${data.date_basis} · ${type==='jobs'?'One row per Job; no client revenue allocation.':type==='margin'?'One row per Scoop; full Scoop costs.':'One row per Project; full Project totals.'} Date bounds are inclusive.`;
+        el('reportBasis').textContent=`${data.date_basis} · ${type==='jobs'?'One row per Job; no client revenue allocation.':type==='margin'?'One row per Scoop; full Scoop costs.':'One row per Scoop, grouped by its Project.'} Date bounds are inclusive. EUR conversion: ${data.fx_date||'EUR only; other rates unavailable'} (ECB).`;
         el('reportGenerated').textContent='Updated '+new Date(data.generated_at).toLocaleString('en-GB');
-        el('reportHealth').innerHTML=`<span><strong>${data.total_count}</strong> matching ${type==='margin'?'Scoops':type} · ${data.project_count} Projects</span><button type="button" data-quality="blocked" class="${data.warning_rows?'has-issues':''}"><strong>${data.warning_rows}</strong> need attention</button><button type="button" data-quality="estimates"><strong>${data.estimate_rows}</strong> include estimates</button>`;
+        el('reportHealth').innerHTML=`<span><strong>${data.total_count}</strong> matching ${type==='jobs'?'Jobs':'Scoops'} · ${data.project_count} Projects</span><button type="button" data-quality="blocked" class="${data.warning_rows?'has-issues':''}"><strong>${data.warning_rows}</strong> need attention</button><button type="button" data-quality="estimates"><strong>${data.estimate_rows}</strong> include estimates</button>`;
         el('reportHealth').querySelectorAll('button').forEach(b=>b.onclick=()=>{el('issue').value=b.dataset.quality;el('advancedFilters').open=true;apply();});
         el('reportSummary').innerHTML=data.summary_by_currency.map(s=>`<section class="report-currency-card"><h3 class="report-currency-title">${esc(s.currency)}</h3><dl class="report-currency-values">${type!=='jobs'?metric('Client value',s.client_value):''}${metric('Known supplier cost',s.supplier_cost)}${type!=='jobs'?metric(s.estimate_count?'Estimated profit':'Profit',s.profit)+`<div class="report-metric is-margin"><dt>Margin</dt><dd>${s.margin==null?'—':num(s.margin)+'%'}</dd></div>`:''}</dl>${s.incomplete_rows>0&&type!=='jobs'?'<p class="report-note">Profit / margin unavailable: incomplete or incompatible data.</p>':''}${s.estimate_count>0?'<p class="report-note">Includes saved cost estimates.</p>':''}</section>`).join('')||'<p class="report-empty">No matching results. Try changing the filters.</p>';
         el('activeFilters').innerHTML=Object.entries(applied.filters).filter(([,v])=>Array.isArray(v)?v.length:v!==''&&!['all','none','active'].includes(v)).map(([k,v])=>`<span class="report-chip">${esc(k.replaceAll('_',' '))}: ${esc(Array.isArray(v)?v.join(', '):k.endsWith('_id')?el(k.slice(0,-3))?.value||v:v)}</span>`).join('');
-        const headers=type==='jobs'?['Job / Project','Client / Account','Status / Date','Service / Languages','Resource','Quantity','Supplier cost / PO','Data quality']:['Project / Scoop','Client / Account','PM / Date','Status',...(type==='margin'?['Languages']:[]),'Jobs','Client value','Supplier costs','Profit / Margin','Data quality'];
+        const headers=type==='jobs'?['Job / Project','Client / Account','Status / Date','Service / Languages','Resource','Quantity','Supplier cost / PO','Data quality']:['Project / Scoop','Client / Account','PM / Date','Status',...(type!=='jobs'?['Languages']:[]),'Jobs','Client value','Supplier costs','Profit / Margin','Data quality'];
         el('reportTable').querySelector('thead').innerHTML='<tr>'+headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')+'</tr>';
         el('reportTable').querySelector('tbody').innerHTML=data.rows.map(row=>{
-            const href=type==='jobs'?`job.html?id=${encodeURIComponent(row.id)}`:`project.html?id=${encodeURIComponent(row.project_id)}${type==='margin'?'&scoop='+encodeURIComponent(row.id):''}`;
+            const href=type==='jobs'?`job.html?id=${encodeURIComponent(row.id)}`:`project.html?id=${encodeURIComponent(row.project_id)}${type!=='jobs'?'&scoop='+encodeURIComponent(row.id):''}`;
             const identity=`<div class="report-identity"><a href="${href}">${esc(row.name)}</a><small>${type!=='projects'?`<a href="project.html?id=${encodeURIComponent(row.project_id)}">${esc(row.project_name||row.project_number)}</a>`:esc(row.project_number)}</small></div>`;
             const client=`${esc(row.client||'—')}<small>${esc(row.account||'')}</small>`;
             const status=`<span class="report-status ${row.status==='Cancelled'?'is-cancelled':['Approved','Delivered','Delivered to Client'].includes(row.status)?'is-done':''}">${esc(row.status)}</span>`;
-            const note=`<div class="report-quality"><span class="${row.blocking_issues?.length?'':row.estimate_count?'is-info':'is-clean'}">${esc(warnings(row,type)||'Complete')}</span></div>`;
+            const costDetail=(row.cost_details||[]).map(j=>`<a href="job.html?id=${encodeURIComponent(j.id)}">${esc(j.name)}</a>: ${j.native_cost==null?'no saved rate / PO':esc(j.native_currency)+' '+num(j.native_cost)+' → EUR '+num(j.eur_cost)}`).join('<br>');
+            const note=`<div class="report-quality"><span class="${row.blocking_issues?.length?'':row.estimate_count?'is-info':'is-clean'}">${esc(warnings(row,type)||'Complete')}</span>${costDetail?`<details><summary>View Job costs</summary>${costDetail}</details>`:''}</div>`;
             const language=`${esc(row.source_language||'—')} → ${esc(row.target_language||'—')}`;
-            const cells=type==='jobs'?[identity,client,`${status}<small>${esc(row.date||'No date')}</small>`,`${esc(row.service||'—')}<small>${language}</small>`,row.resource_id?`<a href="resource.html?id=${encodeURIComponent(row.resource_id)}">${esc(row.resource||'Resource')}</a>`:'Unassigned',`${esc(row.quantity??'—')} ${esc(row.unit||'')}`,`${esc(costs(row))}<small>${esc(row.cost_basis)}${row.po_number?` · <a href="job.html?id=${encodeURIComponent(row.id)}">${esc(row.po_number)} v${esc(row.po_version)} (Job PO)</a>`:''}</small>`,note]:[identity,client,`${esc(row.pm||'—')}<small>${esc(row.date||'No date')}</small>`,status,...(type==='margin'?[language]:[]),esc(row.job_count),`${esc(row.currency||'')} ${num(row.client_value)}`,esc(costs(row)),`<span class="${row.profit<0?'report-negative':''}">${num(row.profit)}</span><small>${row.margin==null?'Unavailable':num(row.margin)+'%'}${row.estimate_count?' · estimated':''}</small>`,note];
+            const cells=type==='jobs'?[identity,client,`${status}<small>${esc(row.date||'No date')}</small>`,`${esc(row.service||'—')}<small>${language}</small>`,row.resource_id?`<a href="resource.html?id=${encodeURIComponent(row.resource_id)}">${esc(row.resource||'Resource')}</a>`:'Unassigned',`${esc(row.quantity??'—')} ${esc(row.unit||'')}`,`${esc(costs(row))}<small>${esc(row.cost_basis)}${row.po_number?` · <a href="job.html?id=${encodeURIComponent(row.id)}">${esc(row.po_number)} v${esc(row.po_version)} (Job PO)</a>`:''}</small>`,note]:[identity,client,`${esc(row.pm||'—')}<small>${esc(row.date||'No date')}</small>`,status,...(type!=='jobs'?[language]:[]),esc(row.job_count),`${esc(row.currency||'')} ${num(row.client_value)}`,esc(costs(row)),`<span class="${row.profit<0?'report-negative':''}">${num(row.profit)}</span><small>${row.margin==null?'Unavailable':num(row.margin)+'%'}${row.provisional_profit!=null?'<br>Provisional profit: EUR '+num(row.provisional_profit)+' (known costs only)':''}${row.estimate_count?' · estimated':''}</small>`,note];
             return '<tr>'+cells.map(c=>`<td>${c}</td>`).join('')+'</tr>';
         }).join('')||`<tr><td colspan="${headers.length}" class="report-empty">No matching results. Try changing the filters.</td></tr>`;
-        el('resultsTitle').textContent=type==='jobs'?'Job details':type==='margin'?'Scoop profitability':'Project details';
+        el('resultsTitle').textContent=type==='jobs'?'Job details':type==='margin'?'Scoop profitability':'Scoop details';
         el('reportCount').textContent=data.total_count?`${offset+1}–${offset+data.rows.length} of ${data.total_count}`:'0 results';
-        el('reportPage').textContent=`Page ${Math.floor(offset/50)+1} of ${Math.max(1,Math.ceil(data.total_count/50))} · Totals cover every matching row`;
+        el('reportPage').textContent=`Page ${Math.floor(offset/pageSize)+1} of ${Math.max(1,Math.ceil(data.total_count/pageSize))} · Totals cover every matching row`;
         el('reportGroups').hidden=!data.groups?.length;
         if(data.groups?.length){
             el('groupTitle').textContent='Summary by '+el('group_by').selectedOptions[0].text.toLowerCase();
@@ -178,7 +180,7 @@ if(typeof document!=='undefined') {
         const request=++generation;busy=true;current=null;controls();
         el('reportError').hidden=true;el('reportMessage').textContent='Loading report…';
         for(const id of ['reportOverview','reportResults','reportGroups'])el(id).hidden=true;
-        try {const data=await query(offset,50);if(request!==generation)return;current=data;render(data);el('reportMessage').textContent='';}
+        try {const data=await query(offset,pageSize);if(request!==generation)return;current=data;render(data);el('reportMessage').textContent='';}
         catch(error){if(request===generation){errorView(error);el('reportMessage').textContent='';}}
         finally {if(request===generation){busy=false;controls();}}
     }
@@ -188,12 +190,14 @@ if(typeof document!=='undefined') {
     }
     async function exportReport(){
         busy=true;controls();const request=++generation;
-        el('reportMessage').textContent='Preparing complete CSV…';
+        el('reportMessage').textContent='Preparing complete export…';
         try {
             const data=await query(0,10000);if(request!==generation)return;
             if(data.total_count>10000||data.rows.length!==data.total_count)throw new Error('Export is limited to 10,000 rows. Narrow the filters and try again.');
-            const url=URL.createObjectURL(new Blob([ReportUI.csv(data)],{type:'text/csv;charset=utf-8'}));
-            const a=document.createElement('a');a.href=url;a.download=`retodo-${type}-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+            const excel=el('exportFormat').value==='xlsx';
+            const bytes=excel?await ReportWorkbook.build(data,window.ExcelJS):ReportUI.csv(data);
+            const url=URL.createObjectURL(new Blob([bytes],{type:excel?'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'text/csv;charset=utf-8'}));
+            const a=document.createElement('a');a.href=url;a.download=`retodo-${type}-${new Date().toISOString().slice(0,10)}.${excel?'xlsx':'csv'}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
             el('reportMessage').textContent=`Exported all ${data.total_count} matching rows from a fresh snapshot.`;
         }catch(error){if(request===generation)el('reportMessage').textContent=error.message||'CSV export failed.';}
         finally{if(request===generation){busy=false;controls();}}
@@ -225,7 +229,7 @@ if(typeof document!=='undefined') {
         el('resourceField').hidden=type!=='jobs';
         document.querySelectorAll('.report-margin-filter').forEach(w=>{w.hidden=type==='jobs';w.querySelector('input').disabled=type==='jobs';});
         for(const option of el('sort').options)option.disabled=type==='jobs'&&['client_value','profit','margin'].includes(option.value);
-        for(const option of el('group_by').options)option.disabled=(type!=='jobs'&&['resource','service'].includes(option.value))||(type==='projects'&&option.value==='language');
+        for(const option of el('group_by').options)option.disabled=(type!=='jobs'&&['resource','service'].includes(option.value));
         el('reportFilters').addEventListener('submit',e=>{e.preventDefault();apply();});
         el('reportFilters').addEventListener('input',()=>{statusLabel();changed();});
         el('reportFilters').addEventListener('change',()=>{statusLabel();changed();});
@@ -236,10 +240,13 @@ if(typeof document!=='undefined') {
         el('period').addEventListener('change',periodDates);
         for(const key of ['from','to'])el(key).addEventListener('input',()=>el('period').value='custom');
         for(const key of ['sort','direction','group_by'])el(key).addEventListener('change',apply);
-        el('previousPage').onclick=()=>{offset=Math.max(0,offset-50);load();};
+        el('previousPage').onclick=()=>{offset=Math.max(0,offset-pageSize);load();};
         el('nextPage').onclick=()=>{offset=current.next_offset;load();};
         el('exportReport').onclick=exportReport;
+        el('exportFormat').onchange=()=>el('exportReport').textContent='Export '+(el('exportFormat').value==='xlsx'?'Excel':'CSV');
+        el('pageSize').onchange=()=>{pageSize=Number(el('pageSize').value);offset=0;writeURL();load();};
         el('retryReport').onclick=()=>choices?load():setup();
+        try {const session=await _sb.auth.getSession();const response=await fetch('/.netlify/functions/report-exchange-rates',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token}});if(!response.ok)console.warn('FX refresh unavailable; saved snapshot will be used.');}catch(error){console.warn('FX refresh unavailable');}
         await setup();
     })();
 }

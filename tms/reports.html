@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="retodo-tms-build" content="060"><title>Reports — RetodoOps TMS</title>
-<link rel="stylesheet" href="style.css?v=057"><link rel="stylesheet" href="reports.css?v=059"></head>
+<meta name="retodo-tms-build" content="061"><title>Reports — RetodoOps TMS</title>
+<link rel="stylesheet" href="style.css?v=057"><link rel="stylesheet" href="reports.css?v=061"></head>
 <body><div class="app">    <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="b-name">RetodoOps</div>
@@ -79,15 +79,15 @@
 <main class="main reports-main">
 <header class="report-header">
   <div><p class="report-eyebrow">RETODO OPS / WORKSPACE</p><h1>Reports</h1><p class="report-subtitle">Find the work. Understand the numbers.</p></div>
-  <div class="report-header-actions"><span class="report-release">Update 060</span><button id="exportReport" class="btn-primary" type="button" disabled>Export CSV <span aria-hidden="true">↗</span></button></div>
+  <div class="report-header-actions"><span class="report-release">Update 061</span><label class="sr-only" for="exportFormat">Export format</label><select id="exportFormat" aria-label="Export format"><option value="xlsx">Excel workbook</option><option value="csv">CSV (raw data)</option></select><button id="exportReport" class="btn-primary" type="button" disabled>Export Excel <span aria-hidden="true">↗</span></button></div>
 </header>
 <nav class="report-tabs" aria-label="Report type">
-<a href="reports.html?type=projects" data-report-type="projects"><strong>Projects</strong><span>Portfolio &amp; commercial value</span></a>
+<a href="reports.html?type=projects" data-report-type="projects"><strong>Projects</strong><span>Projects &amp; individual Scoops</span></a>
 <a href="reports.html?type=jobs" data-report-type="jobs"><strong>Jobs</strong><span>Resources &amp; supplier costs</span></a>
 <a href="reports.html?type=margin" data-report-type="margin"><strong>Margin</strong><span>Profitability by Scoop</span></a>
 </nav>
 <form id="reportFilters" class="report-panel">
-<div class="report-section-heading"><h2>Find your work</h2><button class="report-help" type="button" aria-label="About report filters" data-tip="Project filters select whole Projects; their totals still include all included Scoops and Jobs. Margin filters retain the full cost of each matching Scoop. Statuses refer to the selected report entity.">?</button><span id="filterState" class="report-meta"></span></div>
+<div class="report-section-heading"><h2>Find your work</h2><button class="report-help" type="button" aria-label="About report filters" data-tip="Projects and Margin show one row per Scoop; totals retain the full cost of each matching Scoop. Statuses refer to the selected report entity.">?</button><span id="filterState" class="report-meta"></span></div>
 <div class="report-filter-grid">
 <div class="report-field report-search"><label for="search">Search</label><input id="search" name="search" type="search" placeholder="Project, Job, PO, language or resource" autocomplete="off"></div>
 <div class="report-field"><label for="client">Client</label><input id="client" type="search" list="clientOptions" placeholder="All clients" autocomplete="off"><datalist id="clientOptions"></datalist></div>
@@ -95,7 +95,7 @@
 <div class="report-field"><label for="pm">Project manager</label><input id="pm" type="search" list="pmOptions" placeholder="All managers" autocomplete="off"><datalist id="pmOptions"></datalist></div>
 <div class="report-field" id="resourceField" hidden><label for="resource">Resource</label><input id="resource" type="search" list="resourceOptions" placeholder="All resources" autocomplete="off"><datalist id="resourceOptions"></datalist></div>
 <div class="report-field"><label id="statusLabel">Status</label><details class="report-status-picker"><summary id="statusSummary" aria-labelledby="statusLabel statusSummary">All statuses</summary><div id="statusOptions" class="report-status-options"></div></details></div>
-<div class="report-field"><label for="currency">Currency</label><select id="currency" name="currency"><option value="">All currencies</option></select></div>
+<div class="report-field"><label for="currency">Original currency</label><select id="currency" name="currency"><option value="">All currencies</option></select></div>
 <div class="report-field"><label for="date_basis">Date basis</label><select id="date_basis" name="date_basis"><option value="project">Project date</option><option value="deadline">Deadline (UTC)</option></select></div>
 <div class="report-field"><label for="period">Period</label><select id="period"><option value="all">Any time</option><option value="month">This month</option><option value="last_month">Last month</option><option value="quarter">This quarter</option><option value="year">This year</option><option value="custom">Custom range</option></select></div>
 <div class="report-field"><label for="from">From</label><input id="from" name="from" type="date"></div>
@@ -107,7 +107,7 @@
 <div class="report-field"><label for="target_language">Target language</label><select id="target_language" name="target_language"><option value="">Any target</option></select></div>
 <div class="report-field"><label for="service">Service</label><select id="service" name="service"><option value="">All services</option></select></div>
 <div class="report-field"><label for="cost_basis">Cost basis</label><select id="cost_basis" name="cost_basis"><option value="all">All cost bases</option><option value="po">Issued PO</option><option value="estimate">Saved estimate</option><option value="unknown">Unknown cost</option></select></div>
-<div class="report-field"><label for="issue">Data quality</label><select id="issue" name="issue"><option value="all">All records</option><option value="blocked">Needs attention</option><option value="estimates">Includes estimates</option><option value="unknown_cost">Unknown costs</option><option value="po_conflict">PO conflict / snapshot missing</option><option value="currency_mismatch">Incompatible / missing currency</option><option value="unallocated">Jobs without a Scoop</option><option value="no_jobs">Missing Jobs</option></select></div>
+<div class="report-field"><label for="issue">Data quality</label><select id="issue" name="issue"><option value="all">All records</option><option value="blocked">Needs attention</option><option value="estimates">Includes estimates</option><option value="unknown_cost">Unknown costs</option><option value="po_conflict">PO conflict / snapshot missing</option><option value="currency_mismatch">Missing exchange rate / currency</option><option value="unallocated">Jobs without a Scoop</option><option value="no_jobs">Missing Jobs</option></select></div>
 <div class="report-field"><label for="scope">Work included</label><select id="scope" name="scope"><option value="active">Exclude cancelled / inactive</option><option value="all">Include cancelled / inactive</option></select></div>
 <div class="report-field report-margin-filter"><label for="margin_min">Margin from (%)</label><input id="margin_min" name="margin_min" type="number" step="any" placeholder="No minimum"></div>
 <div class="report-field report-margin-filter"><label for="margin_max">Margin through (%)</label><input id="margin_max" name="margin_max" type="number" step="any" placeholder="No maximum"></div>
@@ -118,12 +118,12 @@
 <div id="reportError" class="report-error" role="alert" hidden><h2 id="errorTitle">Unable to load report</h2><p id="errorText"></p><button id="retryReport" class="btn-secondary" type="button">Retry</button><details><summary>Diagnostic details</summary><pre id="errorDetails"></pre></details></div>
 <div id="activeFilters" class="report-active-filters" aria-label="Applied filters"></div>
 <section id="reportOverview" class="report-overview" aria-label="Report overview" hidden>
-<div class="report-section-heading"><h2>At a glance</h2><button class="report-help" type="button" aria-label="About commercial totals" data-tip="Client value is commercial value, not invoiced or paid revenue. Costs use current issued POs or labelled saved estimates. Currency totals are separate. Profit and margin stay unavailable when required data is incomplete.">?</button><span id="reportGenerated" class="report-meta"></span></div>
+<div class="report-section-heading"><h2>At a glance</h2><button class="report-help" type="button" aria-label="About commercial totals" data-tip="Client value is commercial value, not invoiced or paid revenue. Costs use current issued POs or labelled saved estimates. Amounts are converted to EUR using the displayed ECB reference date. Profit and margin stay unavailable when required data is incomplete.">?</button><span id="reportGenerated" class="report-meta"></span></div>
 <div id="reportHealth" class="report-health"></div><div id="reportSummary" class="report-summary"></div>
 </section>
-<section id="reportGroups" class="report-panel report-group-panel" hidden><div class="report-section-heading"><h2 id="groupTitle">Grouped summary</h2><button class="report-help" type="button" aria-label="About grouped summaries" data-tip="Groups cover all matching rows, not just this page. Monetary totals stay within each currency. Margin is aggregate profit divided by aggregate client value; percentages are never averaged.">?</button></div><div class="report-table-wrap"><table class="report-table" id="groupTable"><thead></thead><tbody></tbody></table></div></section>
+<section id="reportGroups" class="report-panel report-group-panel" hidden><div class="report-section-heading"><h2 id="groupTitle">Grouped summary</h2><button class="report-help" type="button" aria-label="About grouped summaries" data-tip="Groups cover all matching rows, not just this page. Monetary totals are expressed in EUR. Margin is aggregate profit divided by aggregate client value; percentages are never averaged.">?</button></div><div class="report-table-wrap"><table class="report-table" id="groupTable"><thead></thead><tbody></tbody></table></div></section>
 <section id="reportResults" class="report-panel report-results" hidden>
-<div class="report-results-toolbar"><div class="report-section-heading"><h2 id="resultsTitle">Project details</h2><span id="reportCount" class="report-count"></span></div><div class="report-view-controls">
+<div class="report-results-toolbar"><div class="report-section-heading"><h2 id="resultsTitle">Project details</h2><span id="reportCount" class="report-count"></span></div><div class="report-view-controls"><div class="report-field"><label for="pageSize">Rows per page</label><select id="pageSize"><option>25</option><option selected>50</option><option>100</option><option>250</option></select></div>
 <div class="report-field"><label for="group_by">Group summary by</label><select id="group_by"><option value="none">No grouping</option><option value="client">Client</option><option value="account">Account</option><option value="pm">Project manager</option><option value="month">Month</option><option value="language">Language pair</option><option value="resource">Resource</option><option value="service">Service</option></select></div>
 <div class="report-field"><label for="sort">Sort by</label><select id="sort"><option value="name">Record number / name</option><option value="date">Date</option><option value="status">Status</option><option value="client">Client</option><option value="client_value">Client value</option><option value="cost">Supplier cost</option><option value="profit">Profit</option><option value="margin">Margin %</option></select></div>
 <div class="report-field"><label for="direction">Order</label><select id="direction"><option value="asc">Ascending</option><option value="desc">Descending</option></select></div>
@@ -131,4 +131,4 @@
 <div class="report-table-wrap" tabindex="0" aria-label="Report details; scroll horizontally for more columns"><table class="report-table" id="reportTable"><caption class="sr-only">Report details</caption><thead></thead><tbody></tbody></table></div>
 <footer class="report-pagination"><span id="reportPage" class="report-meta"></span><div class="report-actions"><button id="previousPage" class="btn-secondary" type="button" disabled>Previous</button><button id="nextPage" class="btn-secondary" type="button" disabled>Next</button></div></footer>
 </section>
-</main></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js?v=057"></script><script src="reports.js?v=060"></script></body></html>
+</main></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js?v=057"></script><script src="vendor/exceljs-4.4.0.min.js"></script><script src="report-workbook.js?v=061"></script><script src="reports.js?v=061"></script></body></html>
