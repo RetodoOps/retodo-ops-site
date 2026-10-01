@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "061",
-  "release": "Update 061 — EUR Scoop Reports and client invoicing",
-  "source_baseline": "Update 060 / 0c704f0",
-  "built_on": "2026-09-27"
+  "build": "062",
+  "release": "Update 062 — Report selection, shared search and invoice revisions",
+  "source_baseline": "Update 061 / 4e7a7dc",
+  "built_on": "2026-09-30"
 }

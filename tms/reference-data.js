@@ -62,6 +62,7 @@
 
   function scoopStatus(scoopOrJobs, maybeJobRows) {
     const scoop = Array.isArray(scoopOrJobs) ? null : scoopOrJobs;
+    if(['Invoiced','Paid'].includes(scoop?.financial_status))return scoop.financial_status;
     if (scoop?.status) return scoop.status;
     const jobRows = Array.isArray(scoopOrJobs) ? scoopOrJobs : maybeJobRows;
     const active = Array.isArray(jobRows)

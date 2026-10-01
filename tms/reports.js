@@ -50,11 +50,14 @@ if(typeof document!=='undefined') {
     const {escape:esc,number:num,costs,warnings}=ReportUI;
     let type=new URLSearchParams(location.search).get('type')||'projects';
     let offset=0,pageSize=50,generation=0,current=null,busy=false,dirty=false,choices=null;
+    const selections=new Set();let canEdit=false;
+    const selectionState=()=>{el('selectedReportCount').textContent=selections.size+' selected';el('applyReportStatus').disabled=busy||!selections.size;};
     let applied={filters:{},sort:'name',desc:false};
     const relationSources={client:'clients',account:'accounts',pm:'managers',resource:'resources'};
     const relationLabel=r=>`${r.name||r.internal_number||'Unnamed'} · ${r.id}`;
     const selectedId=key=>(choices?.[relationSources[key]]||[]).find(r=>relationLabel(r)===el(key).value)?.id;
     function controls(){
+        selectionState();
         el('previousPage').disabled=busy||dirty||!current||offset===0;
         el('nextPage').disabled=busy||dirty||!current||current.next_offset==null;
         el('exportReport').disabled=busy||dirty||!current||!current.total_count;
@@ -152,7 +155,7 @@ if(typeof document!=='undefined') {
         el('reportSummary').innerHTML=data.summary_by_currency.map(s=>`<section class="report-currency-card"><h3 class="report-currency-title">${esc(s.currency)}</h3><dl class="report-currency-values">${type!=='jobs'?metric('Client value',s.client_value):''}${metric('Known supplier cost',s.supplier_cost)}${type!=='jobs'?metric(s.estimate_count?'Estimated profit':'Profit',s.profit)+`<div class="report-metric is-margin"><dt>Margin</dt><dd>${s.margin==null?'—':num(s.margin)+'%'}</dd></div>`:''}</dl>${s.incomplete_rows>0&&type!=='jobs'?'<p class="report-note">Profit / margin unavailable: incomplete or incompatible data.</p>':''}${s.estimate_count>0?'<p class="report-note">Includes saved cost estimates.</p>':''}</section>`).join('')||'<p class="report-empty">No matching results. Try changing the filters.</p>';
         el('activeFilters').innerHTML=Object.entries(applied.filters).filter(([,v])=>Array.isArray(v)?v.length:v!==''&&!['all','none','active'].includes(v)).map(([k,v])=>`<span class="report-chip">${esc(k.replaceAll('_',' '))}: ${esc(Array.isArray(v)?v.join(', '):k.endsWith('_id')?el(k.slice(0,-3))?.value||v:v)}</span>`).join('');
         const headers=type==='jobs'?['Job / Project','Client / Account','Status / Date','Service / Languages','Resource','Quantity','Supplier cost / PO','Data quality']:['Project / Scoop','Client / Account','PM / Date','Status',...(type!=='jobs'?['Languages']:[]),'Jobs','Client value','Supplier costs','Profit / Margin','Data quality'];
-        el('reportTable').querySelector('thead').innerHTML='<tr>'+headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')+'</tr>';
+        el('reportTable').querySelector('thead').innerHTML='<tr>'+(canEdit?['Select',...headers]:headers).map(h=>`<th scope="col">${esc(h)}</th>`).join('')+'</tr>';
         el('reportTable').querySelector('tbody').innerHTML=data.rows.map(row=>{
             const href=type==='jobs'?`job.html?id=${encodeURIComponent(row.id)}`:`project.html?id=${encodeURIComponent(row.project_id)}${type!=='jobs'?'&scoop='+encodeURIComponent(row.id):''}`;
             const identity=`<div class="report-identity"><a href="${href}">${esc(row.name)}</a><small>${type!=='projects'?`<a href="project.html?id=${encodeURIComponent(row.project_id)}">${esc(row.project_name||row.project_number)}</a>`:esc(row.project_number)}</small></div>`;
@@ -162,7 +165,7 @@ if(typeof document!=='undefined') {
             const note=`<div class="report-quality"><span class="${row.blocking_issues?.length?'':row.estimate_count?'is-info':'is-clean'}">${esc(warnings(row,type)||'Complete')}</span>${costDetail?`<details><summary>View Job costs</summary>${costDetail}</details>`:''}</div>`;
             const language=`${esc(row.source_language||'—')} → ${esc(row.target_language||'—')}`;
             const cells=type==='jobs'?[identity,client,`${status}<small>${esc(row.date||'No date')}</small>`,`${esc(row.service||'—')}<small>${language}</small>`,row.resource_id?`<a href="resource.html?id=${encodeURIComponent(row.resource_id)}">${esc(row.resource||'Resource')}</a>`:'Unassigned',`${esc(row.quantity??'—')} ${esc(row.unit||'')}`,`${esc(costs(row))}<small>${esc(row.cost_basis)}${row.po_number?` · <a href="job.html?id=${encodeURIComponent(row.id)}">${esc(row.po_number)} v${esc(row.po_version)} (Job PO)</a>`:''}</small>`,note]:[identity,client,`${esc(row.pm||'—')}<small>${esc(row.date||'No date')}</small>`,status,...(type!=='jobs'?[language]:[]),esc(row.job_count),`${esc(row.currency||'')} ${num(row.client_value)}`,esc(costs(row)),`<span class="${row.profit<0?'report-negative':''}">${num(row.profit)}</span><small>${row.margin==null?'Unavailable':num(row.margin)+'%'}${row.provisional_profit!=null?'<br>Provisional profit: EUR '+num(row.provisional_profit)+' (known costs only)':''}${row.estimate_count?' · estimated':''}</small>`,note];
-            return '<tr>'+cells.map(c=>`<td>${c}</td>`).join('')+'</tr>';
+            if(canEdit)cells.unshift(`<input type="checkbox" data-report-select="${esc(row.id)}" aria-label="Select ${esc(row.name)}" ${selections.has(row.id)?'checked':''}>`);return '<tr>'+cells.map(c=>`<td>${c}</td>`).join('')+'</tr>';
         }).join('')||`<tr><td colspan="${headers.length}" class="report-empty">No matching results. Try changing the filters.</td></tr>`;
         el('resultsTitle').textContent=type==='jobs'?'Job details':type==='margin'?'Scoop profitability':'Scoop details';
         el('reportCount').textContent=data.total_count?`${offset+1}–${offset+data.rows.length} of ${data.total_count}`:'0 results';
@@ -185,6 +188,7 @@ if(typeof document!=='undefined') {
         finally {if(request===generation){busy=false;controls();}}
     }
     function apply(){
+        selections.clear();selectionState();
         try{applied=readFilters();el('statusSummary').parentElement.open=false;dirty=false;offset=0;writeURL();load();}
         catch(error){el('reportMessage').textContent=error.message;changed();}
     }
@@ -218,7 +222,7 @@ if(typeof document!=='undefined') {
             if(data?.api_version!=='059')throw {code:'REPORT_VERSION',message:'Update 059 reporting choices unavailable.'};
             choices=data;
             for(const [key,source] of [['currency','currencies'],['source_language','languages'],['target_language','languages'],['service','services']])el(key).innerHTML=el(key).options[0].outerHTML+(data[source]||[]).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
-            el('statusOptions').innerHTML=data[type==='jobs'?'job_statuses':'project_statuses'].map(s=>`<label><input type="checkbox" value="${esc(s)}">${esc(s)}</label>`).join('');
+            const operational=data[type==='jobs'?'job_statuses':'project_statuses'];el('reportBulkStatus').innerHTML=operational.map(s=>`<option>${esc(s)}</option>`).join('');el('statusOptions').innerHTML=[...operational,...(type==='jobs'?[]:['Invoiced','Paid'])].map(s=>`<label><input type="checkbox" value="${esc(s)}">${esc(s)}</label>`).join('');
             restore();busy=false;apply();
         }catch(error){errorView(error);busy=false;el('reportMessage').textContent='';controls();}
     }
@@ -247,6 +251,11 @@ if(typeof document!=='undefined') {
         el('pageSize').onchange=()=>{pageSize=Number(el('pageSize').value);offset=0;writeURL();load();};
         el('retryReport').onclick=()=>choices?load():setup();
         try {const session=await _sb.auth.getSession();const response=await fetch('/.netlify/functions/report-exchange-rates',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token}});if(!response.ok)console.warn('FX refresh unavailable; saved snapshot will be used.');}catch(error){console.warn('FX refresh unavailable');}
+        canEdit=['admin','pm','client_relations'].includes(await currentAppRole());el('reportBulk').hidden=!canEdit;
+        el('reportTable').addEventListener('change',event=>{const id=event.target.dataset.reportSelect;if(!id)return;if(event.target.checked)selections.add(id);else selections.delete(id);selectionState();});
+        el('selectReportPage').onclick=()=>{for(const row of current?.rows||[])selections.add(row.id);if(current)render(current);selectionState();};
+        el('clearReportSelection').onclick=()=>{selections.clear();if(current)render(current);selectionState();};
+        el('applyReportStatus').onclick=async()=>{if(busy||!selections.size)return;const status=el('reportBulkStatus').value;if(!confirm(`Change ${selections.size} selected ${type==='jobs'?'Jobs':'Scoops'} to ${status}?`))return;busy=true;controls();try{const {data,error}=await _sb.rpc('report_bulk_status_062',{p_type:type,p_ids:[...selections],p_status:status});if(error)throw error;selections.clear();el('reportBulkMessage').textContent=`${data} records updated`;busy=false;await load();}catch(e){el('reportBulkMessage').textContent=e.message;}finally{busy=false;controls();}};
         await setup();
     })();
 }

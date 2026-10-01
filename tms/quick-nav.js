@@ -1,46 +1,13 @@
+/* Update 062: server-side company search, including exact Scoop identifiers. */
 (function(){
-  const STORAGE_KEY='retodo.quickRecent.v1';
-  const MAX_RECENT=8;
-  let projects=[],jobs=[],loaded=false,activeIndex=-1;
-  const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
-  const readRecent=()=>{try{const rows=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(rows)?rows:[]}catch{return []}};
-  const writeRecent=rows=>localStorage.setItem(STORAGE_KEY,JSON.stringify(rows.slice(0,MAX_RECENT)));
-  function recordVisit(type,id,label,meta=''){
-    if(!id||!label)return;
-    const href=type==='Project'?`project.html?id=${encodeURIComponent(id)}`:`job.html?id=${encodeURIComponent(id)}`;
-    writeRecent([{type,id,label,meta,href,visited_at:new Date().toISOString()},...readRecent().filter(row=>!(row.type===type&&row.id===id))]);
-  }
-  async function loadIndex(){
-    if(loaded||typeof _sb==='undefined')return;
-    loaded=true;
-    const [projectResult,jobResult]=await Promise.all([
-      _sb.from('projects').select('id,display_name,project_number,client_reference,status,source_language,target_language,updated_at').order('updated_at',{ascending:false}).limit(250),
-      _sb.from('project_jobs').select('id,job_number,service_type,status,source_language,target_language,project_id,projects(display_name,project_number)').order('created_at',{ascending:false}).limit(250)
-    ]);
-    projects=(projectResult.data||[]).map(row=>({type:'Project',id:row.id,label:row.display_name||row.project_number,meta:[row.project_number,row.client_reference,row.status,`${row.source_language||''} → ${row.target_language||''}`].filter(Boolean).join(' · '),href:`project.html?id=${encodeURIComponent(row.id)}`}));
-    jobs=(jobResult.data||[]).map(row=>({type:'Job',id:row.id,label:row.job_number,meta:[row.projects?.display_name||row.projects?.project_number,row.service_type,row.status,`${row.source_language||''} → ${row.target_language||''}`].filter(Boolean).join(' · '),href:`job.html?id=${encodeURIComponent(row.id)}`}));
-  }
-  function rowHtml(row,index){const type=row.type==='Project'?'Project':'Job',href=type==='Project'?`project.html?id=${encodeURIComponent(row.id)}`:`job.html?id=${encodeURIComponent(row.id)}`;return `<a class="quick-nav-result" data-index="${index}" href="${href}" data-type="${type}" data-id="${esc(row.id)}" data-label="${esc(row.label)}" data-meta="${esc(row.meta||'')}"><span class="quick-nav-kind">${type}</span><span class="quick-nav-copy"><strong>${esc(row.label)}</strong><small>${esc(row.meta||'')}</small></span></a>`}
-  function render(){
-    const input=document.getElementById('quickNavInput'),results=document.getElementById('quickNavResults');if(!input||!results)return;
-    const query=input.value.trim().toLowerCase();let rows;
-    if(query){rows=[...projects,...jobs].filter(row=>`${row.label} ${row.meta}`.toLowerCase().includes(query)).slice(0,12)}else rows=readRecent();
-    activeIndex=-1;results.innerHTML=`<div class="quick-nav-caption">${query?'Projects and Jobs':'Recently visited'}</div>`+(rows.length?rows.map(rowHtml).join(''):`<div class="quick-nav-empty">${query?'No matching Projects or Jobs.':'Visited Projects and Jobs will appear here.'}</div>`);
-    results.classList.remove('hidden');
-    results.querySelectorAll('.quick-nav-result').forEach(link=>link.addEventListener('click',()=>recordVisit(link.dataset.type,link.dataset.id,link.dataset.label,link.dataset.meta)));
-  }
-  function move(delta){const rows=[...document.querySelectorAll('.quick-nav-result')];if(!rows.length)return;activeIndex=(activeIndex+delta+rows.length)%rows.length;rows.forEach((row,index)=>row.classList.toggle('active',index===activeIndex));rows[activeIndex].scrollIntoView({block:'nearest'})}
-  function install(){
-    if(document.getElementById('quickNav'))return;
-    const host=document.querySelector('.main')||document.body;
-    host.insertAdjacentHTML('afterbegin',`<div id="quickNav" class="quick-nav"><div class="quick-nav-shell"><span class="quick-nav-icon" aria-hidden="true">⌕</span><input id="quickNavInput" type="search" autocomplete="off" placeholder="Search Projects and Jobs…" aria-label="Quick search Projects and Jobs"><kbd>/</kbd></div><div id="quickNavResults" class="quick-nav-results hidden"></div></div>`);
-    const input=document.getElementById('quickNavInput'),results=document.getElementById('quickNavResults');let timer;
-    input.addEventListener('focus',async()=>{await loadIndex();render()});
-    input.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(render,120)});
-    input.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();move(1)}else if(event.key==='ArrowUp'){event.preventDefault();move(-1)}else if(event.key==='Enter'&&activeIndex>=0){event.preventDefault();document.querySelectorAll('.quick-nav-result')[activeIndex]?.click()}else if(event.key==='Escape'){results.classList.add('hidden');input.blur()}});
-    document.addEventListener('click',event=>{if(!event.target.closest('#quickNav'))results.classList.add('hidden')});
-    document.addEventListener('keydown',event=>{if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();input.focus()}});
-  }
-  window.TMS_QUICK_NAV={recordVisit};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+ const KEY='retodo.quickRecent.v2',esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let active=-1,request=0,timer;
+ const recent=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]').slice(0,8)}catch{return []}};
+ const safeHref=h=>/^(project|job|client|resource|invoice)\.html\?/.test(h||'')?h:'#';
+ function recordVisit(type,id,label,meta='',href){if(!id||!label)return;const row={kind:type,id,label,meta,href:safeHref(href||(type==='Project'?`project.html?id=${encodeURIComponent(id)}`:`job.html?id=${encodeURIComponent(id)}`))};try{localStorage.setItem(KEY,JSON.stringify([row,...recent().filter(r=>r.id!==id||r.kind!==type)].slice(0,8)))}catch{}}
+ function show(rows,caption){const box=document.getElementById('quickNavResults');active=-1;box.innerHTML=`<div class="quick-nav-caption">${esc(caption)}</div>`+(rows.length?rows.map((r,i)=>`<a class="quick-nav-result" data-index="${i}" href="${esc(safeHref(r.href))}"><span class="quick-nav-kind">${esc(r.kind)}</span><span class="quick-nav-copy"><strong>${esc(r.label)}</strong><small>${esc(r.meta)}</small></span></a>`).join(''):'<div class="quick-nav-empty">No matching records.</div>');box.classList.remove('hidden');box.querySelectorAll('a').forEach((a,i)=>a.onclick=()=>recordVisit(rows[i].kind,rows[i].id,rows[i].label,rows[i].meta,rows[i].href));}
+ async function search(){const rid=++request,q=document.getElementById('quickNavInput').value.trim();if(q.length<2){show(recent(),q?'Enter at least two characters':'Recently visited');return;}show([],'Searching…');try{const {data,error}=await _sb.rpc('tms_search_062',{p_query:q,p_limit:30});if(rid!==request)return;if(error)throw error;show(data||[],`Search results${data?.length===30?' · first 30; refine your search':''}`);}catch(e){if(rid!==request)return;show([],e.code==='PGRST202'?'Search needs Update 062 migration 056':e.message||'Search failed. Retry.');}}
+ function navigation(){const nav=document.querySelector('.sidebar .nav');if(!nav||nav.querySelector('a[href^="invoice.html"]'))return;const section=document.createElement('div');section.innerHTML='<div class="nav-item" role="button" tabindex="0" aria-expanded="false">Invoice <span class="nav-arrow">▾</span></div><div class="nav-sub"><a href="invoice.html?type=client">Client Invoice</a><a href="invoice.html?type=linguist">Linguist Invoice</a></div>';const toggle=()=>{const open=section.lastElementChild.classList.toggle('open');section.firstElementChild.setAttribute('aria-expanded',String(open));};section.firstElementChild.onclick=toggle;section.firstElementChild.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}};const divider=nav.querySelector('.nav-divider');if(divider)divider.before(section);else nav.append(section);}
+ async function install(){if(document.getElementById('quickNav')||typeof _sb==='undefined')return;try{if(!['admin','pm','qa','client_relations'].includes(await currentAppRole()))return;}catch{return;}navigation();const host=document.querySelector('.main');if(!host)return;host.insertAdjacentHTML('afterbegin','<div id="quickNav" class="quick-nav"><div class="quick-nav-shell"><span class="quick-nav-icon" aria-hidden="true">⌕</span><input id="quickNavInput" type="search" autocomplete="off" placeholder="Search Scoops, Projects, Jobs, Clients, Resources, Invoices…" aria-label="Search all modules"><kbd>/</kbd></div><div id="quickNavResults" class="quick-nav-results hidden" aria-live="polite"></div></div>');const input=document.getElementById('quickNavInput'),box=document.getElementById('quickNavResults');input.onfocus=search;input.oninput=()=>{++request;clearTimeout(timer);timer=setTimeout(search,180);};input.onkeydown=e=>{const rows=[...box.querySelectorAll('a')];if(['ArrowDown','ArrowUp'].includes(e.key)&&rows.length){e.preventDefault();active=(active+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;rows.forEach((r,i)=>r.classList.toggle('active',i===active));rows[active].scrollIntoView({block:'nearest'});}else if(e.key==='Enter'&&active>=0){e.preventDefault();rows[active]?.click();}else if(e.key==='Escape'){++request;box.classList.add('hidden');input.blur();}};document.addEventListener('click',e=>{if(!e.target.closest('#quickNav')){++request;box.classList.add('hidden');}});document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)&&!document.activeElement?.isContentEditable){e.preventDefault();input.focus();}});}
+ window.TMS_QUICK_NAV={recordVisit};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();

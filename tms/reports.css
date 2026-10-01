@@ -13,3 +13,5 @@
 @media(max-width:420px){.report-filter-grid{grid-template-columns:1fr}.report-panel{padding:16px}.report-results{padding:0}.report-header-actions .report-release{display:none}.report-tabs a{padding:10px;text-align:center}.report-help::after{left:auto;right:0;width:230px}.report-status-options{min-width:100%}.report-view-controls .report-field{min-width:100px}.report-pagination{align-items:flex-start;flex-direction:column}.report-pagination .report-actions{width:100%;justify-content:space-between}}
 
 .report-header-actions select{border:1px solid #d9deea;border-radius:6px;padding:10px;background:white;color:#514269;font:inherit;font-size:12px}.report-quality details{font-size:11px;line-height:1.7}.report-quality summary{color:#68539c;cursor:pointer}
+
+.report-bulk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid #e6e8f1;font-size:12px}.report-bulk[hidden]{display:none}.report-bulk select{padding:8px;border:1px solid #d9deea;border-radius:6px}

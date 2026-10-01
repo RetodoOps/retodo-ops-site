@@ -1,0 +1,53 @@
+// Run against a local static server only; Supabase/auth are mocked before page scripts.
+const assert=require('node:assert/strict');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+(async()=>{
+ const options={headless:true};
+ if(process.env.CHROMIUM_MODULE){const imported=require(process.env.CHROMIUM_MODULE);const binary=imported.default||imported;options.executablePath=await binary.executablePath();options.args=binary.args;}
+ const browser=await chromium.launch(options);
+ const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});
+ const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE ERROR',e.message);});
+ let fail=false,oversize=false,role='admin',lastRequest,lastBulk;page.on('dialog',d=>d.accept());
+ const rows=Array.from({length:55},(_,i)=>({id:'s'+i,project_id:'p'+i,name:i===0?'<img src=x onerror=alert(1)>':'Project '+(i+1),project_name:'Localization',client:'Example client',account:'European languages',pm:'Alex',status:'Ongoing',date:'2026-09-24',currency:'EUR',client_value:300,profit:237.66,margin:79.22,costs:{EUR:62.34},job_count:3,scoop_count:2,estimate_count:2,unknown_cost_count:0,currency_warning_count:0,po_warning_count:0,resource:'Resource one',service:'Translation',source_language:'English',target_language:'Bulgarian',deadline:'2026-09-24T16:00:00Z',quantity:123.456,unit:'Source words',cost_basis:'PO commitment',po_number:'PO-100',po_version:2}));
+ await page.exposeFunction('fixtureRpc',async(name,args)=>{
+  if(name==='current_app_role')return {data:role,error:null};
+  if(name==='current_user_access_enabled')return {data:true,error:null};
+  if(name==='tms_report_options_059')return {data:{api_version:'059',clients:[{id:'c1',name:'Example client'}],accounts:[{id:'a1',name:'European languages',client_id:'c1'}],managers:[],resources:[],languages:['English','Bulgarian'],services:['Translation'],currencies:['EUR','USD'],project_statuses:['Ongoing','Approved','Cancelled'],job_statuses:['Assigned','In Progress','Approved','Cancelled']},error:null};
+  if(name==='report_bulk_status_062'){lastBulk=args;return{data:args.p_ids.length};}
+  assert.equal(name,'tms_report_061');lastRequest=args;
+  if(fail)return {data:null,error:{code:'PGRST202',message:'Missing migration'}};
+  const matched=args.p_filters.search==='empty'?[]:rows;
+  return {data:{api_version:'061',fx_date:'2026-09-25',fx_rates:{EUR:1,USD:1.1},estimate_rows:matched.length,groups:args.p_filters.group_by!=='none'?[{id:'c1',label:'Example client',currency:'EUR',row_count:matched.length,client_value:16500,supplier_cost:3428.7,profit:13071.3,margin:79.22,issue_count:0,estimate_count:55}]:[],rows:matched.slice(args.p_offset,args.p_offset+args.p_limit),total_count:oversize?10001:matched.length,project_count:matched.length,warning_rows:0,summary_by_currency:matched.length?[{currency:'EUR',client_value:16500,supplier_cost:3428.7,profit:13071.3,margin:79.22,estimate_count:110,incomplete_rows:0}]:[],generated_at:'2026-09-24T12:00:00Z',date_basis:args.p_type==='jobs'?'Job deadline (UTC)':'Project date',report_type:args.p_type,filters:args.p_filters,next_offset:args.p_offset+args.p_limit<matched.length?args.p_offset+args.p_limit:null},error:null};
+ });
+ await page.addInitScript(()=>{window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'fixture'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({})},rpc:(name,args)=>window.fixtureRpc(name,args)})};});
+ await page.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({contentType:'text/javascript',body:''}));
+ await page.route('https://*.supabase.co/**',route=>route.abort());
+ const base=process.env.REPORT_BASE_URL||'http://127.0.0.1:8765/tms/';
+ await page.goto(base+'reports.html?type=projects');await page.getByText('1–50 of 55',{exact:true}).waitFor();
+ assert.equal(await page.locator('#reportTable tbody tr').count(),50);await page.locator('[data-report-select]').nth(0).check();await page.locator('[data-report-select]').nth(1).check();await page.locator('#reportBulkStatus').selectOption('Approved');await page.locator('#applyReportStatus').click();await page.getByText('2 records updated',{exact:true}).waitFor();assert.deepEqual(lastBulk.p_ids,['s0','s1']);assert.equal(lastBulk.p_status,'Approved');
+ assert.equal(await page.locator('#reportTable img').count(),0);
+ await page.locator('#nextPage').click();await page.getByText('51–55 of 55',{exact:true}).waitFor();assert.equal(lastRequest.p_offset,50);
+ await page.locator('#previousPage').click();await page.getByText('1–50 of 55',{exact:true}).waitFor();
+ await page.locator('#client').fill('Example client · c1');await page.locator('#account').fill('European languages · a1');
+ await page.locator('#applyReport').click();await page.getByText('1–50 of 55',{exact:true}).waitFor();assert.equal(lastRequest.p_filters.client_id,'c1');assert.equal(lastRequest.p_filters.account_id,'a1');
+ await page.locator('#client').fill('');assert.equal(await page.locator('#account').inputValue(),'');assert.equal(await page.locator('#exportReport').isDisabled(),true);
+ await page.locator('#currency').selectOption('EUR');await page.locator('#sort').selectOption('profit');await page.getByText('1–50 of 55',{exact:true}).waitFor();assert.equal(lastRequest.p_sort,'profit');
+ await page.locator('#group_by').selectOption('client');await page.locator('#reportGroups').waitFor({state:'visible'});assert.equal(lastRequest.p_filters.group_by,'client');
+ await page.reload();await page.locator('#reportGroups').waitFor({state:'visible'});assert.equal(await page.locator('#currency').inputValue(),'EUR');
+ await page.locator('#statusSummary').click();await page.locator('#statusOptions input').first().check();await page.locator('#statusOptions input').nth(1).check();await page.locator('#statusSummary').click();await page.locator('#applyReport').click();await page.getByText('1–50 of 55',{exact:true}).waitFor();assert.deepEqual(lastRequest.p_filters.statuses,['Ongoing','Approved']);
+ await page.locator('#search').fill('empty');await page.getByRole('button',{name:'View report',exact:true}).click();await page.locator('#reportTable').getByText('No matching results.',{exact:false}).waitFor();assert.equal(await page.locator('#exportReport').isDisabled(),true);
+ await page.getByRole('button',{name:'Clear filters',exact:true}).click();await page.getByText('1–50 of 55',{exact:true}).waitFor();
+ const download=page.waitForEvent('download');await page.locator('#exportReport').click();assert.match((await download).suggestedFilename(),/retodo-projects.*xlsx/);assert.equal(lastRequest.p_limit,10000);
+ await page.locator('#pageSize').selectOption('25');await page.getByText('1–25 of 55',{exact:true}).waitFor();assert.equal(lastRequest.p_limit,25);await page.reload();await page.getByText('1–25 of 55',{exact:true}).waitFor();assert.equal(await page.locator('#pageSize').inputValue(),'25');await page.locator('#pageSize').selectOption('50');await page.getByText('1–50 of 55',{exact:true}).waitFor();
+ oversize=true;await page.locator('#exportReport').click();await page.getByText('Export is limited to 10,000 rows.',{exact:false}).waitFor();oversize=false;
+ await page.locator('#reportTable').scrollIntoViewIfNeeded();assert.ok((await page.locator('#reportTable').boundingBox()).height>100);await page.locator('.reports-main').evaluate(e=>e.scrollTop=0);await page.screenshot({path:'/tmp/update061-projects-desktop.png'});
+ await page.locator('.report-tabs').getByText('Jobs',{exact:true}).click();await page.getByText('1–50 of 55',{exact:true}).waitFor();assert.equal(lastRequest.p_type,'jobs');await page.getByRole('columnheader',{name:'Supplier cost / PO',exact:true}).waitFor();
+ role='qa';await page.goto(base+'reports.html?type=margin');await page.getByText('1–50 of 55',{exact:true}).waitFor();assert.equal(await page.locator('#exportReport').isEnabled(),true);assert.equal(await page.locator('#reportBulk').isVisible(),false);assert.equal(await page.locator('#currency').isEnabled(),true);
+ await page.locator('.nav-item').filter({hasText:'Clients'}).click();await page.locator('#sub-cli').waitFor({state:'visible'});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/update061-margin-mobile.png'});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ fail=true;await page.getByRole('button',{name:'View report',exact:true}).click();await page.getByText('Reports need a database update',{exact:false}).waitFor();assert.equal(await page.locator('#reportResults').isVisible(),false);assert.equal(await page.locator('#exportReport').isDisabled(),true);
+ await page.goto(base+'reports.html?type=invoices');await page.getByText('Invoice reporting is not available',{exact:false}).waitFor();assert.equal(await page.locator('#reportFilters').isVisible(),false);
+ assert.deepEqual(errors,[]);console.log('PASS browser fixture: tabs, pagination, filters, empty/error states, XLSX, page size persistence, export cap, QA controls, sidebar, XSS and mobile overflow');
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1);});

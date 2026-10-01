@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="retodo-tms-build" content="061"><title>Reports — RetodoOps TMS</title>
-<link rel="stylesheet" href="style.css?v=057"><link rel="stylesheet" href="reports.css?v=061"></head>
+<meta name="retodo-tms-build" content="062"><title>Reports — RetodoOps TMS</title>
+<link rel="stylesheet" href="style.css?v=057"><link rel="stylesheet" href="reports.css?v=062"></head>
 <body><div class="app">    <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="b-name">RetodoOps</div>
@@ -79,7 +79,7 @@
 <main class="main reports-main">
 <header class="report-header">
   <div><p class="report-eyebrow">RETODO OPS / WORKSPACE</p><h1>Reports</h1><p class="report-subtitle">Find the work. Understand the numbers.</p></div>
-  <div class="report-header-actions"><span class="report-release">Update 061</span><label class="sr-only" for="exportFormat">Export format</label><select id="exportFormat" aria-label="Export format"><option value="xlsx">Excel workbook</option><option value="csv">CSV (raw data)</option></select><button id="exportReport" class="btn-primary" type="button" disabled>Export Excel <span aria-hidden="true">↗</span></button></div>
+  <div class="report-header-actions"><span class="report-release">Update 062</span><label class="sr-only" for="exportFormat">Export format</label><select id="exportFormat" aria-label="Export format"><option value="xlsx">Excel workbook</option><option value="csv">CSV (raw data)</option></select><button id="exportReport" class="btn-primary" type="button" disabled>Export Excel <span aria-hidden="true">↗</span></button></div>
 </header>
 <nav class="report-tabs" aria-label="Report type">
 <a href="reports.html?type=projects" data-report-type="projects"><strong>Projects</strong><span>Projects &amp; individual Scoops</span></a>
@@ -128,7 +128,8 @@
 <div class="report-field"><label for="sort">Sort by</label><select id="sort"><option value="name">Record number / name</option><option value="date">Date</option><option value="status">Status</option><option value="client">Client</option><option value="client_value">Client value</option><option value="cost">Supplier cost</option><option value="profit">Profit</option><option value="margin">Margin %</option></select></div>
 <div class="report-field"><label for="direction">Order</label><select id="direction"><option value="asc">Ascending</option><option value="desc">Descending</option></select></div>
 </div></div>
+<div id="reportBulk" class="report-bulk" hidden><span id="selectedReportCount">0 selected</span><button id="selectReportPage" type="button" class="btn-secondary">Select page</button><button id="clearReportSelection" type="button" class="btn-secondary">Clear selection</button><label for="reportBulkStatus">New status</label><select id="reportBulkStatus"></select><button id="applyReportStatus" class="btn-primary" type="button" disabled>Change selected status</button><span id="reportBulkMessage" role="status"></span></div>
 <div class="report-table-wrap" tabindex="0" aria-label="Report details; scroll horizontally for more columns"><table class="report-table" id="reportTable"><caption class="sr-only">Report details</caption><thead></thead><tbody></tbody></table></div>
 <footer class="report-pagination"><span id="reportPage" class="report-meta"></span><div class="report-actions"><button id="previousPage" class="btn-secondary" type="button" disabled>Previous</button><button id="nextPage" class="btn-secondary" type="button" disabled>Next</button></div></footer>
 </section>
-</main></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js?v=057"></script><script src="vendor/exceljs-4.4.0.min.js"></script><script src="report-workbook.js?v=061"></script><script src="reports.js?v=061"></script></body></html>
+</main></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="auth.js?v=057"></script><script src="vendor/exceljs-4.4.0.min.js"></script><script src="report-workbook.js?v=061"></script><script src="reports.js?v=062"></script><script src="quick-nav.js?v=062"></script></body></html>

@@ -1,4 +1,4 @@
-const TMS_DASHBOARD_BUILD = '053';
+const TMS_DASHBOARD_BUILD = '062';
 document.documentElement.dataset.dashboardBuild = TMS_DASHBOARD_BUILD;
 
 // ── Language → flag emoji ──────────────────────────────────────────────────
@@ -27,6 +27,7 @@ const TABS = [
     { key: 'due_tomorrow', label: 'Due Tomorrow' },
     { key: 'upcoming',     label: 'Upcoming' },
     { key: 'approved',     label: 'Approved' },
+    { key:'invoiced',label:'Invoiced' },{ key:'paid',label:'Paid' },
     { key: 'cancelled',    label: 'Cancelled' },
     { key: 'all',          label: 'All' },
     { key: 'missing_po',   label: 'Missing PO' },
@@ -93,6 +94,8 @@ function filterByTab(projects, tab) {
         case 'delivered':    return projects.filter(p => p.status === 'Delivered to Client');
         case 'due_tomorrow': return projects.filter(p => isTomorrow(p.deadline));
         case 'upcoming':     return projects.filter(p => p.upcoming);
+        case 'invoiced': return projects.filter(p=>p.status==='Invoiced');
+        case 'paid': return projects.filter(p=>p.status==='Paid');
         case 'approved':     return projects.filter(p => p.status === 'Approved');
         case 'cancelled':    return projects.filter(p => p.status === 'Cancelled');
         case 'missing_po':   return projects.filter(p => p.missing_po);
@@ -279,6 +282,7 @@ document.getElementById('selectAll').addEventListener('change', e => {
 // ── Search ────────────────────────────────────────────────────────────────
 document.getElementById('searchBox').addEventListener('input', e => {
     searchQuery = e.target.value;
+    if(searchQuery.trim()) {activeTab='all';renderTabs();}
     renderTable();
 });
 
@@ -583,7 +587,7 @@ async function reloadProjects() {
     const resourceAssignments = selectedJobs => dashboardResourceAssignments(selectedJobs, resourcesById);
     const scoopRows=scoopResult.data||[],scoopProjectIds=new Set(scoopRows.map(scoop=>scoop.project_id));
     allProjects = scoopRows.map(scoop => {
-        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = scoop.status || TMS_REF.scoopStatus(scoop, scoopJobs) || 'Assign';
+        const base = projectsById.get(scoop.project_id), scoopJobs = jobs.filter(job => job.project_scoop_id === scoop.id && !['Declined','Cancelled'].includes(job.status)), scoopStatus = (['Invoiced','Paid'].includes(scoop.financial_status)?scoop.financial_status:null) || scoop.status || TMS_REF.scoopStatus(scoop, scoopJobs) || 'Assign';
         const expense = scoopJobs.reduce((sum, job) => {
             const po = purchaseOrders.find(row => row.job_id === job.id && ['Issued','Acknowledged'].includes(row.status));
             return sum + Number(po?.total ?? job.supplier_amount ?? 0);
