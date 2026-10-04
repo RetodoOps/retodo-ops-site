@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "062",
-  "release": "Update 062 — Report selection, shared search and invoice revisions",
-  "source_baseline": "Update 061 / 4e7a7dc",
-  "built_on": "2026-09-30"
+  "build": "063",
+  "release": "Update 063 — Sales pilot, reviewed outreach and materials",
+  "source_baseline": "Update 062 / 0a79fe4",
+  "built_on": "2026-10-04"
 }

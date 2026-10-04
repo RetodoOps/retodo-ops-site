@@ -26,3 +26,9 @@
   for = "/*.js"
   [headers.values]
     Cache-Control = "no-cache, must-revalidate"
+
+[functions."sales-scheduler"]
+schedule = "*/5 * * * *"
+
+[functions."sales-worker-background"]
+background = true
