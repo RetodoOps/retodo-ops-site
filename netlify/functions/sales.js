@@ -2,6 +2,7 @@
 const {request,verifyUser,requireSameOrigin,jsonResponse,publicError}=require('./_shared/supabase');
 const worker=require('./_shared/sales-worker');
 const ai=require('./_shared/sales-ai');
+const {diagnostic}=require('./_shared/sales-diagnostics');
 
 exports.handler=async event=>{
   try {
@@ -44,5 +45,10 @@ exports.handler=async event=>{
       return jsonResponse(202,{id:job.id,state:job.state,wake_error});
     }
     return jsonResponse(400,{error:'Unknown Sales request'});
-  } catch(error) {return jsonResponse(error.status || 400,{error:publicError(error,'The Sales request could not be completed. Check configuration and try again')});}
+  } catch(error) {
+    // Render only reviewed, static connection messages; never return Google's
+    // raw error descriptions or weaken the shared operational error redactor.
+    const detail=diagnostic(error.salesConnectionCode);
+    return jsonResponse(error.status || 400,detail || {error:publicError(error,'The Sales request could not be completed. Check configuration and try again')});
+  }
 };

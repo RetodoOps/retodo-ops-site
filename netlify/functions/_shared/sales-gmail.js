@@ -1,5 +1,7 @@
 'use strict';
 
+const {connectionError}=require('./sales-diagnostics');
+
 // Intentionally separate from operational email. No default-sender mutation or fallback.
 const FROM = 'eli.s@retodo-ops.com';
 const NAME = 'Eli Stoyanova';
@@ -28,39 +30,64 @@ const address = value => {
 };
 
 async function accessToken() {
-  const client = process.env.GOOGLE_CLIENT_ID;
-  const secret = process.env.GOOGLE_CLIENT_SECRET;
-  const refresh = process.env.GOOGLE_REFRESH_TOKEN;
-  if (!client || !secret || !refresh) throw new Error('The Google mail connection is not configured');
-  const res = await fetch('https://oauth2.googleapis.com/token', {
+  const client = (process.env.GOOGLE_CLIENT_ID || '').trim();
+  const secret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+  const refresh = (process.env.GOOGLE_REFRESH_TOKEN || '').trim();
+  if (!client || !secret || !refresh) throw connectionError('GOOGLE_CONFIG_MISSING');
+  if ([client,secret,refresh].some(value=>/[\s{}"']/.test(value))) throw connectionError('GOOGLE_CONFIG_FORMAT');
+  const res = await googleFetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
     body: new URLSearchParams({client_id: client, client_secret: secret, refresh_token: refresh, grant_type: 'refresh_token'}),
     signal: AbortSignal.timeout(15000),
   });
-  const data = await res.json();
-  if (!res.ok || !data.access_token) throw new Error('Google mail authorization failed. Reconnect the mailbox with the required scopes');
+  const data = await googleJson(res,'GOOGLE_TOKEN_RESPONSE_INVALID');
+  if (!res.ok || typeof data?.access_token !== 'string' || !data.access_token) {
+    const errors={invalid_client:'GOOGLE_CLIENT_REJECTED',invalid_grant:'GOOGLE_REFRESH_REJECTED',unauthorized_client:'GOOGLE_CLIENT_NOT_ALLOWED',access_denied:'GOOGLE_POLICY_BLOCKED',admin_policy_enforced:'GOOGLE_POLICY_BLOCKED',invalid_request:'GOOGLE_TOKEN_REQUEST_INVALID'};
+    const code=typeof data?.error==='string' && Object.hasOwn(errors,data.error)?errors[data.error]:null;
+    throw connectionError(code || (res.status===429 || res.status>=500?'GOOGLE_TEMPORARILY_UNAVAILABLE':'GOOGLE_TOKEN_RESPONSE_INVALID'));
+  }
   return data.access_token;
 }
 
+async function googleFetch(url, options) {
+  try { return await fetch(url,options); }
+  catch(error) { throw connectionError(error?.name==='TimeoutError' || error?.name==='AbortError'?'GOOGLE_CONNECTION_TIMEOUT':'GOOGLE_CONNECTION_FAILED'); }
+}
+
+async function googleJson(response,fallback) {
+  try { return await response.json(); }
+  catch(error) {
+    if(error?.name==='TimeoutError' || error?.name==='AbortError')throw connectionError('GOOGLE_CONNECTION_TIMEOUT');
+    throw connectionError(response.status===429 || response.status>=500?'GOOGLE_TEMPORARILY_UNAVAILABLE':fallback);
+  }
+}
+
 async function request(token, path, body) {
-  const res = await fetch(`${API}${path}`, {
+  const res = await googleFetch(`${API}${path}`, {
     method: body === undefined ? 'GET' : 'POST',
     headers: {Authorization: `Bearer ${token}`, ...(body === undefined ? {} : {'Content-Type': 'application/json'})},
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),
     signal: AbortSignal.timeout(15000),
   });
-  if (!res.ok) throw new Error(`Sales Gmail request failed (HTTP ${res.status}). Check the mailbox connection and scopes`);
-  return res.json();
+  const data=await googleJson(res,'GMAIL_REQUEST_FAILED');
+  if (!res.ok) {
+    const reasons=[...(Array.isArray(data?.error?.errors)?data.error.errors:[]),...(Array.isArray(data?.error?.details)?data.error.details:[])].map(item=>item?.reason);
+    if(reasons.includes('accessNotConfigured') || reasons.includes('SERVICE_DISABLED'))throw connectionError('GMAIL_API_DISABLED');
+    if(reasons.includes('insufficientPermissions') || reasons.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT'))throw connectionError('GMAIL_PERMISSIONS_MISSING');
+    if(reasons.includes('domainPolicy'))throw connectionError('GOOGLE_POLICY_BLOCKED');
+    throw connectionError(res.status===401?'GMAIL_ACCESS_REJECTED':res.status===403?'GMAIL_API_FORBIDDEN':res.status===429 || res.status>=500?'GOOGLE_TEMPORARILY_UNAVAILABLE':'GMAIL_REQUEST_FAILED');
+  }
+  return data;
 }
 
 async function verifyMailbox(token) {
   const [profile, aliases] = await Promise.all([
     request(token, '/profile'), request(token, '/settings/sendAs'),
   ]);
-  const expected = (process.env.SALES_GMAIL_ACCOUNT_EMAIL || 'ops@retodo-ops.com').toLowerCase();
-  if (profile.emailAddress?.toLowerCase() !== expected) throw new Error('The connected Gmail account does not match the Sales mailbox');
+  const expected = (process.env.SALES_GMAIL_ACCOUNT_EMAIL || 'ops@retodo-ops.com').trim().toLowerCase();
+  if (profile.emailAddress?.toLowerCase() !== expected) throw connectionError('GOOGLE_MAILBOX_MISMATCH');
   const alias = aliases.sendAs?.find(a => a.sendAsEmail?.toLowerCase() === FROM);
-  if (!alias || alias.verificationStatus !== 'accepted') throw new Error('Eli’s Sales alias is missing or is not verified');
+  if (!alias || alias.verificationStatus !== 'accepted') throw connectionError('GOOGLE_ALIAS_UNVERIFIED');
   // Prove read access, including messages.list used for send reconciliation.
   await request(token, '/messages?maxResults=1&q=' + encodeURIComponent(`from:${FROM}`));
   return {account: profile.emailAddress, alias: FROM, reply_to: FROM};

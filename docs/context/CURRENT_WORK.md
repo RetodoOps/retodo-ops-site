@@ -1,12 +1,12 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
-Remote baseline: main `0a79fe42b30e02c31edc11329da42027a4d2ec8d` / Update 062
-Remote tree: `b592a056f927913f1acdf9b26110a7ec6730290f`
-Active local branch: `dev/update-063-sales`
-Delivery: Update 063 complete-file ZIP; ready for user installation
-Local build: 063. Production installation/acceptance: not yet verified.
-Last updated: 2026-10-04
+Remote baseline: main `9e2799c393861e18aef6e8196ff4ff8cb12e916a` / Update 063
+Remote tree: `8303615f874cdc1cec3cb179852d6dc249b9c73a`
+Active local branch: `dev/update-063-mailbox-diagnostics`
+Delivery: Update 063A mailbox-diagnostics complete-file ZIP
+Local build: 063. User is testing Sales; live mailbox authorization remains blocked.
+Last updated: 2026-10-05
 
 ## USER WORKFLOW — LOCKED
 
@@ -14,7 +14,16 @@ Last updated: 2026-10-04
 - Do not push, merge, create PRs, deploy, run production SQL or change production configuration/data. Local task-branch commits are allowed.
 - Include CURRENT_WORK.md with each package. Preserve RLS and least privilege. Migrations are forward-only; do not reconstruct absent historical migrations or commit private material.
 - Git transport was unavailable. All 244 baseline files were fetched at the pinned remote commit and verified against their Git blob hashes. Local snapshot root `3e8e5ed` is not remote Git history. Never push this reconstructed branch.
-- Main was rechecked read-only on 2026-10-04 and remained at the baseline above. Update 062 code is present; its production migration/acceptance has not been verified and no failure was reported.
+- Main was rechecked read-only on 2026-10-05 at the Update 063 commit above. The affected Sales files and CURRENT_WORK matched the delivered local Update 063 checkpoint `e8db129`. No remote writes were performed.
+
+## CURRENT TASK — UPDATE 063A MAILBOX DIAGNOSTICS
+
+- The user saved Sales setup, company facts and the target brief, but Check mailbox connection returns the generic Sales error. Today → Automation showed “Google mail authorization failed. Reconnect the mailbox with the required scopes”, placing the reported failure at the access-token exchange before account/alias checks.
+- The user used the existing OAuth web client and OAuth Playground redirect, authorized send/read scopes, exchanged an authorization code and saved a refresh token in Netlify. The exact deployed values and authenticated primary mailbox have not been independently verified. Repeating Exchange returned Bad request; authorization codes are single-use, so that repeat is not a refresh-token test.
+- The Gmail helper previously discarded Google's specific OAuth code; the general redactor then hid its authorization message. New Sales-only, allowlisted diagnostics identify token/client/configuration/API/scope/account/alias failures without returning raw provider descriptions, response bodies or secret values. Surrounding configuration whitespace is trimmed; quoted/JSON/internal-whitespace values are rejected before contacting Google.
+- Changed code: `netlify/functions/_shared/sales-gmail.js`, `netlify/functions/sales.js`; new helper: `netlify/functions/_shared/sales-diagnostics.js`. Existing frontend displays the returned message; no frontend/cache/build change or migration is needed. General Gmail, supplier PO, shared redaction and sender settings are unchanged.
+- PASS: 13 new end-to-end mocked diagnostic cases, 14 service cases and 5 worker/API cases (32 total); JavaScript syntax, whitespace and unchanged operational-helper checks. No live OAuth, mail, paid AI, production configuration or deployment was performed for this fix.
+- Deliver six complete changed files in `RetodoOps_Update_063A_Mailbox_Diagnostics.zip`, including the focused test, `docs/sales/UPDATE_063A_MAILBOX_DIAGNOSTICS.md` and this context. This is a diagnostics fix; do not claim the live token or connection is repaired.
 
 ## UPDATE 063 — AGREED SCOPE
 
@@ -45,7 +54,7 @@ Every Sales From and Reply-To is Eli Stoyanova `<eli.s@retodo-ops.com>`. The use
 
 ## NEXT EXACT ACTION
 
-The user installs the complete Update 063 ZIP using `docs/sales/UPDATE_063_INSTALL_AND_TEST.md`: confirm installed 062/056, run migration 057, require all audit 017 checks PASS, upload/commit the complete files and configure server-side connections. Run the controlled-address acceptance pilot before real outreach. Both sending and scheduled research install disabled.
+The user uploads/commits the six complete Update 063A files and waits for the matching production Netlify deployment, following `docs/sales/UPDATE_063A_MAILBOX_DIAGNOSTICS.md`. No SQL or new token is required solely for this hotfix. Rerun Sales → Settings → Check mailbox connection and obtain the new safe `[CODE]` message before proposing another OAuth change. If successful, continue the controlled-address pilot in `docs/sales/UPDATE_063_INSTALL_AND_TEST.md` before real outreach. Do not repeat the original migration or reset saved Sales settings as part of this diagnostic update.
 
 Gmail requires send plus read access; the actual primary account may differ from both From aliases. Set `SALES_GMAIL_ACCOUNT_EMAIL` to that account. Do not redo the alias or change the general sender. Configure a random worker secret; configure optional AI credentials, reviewed prices and a conservative currency/tax allowance. No secrets belong in chat or source.
 
