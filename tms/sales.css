@@ -82,6 +82,16 @@
 .sales-material-preview { padding:26px;background:#fbf9ff;border:1px solid #e5dcef;border-radius:8px;margin:18px 0; }
 .sales-material-preview h3 { font-size:22px;color:#4d2a70; }
 .sales-material-preview p { font-size:15px;line-height:1.8; }
+.sales-signature-fields { margin-top:18px; }
+.sales-signature-preview,.sales-pre.sales-email-preview { padding:18px;background:#fff;border:1px solid #e6e0ec;border-radius:8px;white-space:normal;overflow-wrap:anywhere; }
+.sales-signature-preview { margin:10px 0 16px; }
+.sales-signature-preview table,.sales-email-preview table { font:inherit; }
+.sales-signature-preview td,.sales-email-preview td { border:0;background:transparent; }
+.sales-signature-error { color:#a13143;font-size:12px;margin:8px 0; }
+.sales-signature-error:empty { display:none; }
+.sales-signature-choice { margin-top:14px;min-width:0; }
+.sales-compose-preview { margin-top:12px; }
+.sales-compose-preview summary { cursor:pointer;color:#7344a3;font-size:13px; }
 @media(max-width:1100px) { .sales-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }.sales-grid { grid-template-columns:1fr; } }
 @media(max-width:640px) { #salesView { padding:0 14px 24px; }.sales-main>.sales-identity,.sales-main>.sales-tabs,.sales-main>.sales-notice { margin-left:14px;margin-right:14px; }.sales-fields { grid-template-columns:1fr; }.sales-stats { gap:8px; }.sales-stat { padding:12px; }.sales-stat strong { font-size:24px; }.sales-dialog-body { padding:16px; }.sales-dialog-head,.sales-dialog-footer { padding:14px 16px; }.sales-identity { padding:12px; }.sales-tabs button { padding:12px; }.sales-card { padding:17px; } }
 @media print { .sidebar,.quick-nav,.sales-tabs,.sales-actions,.sales-dialog-footer { display:none!important; } }

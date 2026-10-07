@@ -62,7 +62,7 @@ function prepare(kind, payload, settings) {
     clean.prospect = payload.prospect || null;
     clean.contact = payload.contact || null;
     clean.task = kind==='draft'
-      ? 'Write a short personalized first email and two distinct follow-ups, all sharing one subject. Sign Eli Stoyanova, Retodo Ops. Include a simple reply-to-opt-out sentence. Do not claim prior contact or knowledge not in the supplied facts. Also draft a short manual LinkedIn connection note.'
+      ? 'Write a short personalized first email and two distinct follow-ups, all sharing one subject. Write the email body only: no closing, sender name, signature, logo, website footer or confidentiality note; the Sales signature is added separately before review. Include a simple reply-to-opt-out sentence in the body. Do not claim prior contact or knowledge not in the supplied facts. Also draft a short manual LinkedIn connection note.'
       : 'Create an editable Sales capability presentation as Markdown: 5 to 7 sections, each beginning with ## and containing 2 to 4 concise bullet lines. Start with a clear title, then prospect needs, relevant verified capabilities, suggested collaboration process, and a call to action. Use only approved facts; avoid internal notes or implementation details. Each section must fit one slide. Include Eli Stoyanova and eli.s@retodo-ops.com as contact.';
   }
   if (JSON.stringify(clean).length>22000) throw new Error('The task context is too long');
