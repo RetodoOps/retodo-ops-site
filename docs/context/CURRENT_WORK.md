@@ -4,9 +4,9 @@ Repository: RetodoOps/retodo-ops-site
 Remote baseline / starting HEAD: main `75b4b54e2f30fc010cd09dadb4f183c460e62255`
 Remote tree: `84ddb375f3aa4c424cb0b9d7ce6537c7b6199000`
 Active local branch: `dev/update-064-sales-signature`
-Latest durable checkpoint commit: main `75b4b54`; signature task checkpoint is being saved on the non-main task branch.
+Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this file’s containing checkpoint); implementation commit `bcb34e2f58504d00931304bedff11d942c3cf20b`, parent main `75b4b54`.
 Delivery: `RetodoOps_Update_064_Sales_Signature.zip` — complete changed files
-Local build: 064. Signature implementation/tests complete; user installation and received-email signature check pending.
+Build: 064. Status: READY FOR USER INSTALLATION. Signature implementation, tests and review are complete; production installation and received-email signature check are pending.
 Last updated: 2026-10-07
 
 ## USER WORKFLOW — LOCKED
@@ -55,9 +55,9 @@ DELIVERY:
 - PASS: Chromium fixture workflow for settings/live preview/save, per-email inclusion, complete batch previews, captured vs current signature, edit choices, reply payload, mobile, XSS and prior navigation/materials/attachment flows. Desktop/mobile screenshots inspected.
 - Real worker + actual SQL uses intercepted Gmail: one send, thread polling, reply import and follow-up cancellation without duplicates. This now exercises HTML/signature MIME too.
 - SQL replay uses PGlite with Supabase platform stubs, available schema through 038 (explicit unrelated missing-037 audit-writer stub) and relevant 050/053/054/055/056/057/058/059. No full historical replay is claimed.
-- No live email, paid AI, production SQL or deployment was performed. Only the authorized non-main checkpoint is being saved. Recipient Gmail/Outlook signature rendering is still a user acceptance check.
+- No live email, paid AI, production SQL or deployment was performed. The authorized non-main implementation checkpoint is saved at `bcb34e2`. Recipient Gmail/Outlook signature rendering is still a user acceptance check.
 
-RESUME CHECKPOINT (2026-10-07): recovered the completed implementation and reference image; re-ran all 38 service/MIME tests and 44 SQL workflow checks plus 54 audit rows, all PASS. Inspected desktop Settings/batch previews. No feature rewrite was required. The standalone preview was rendered and inspected; final archive and non-main remote checkpoint are in progress. All 260 unchanged main blobs were hash-verified against current main 75b4b54.
+RESUME CHECKPOINT (2026-10-07): recovered the completed implementation and reference image; re-ran all 38 service/MIME tests and 44 SQL workflow checks plus 54 audit rows, all PASS. Inspected desktop Settings/batch previews. No feature rewrite was required. The standalone preview was rendered and inspected. The non-main checkpoint is saved; the final ZIP contains the same 17 complete signature files. All 260 unchanged main blobs were hash-verified against current main 75b4b54.
 
 ## CHANGED FILES
 
