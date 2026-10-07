@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:child_process');
 const signature=require('../tms/sales-signature'),gmail=require('../netlify/functions/_shared/sales-gmail'),ai=require('../netlify/functions/_shared/sales-ai');
 const id='00000000-0000-0000-0000-000000000064';
-const message={id,subject:'Partnership — Здравейте',body:'Hello Alex,\n\nReviewed <wording> & Unicode: å ø æ.',rfc_id:`<sales.${id}@retodo-ops.com>`,attachments:[],signature:{...signature.DEFAULTS}};
+const message={id,subject:'Partnership — Здравейте',body:'Hello Alex,\n\nReviewed <wording> & Unicode: å ø æ.',rfc_id:`<sales.${id}@retodo-ops.com>`,attachments:[],signature:{...signature.LEGACY_DEFAULTS}};
 const conversation={recipient:'alex@example.invalid',sender:'eli.s@retodo-ops.com',reply_to:'eli.s@retodo-ops.com'};
 function parse(message,convo=conversation,reference){
  const raw=Buffer.from(gmail.buildMime(message,convo,reference),'base64url');
@@ -17,9 +17,9 @@ print(json.dumps({'headers':dict(m.items()),'message':part(m)}))`],{input:raw,ma
 }
 const leaves=p=>p.parts?p.parts.flatMap(leaves):[p];
 test('Rendered signature has the requested text, smaller original logo and direct links without an address',()=>{
- const html=signature.html(signature.DEFAULTS),text=signature.text(signature.DEFAULTS);
+ const html=signature.html(signature.LEGACY_DEFAULTS),text=signature.text(signature.LEGACY_DEFAULTS);
  assert.match(html,/width="110" height="35"/);assert.match(html,/Best Regards,/);assert.match(html,/Eli Stoyanova/);assert.match(html,/href="https:\/\/retodo-ops.com\/"/);assert.match(html,/href="https:\/\/www.linkedin.com\/in\/eli-stoyanova-667831410\/"/);
- assert.ok(signature.DEFAULTS.confidentiality.split(' ').length<=25);assert.doesNotMatch(text,/address|Norway|Bulgaria|Sofia/i);
+ assert.ok(signature.LEGACY_DEFAULTS.confidentiality.split(' ').length<=25);assert.doesNotMatch(text,/address|Norway|Bulgaria|Sofia/i);
  assert.deepEqual(Buffer.from(signature.LOGO_BASE64,'base64'),fs.readFileSync(path.join(__dirname,'../tms/Logo-440x140.png')));
 });
 test('HTML and plain text contain the same captured signature; MIME embeds the exact logo inline and keeps attachments separate',()=>{
@@ -37,17 +37,17 @@ test('Legacy and opted-out messages retain the original body and do not acquire 
  for(const sig of [undefined,{},null]){const parts=leaves(parse({...message,signature:sig}).message);assert.equal(parts.length,1);assert.equal(parts[0].type,'text/plain');assert.equal(parts[0].text.replace(/\r\n/g,'\n'),message.body);}
 });
 test('Signature without a logo or LinkedIn still has valid alternative MIME and working website text',()=>{
- const sig={...signature.DEFAULTS,show_logo:false,linkedin_url:'',confidentiality:''};
+ const sig={...signature.LEGACY_DEFAULTS,show_logo:false,linkedin_url:'',confidentiality:''};
  const parsed=parse({...message,signature:sig}),parts=leaves(parsed.message);
  assert.deepEqual(parts.map(p=>p.type),['text/plain','text/html']);assert.doesNotMatch(parts[1].text,/<img|LinkedIn|confidential/);assert.match(parts[0].text,/https:\/\/retodo-ops.com\//);
 });
 test('Signature text is escaped and unsafe links, raw HTML fields, control characters and unknown renderer versions fail closed',()=>{
- const html=signature.html({...signature.DEFAULTS,position:'<img src=x onerror=alert(1)> & Sales'});
+ const html=signature.html({...signature.LEGACY_DEFAULTS,position:'<img src=x onerror=alert(1)> & Sales'});
  assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt; &amp; Sales/);assert.doesNotMatch(html,/<img src=x/);
- for(const change of [{website_url:'javascript:alert(1)'},{website_url:'https://retodo-ops.com@evil.invalid/'},{linkedin_url:'https://linkedin.com.evil.invalid/in/eli/'},{linkedin_url:'https://www.linkedin.com/in/eli/" onmouseover="x'},{closing:'Hello\r\nBcc: bad'},{name:null},{version:2},{show_logo:'true'},{html:'<script>alert(1)</script>'},{position:'x'.repeat(161)}])assert.throws(()=>gmail.buildMime({...message,signature:{...signature.DEFAULTS,...change}},conversation));
+ for(const change of [{website_url:'javascript:alert(1)'},{website_url:'https://retodo-ops.com@evil.invalid/'},{linkedin_url:'https://linkedin.com.evil.invalid/in/eli/'},{linkedin_url:'https://www.linkedin.com/in/eli/" onmouseover="x'},{closing:'Hello\r\nBcc: bad'},{name:null},{version:3},{show_logo:'true'},{html:'<script>alert(1)</script>'},{position:'x'.repeat(161)}])assert.throws(()=>gmail.buildMime({...message,signature:{...signature.LEGACY_DEFAULTS,...change}},conversation));
 });
 test('Current settings cannot silently change a captured signature; AI drafts request body-only text with opt-out retained',()=>{
- const captured={...signature.DEFAULTS,position:'Previously approved role'};
+ const captured={...signature.LEGACY_DEFAULTS,position:'Previously approved role'};
  const html=signature.messageHtml(message.body,captured);assert.match(html,/Previously approved role/);assert.doesNotMatch(html,/Business Development/);
  const task=ai.prepare('draft',{}, {approved_facts:'Verified services'}).task;
  assert.match(task,/no closing, sender name, signature/);assert.match(task,/reply-to-opt-out sentence in the body/);

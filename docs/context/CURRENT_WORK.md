@@ -4,9 +4,9 @@ Repository: RetodoOps/retodo-ops-site
 Remote baseline / starting HEAD: main `75b4b54e2f30fc010cd09dadb4f183c460e62255`
 Remote tree: `84ddb375f3aa4c424cb0b9d7ce6537c7b6199000`
 Active local branch: `dev/update-064-sales-signature`
-Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this file’s containing checkpoint); implementation commit `bcb34e2f58504d00931304bedff11d942c3cf20b`, parent main `75b4b54`.
-Delivery: `RetodoOps_Update_064_Sales_Signature.zip` — complete changed files
-Build: 064. Status: READY FOR USER INSTALLATION. Signature implementation, tests and review are complete; production installation and received-email signature check are pending.
+Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this 064A correction checkpoint); implementation parent checkpoint `bcb34e2f58504d00931304bedff11d942c3cf20b`, parent main `75b4b54`.
+Delivery: `RetodoOps_Update_064A_Sales_Signature_Correct_Assets.zip` — complete changed files
+Build: 064A. Status: READY FOR USER INSTALLATION — supplied brand assets integrated; verification and corrected package complete. Starting remote task HEAD: ebeabb245373fc3bd41e8281e5168e631518d993; local starting HEAD: 594d39bfc2b5bca731f0f903936ff695247285ac. Main remains 75b4b54.
 Last updated: 2026-10-07
 
 ## USER WORKFLOW — LOCKED
@@ -18,7 +18,11 @@ Last updated: 2026-10-07
 - Local Git was reconstructed from 244 hash-verified Update 062 blobs; snapshot root `3e8e5ed` is not remote history. Never push that reconstructed history. Save the task branch using the canonical remote parent/tree and only the reviewed signature file overlay.
 - Main advanced to `75b4b54` (063C enquiry UX/baseline repair) while signature work was in progress. Restored hash-verified `contact.html`, `script.js` and `UPDATE_063C_MANUAL_UPLOAD.md`; integrated current build/context metadata. Preserve the corrected short-details message and working anti-spam code. Resumed local HEAD was `f69cb1f`.
 
-## CURRENT TASK — UPDATE 064 SALES SIGNATURE
+## CURRENT TASK — UPDATE 064A SALES SIGNATURE BRAND CORRECTION
+
+LATEST USER CORRECTION: the previously supplied teal repository logo is not the correct asset. Use https://drive.google.com/drive/folders/1mclWAmQ8SckGcPpJmmVevWXQaPxyOUG_ instead. Retrieved and inspected the multicolour 600×600 network logo and company cover in 01 Brand assets. Logo file id: 1DRLqtJZ4tSKqBIDd98LSECaSY3C9XU8v; SHA-256 747a6f6ef984b726bb5efa86737e513dc76b16296453099d28b090fc47cc4890. The supplied bytes are unchanged and displayed at 48×48 beside the company name. Matching navy/blue styling replaces teal for renderer 2.
+
+APPROACH SELECTED / IMPLEMENTED: preserve renderer 1 exactly for existing saved/approved/sent messages, add renderer 2 with supplied assets, and create forward-only migration 060. The migration upgrades the current template version while retaining custom text and inclusion/logo toggles. It does not rewrite message/approval snapshots. New tabs can review both versions; old tabs cannot approve an unseen renderer 2 signature. Source assets in Drive are unchanged. The earlier Update 064 download is superseded by the complete 064A package (21 files); do not install the old package as the final version.
 
 USER REQUEST: create Eli’s signature, then add the Sales option. Include “Best Regards,” name, position, company logo smaller than the attached example, website link, LinkedIn shortcut and a shorter confidentiality note. No address/location. The attachment was recovered and used as a layout reference.
 
@@ -26,7 +30,7 @@ USER REQUEST: create Eli’s signature, then add the Sales option. Include “Be
 - Position: Business Development & Client Relations Coordinator. This is from an earlier assistant signature draft, not a newly confirmed official title. The Settings field is editable.
 - Website: https://retodo-ops.com/
 - LinkedIn: https://www.linkedin.com/in/eli-stoyanova-667831410/ — the user’s previously supplied Eli profile. A proposed custom LinkedIn slug was never confirmed and is not used. No company LinkedIn URL was verified.
-- Logo: unchanged existing PNG bytes, displayed at 110 × 35 px. The linked logo and text website link point to the same site. LinkedIn is a readable text shortcut.
+- Current logo: supplied multicolour PNG, unchanged bytes, displayed at 48 × 48 px. The earlier teal 110 × 35 logo is retained ONLY inside the frozen renderer 1 for saved message history. All new templates use renderer 2.
 - Note: “This email and any attachments are confidential. If received in error, please notify the sender and delete them.”
 - No postal address or geographical claim appears.
 
@@ -36,32 +40,32 @@ IMPLEMENTED:
 - Each saved draft captures a structured, versioned signature. Batch review and conversation history display that captured copy. Settings changes do not alter existing draft/approved/sent messages.
 - Edit draft → Signature offers keep saved, use current or no signature. Existing edit/version guards revoke approvals. New-signature approvals require the preview version marker, so a stale older tab must refresh before approving unseen content.
 - Forward-only migration `059_sales_email_signatures.sql` adds settings/message columns and strict validators, updates the existing admin command, and retains migration 058’s corrected server worker while adding a signature-versus-approval check immediately before sending.
-- `tms/sales-signature.js` is the shared version 1 renderer with the original logo embedded. Both browser preview and Sales MIME use it. Keep version 1 rendering and assets stable in later work; introduce a new renderer version when changing the reviewed layout.
+- `tms/sales-signature.js` is the shared versioned renderer. Renderer 1 with the earlier logo remains frozen for already saved/approved/sent messages; renderer 2 embeds the supplied Drive logo and is the current template. Both browser preview and Sales MIME use the same renderer. Keep both versions stable in later work; introduce a new renderer version when changing a reviewed layout.
 - MIME contains HTML/plain-text alternatives, with the logo embedded inline by Content-ID and user attachments kept separate. Legacy messages without a captured signature keep their original body. No external tracking image or remote logo fetch.
 - Signature text is escaped, links are restricted to HTTPS website and LinkedIn profile/company URLs, and raw HTML is not configurable.
-- Build 064 and Sales asset cache references updated. Operational Gmail, supplier PO, general sender, finance modules and the public enquiry anti-spam implementation are unchanged.
+- Build 064A and Sales asset cache references updated. Operational Gmail, supplier PO, general sender, finance modules and the public enquiry anti-spam implementation are unchanged.
 
 DELIVERY:
-- 17 complete files in the ZIP, enumerated in `UPDATE_064_MANUAL_UPLOAD.md`.
+- 21 complete files in the ZIP, enumerated in `UPDATE_064_MANUAL_UPLOAD.md`.
 - Standalone self-contained signature preview: `docs/sales/Eli_Stoyanova_Sales_Signature.html`.
-- Read-only signature audit: `tms/audits/019_update_064_sales_signature_audit.sql` (12 PASS rows).
+- Read-only audits: `tms/audits/019_update_064_sales_signature_audit.sql` (12 PASS rows) and `tms/audits/020_update_064a_sales_brand_assets_audit.sql` (9 PASS rows).
 - Nothing has been deployed or applied to production by the assistant.
 
 ## VERIFIED IN THIS UPDATE
 
-- PASS: 44 actual SQL workflow checks (35 previous + 9 signature cases). Covers migration preservation, strict settings/role boundaries, new/per-message signature capture, immutable approval snapshots, template changes, edits requiring reapproval, replies, stale frontend rejection, legacy approval compatibility, mismatched signature rejection and reapplication.
-- PASS: 31 base Sales + 11 worker correction + 12 signature audit checks.
-- PASS: 38 service/worker/diagnostic tests (32 existing + 6 signature/MIME tests). Independent Python email parser verifies MIME nesting, decoded text/logo/attachment bytes, Unicode, thread headers, safe content and legacy behavior.
-- PASS: Chromium fixture workflow for settings/live preview/save, per-email inclusion, complete batch previews, captured vs current signature, edit choices, reply payload, mobile, XSS and prior navigation/materials/attachment flows. Desktop/mobile screenshots inspected.
+- PASS: 49 actual SQL workflow checks (35 previous + 9 signature + 5 supplied-brand-asset cases). Covers migration preservation, strict settings/role boundaries, new/per-message signature capture, immutable approval snapshots, renderer-version approval, edits requiring reapproval, replies, stale frontend rejection, legacy compatibility, mismatched signature rejection and reapplication.
+- PASS: 31 base Sales + 11 worker correction + 12 signature + 9 supplied-brand-asset audit checks.
+- PASS: 41 service/worker/diagnostic tests (32 existing + 6 signature/MIME + 3 supplied-brand-asset tests). Independent Python email parser verifies MIME nesting, decoded text/logo/attachment bytes, Unicode, thread headers, safe content, exact supplied-logo bytes and legacy behavior.
+- PASS: Chromium fixture workflow for settings/live preview/save with supplied logo, per-email inclusion, complete batch previews, captured vs current signature, edit choices, reply payload, mobile, XSS and prior navigation/materials/attachment flows. Desktop/mobile screenshots inspected.
 - Real worker + actual SQL uses intercepted Gmail: one send, thread polling, reply import and follow-up cancellation without duplicates. This now exercises HTML/signature MIME too.
-- SQL replay uses PGlite with Supabase platform stubs, available schema through 038 (explicit unrelated missing-037 audit-writer stub) and relevant 050/053/054/055/056/057/058/059. No full historical replay is claimed.
-- No live email, paid AI, production SQL or deployment was performed. The authorized non-main implementation checkpoint is saved at `bcb34e2`. Recipient Gmail/Outlook signature rendering is still a user acceptance check.
+- SQL replay uses PGlite with Supabase platform stubs, available schema through 038 (explicit unrelated missing-037 audit-writer stub) and relevant 050/053/054/055/056/057/058/059/060. No full historical replay is claimed.
+- No live email, paid AI, production SQL or deployment was performed. The authorized non-main implementation checkpoint is saved at `ebeabb2`. Recipient Gmail/Outlook signature rendering is still a user acceptance check.
 
-RESUME CHECKPOINT (2026-10-07): recovered the completed implementation and reference image; re-ran all 38 service/MIME tests and 44 SQL workflow checks plus 54 audit rows, all PASS. Inspected desktop Settings/batch previews. No feature rewrite was required. The standalone preview was rendered and inspected. The non-main checkpoint is saved; the final ZIP contains the same 17 complete signature files. All 260 unchanged main blobs were hash-verified against current main 75b4b54.
+RESUME CHECKPOINT (2026-10-07): retrieved and inspected the supplied Drive brand assets; integrated the exact 600×600 logo into renderer 2; re-ran all 41 service/MIME tests, 49 SQL workflow checks and 63 audit rows, all PASS. Browser fixture workflow passed with the corrected compact logo and current approval marker. The standalone preview was rendered and inspected. The non-main checkpoint is saved; the final ZIP contains 21 complete files. All 260 unchanged main blobs were hash-verified against current main 75b4b54.
 
 ## CHANGED FILES
 
-The 17 complete signature files are enumerated in `UPDATE_064_MANUAL_UPLOAD.md`. The three 063C files restored from main are baseline preservation only and are not part of the signature overlay.
+The 21 complete 064A files are enumerated in `UPDATE_064_MANUAL_UPLOAD.md`. The three 063C files restored from main are baseline preservation only and are included where required to preserve the current main tree.
 
 ## REQUIRED CONTEXT
 
@@ -75,8 +79,8 @@ Do not recreate the signature implementation or repeat completed tests without a
 
 Follow `UPDATE_064_MANUAL_UPLOAD.md`:
 1. Sales → Settings → Outreach: clear Allow approved messages to send and save.
-2. Run the complete new migration 059 in Supabase SQL Editor, then audit 019 (12 PASS rows). Do not rerun older 057/058 afterward.
-3. Upload/commit all 17 complete files through the user-controlled workflow; after the normal deployment, hard-refresh Sales.
+2. Run migration 059 only if not already installed, then migration 060. Run audit 019 (12 PASS rows) and audit 020 (9 PASS rows). Do not rerun older migrations afterward.
+3. Upload/commit all 21 complete files through the user-controlled workflow; after the normal deployment, hard-refresh Sales.
 4. Open Settings → Eli’s email signature, review the editable title/links and Save signature.
 5. Use Draft reply in the existing conversation with the controlled test address, preview and approve that one message, enable sending and Check now. Verify the received signature and links. Return sending to the desired pilot state.
 

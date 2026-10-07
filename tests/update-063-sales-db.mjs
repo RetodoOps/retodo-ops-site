@@ -273,6 +273,8 @@ await check('Migration 058 reapplication preserves every Sales row, including ap
 });
 const {signatureChecks}=await import('./update-064-sales-signature-db.mjs');
 await signatureChecks({db,read,check,cmd,sys,rpc,workspace,privileged,make,detail});
+const {brandAssetChecks}=await import('./update-064a-sales-brand-assets-db.mjs');
+await brandAssetChecks({db,read,check,cmd,sys,workspace,privileged,make,detail});
 await check('Real worker plus real SQL sends once, polls the thread, records a reply and cancels follow-ups',async()=>{
  const {runWorker}=createRequire(import.meta.url)('../netlify/functions/_shared/sales-worker');
  const env={SUPABASE_URL:'https://sales-db-test.invalid',SUPABASE_SERVICE_ROLE_KEY:'fixture-service',GOOGLE_CLIENT_ID:'fixture-client.apps.googleusercontent.com',GOOGLE_CLIENT_SECRET:'fixture-google',GOOGLE_REFRESH_TOKEN:'fixture-refresh',SALES_GMAIL_ACCOUNT_EMAIL:'mailbox@example.invalid'};
@@ -283,7 +285,7 @@ await check('Real worker plus real SQL sends once, polls the thread, records a r
  try {
   await privileged("UPDATE sales_conversations SET state='closed';UPDATE sales_settings SET sending_enabled=true,research_enabled=false;UPDATE sales_runtime SET lease_until=now()-interval '1 minute',worker_error='previous polling failure'");
   const fixture=await make(),before=await detail(fixture.c),initial=before.messages.find(m=>m.kind==='initial'),follow=before.messages.find(m=>m.kind==='followup');
-  await cmd('approve',{signature_preview_version:1,messages:[initial,follow].map(m=>({id:m.id,version:m.version}))});
+  await cmd('approve',{signature_preview_version:2,messages:[initial,follow].map(m=>({id:m.id,version:m.version}))});
   Object.assign(process.env,env);
   const response=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
   global.fetch=async(url,options={})=>{
@@ -304,7 +306,7 @@ await check('Real worker plus real SQL sends once, polls the thread, records a r
     const body=JSON.parse(options.body),mime=Buffer.from(body.raw,'base64url').toString('utf8');
     const from=mime.match(/^From: (.+)\r?$/m)[1].trim().replace(/=\?UTF-8\?B\?([^?]+)\?=/gi,(_,value)=>Buffer.from(value,'base64').toString('utf8'));
     assert.equal(from,'Eli Stoyanova <eli.s@retodo-ops.com>');assert.match(mime,/Reply-To: eli\.s@retodo-ops\.com/);
-    assert.match(mime,/Content-Type: text\/html/);assert.match(mime,/Content-ID: <retodo-logo-v1@retodo-ops.com>/);assert.equal(initial.signature.closing,'Best Regards,');
+    assert.match(mime,/Content-Type: text\/html/);assert.match(mime,/Content-ID: <retodo-logo-v2@retodo-ops.com>/);assert.equal(initial.signature.closing,'Best Regards,');
     const rfc=mime.match(/^Message-ID: (.+)\r?$/m)[1].trim();
     sentMessage={id:'integration-sent',labelIds:['SENT'],internalDate:String(Date.now()),payload:{mimeType:'text/plain',headers:[{name:'From',value:'eli.s@retodo-ops.com'},{name:'To',value:before.conversations[0].recipient},{name:'Subject',value:initial.subject},{name:'Message-ID',value:rfc}],body:{data:Buffer.from(initial.body).toString('base64url')}}};
     return response({id:sentMessage.id,threadId:'integration-thread'});
@@ -345,5 +347,8 @@ console.log(`PASS Sales worker correction audit: ${workerAudit.rows.length} chec
 const signatureAudit=await db.query(read('tms/audits/019_update_064_sales_signature_audit.sql'));
 assert.ok(signatureAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(signatureAudit.rows.filter(r=>r.result!=='PASS')));
 console.log(`PASS Sales signature audit: ${signatureAudit.rows.length} checks`);
+const brandAudit=await db.query(read('tms/audits/020_update_064a_sales_brand_assets_audit.sql'));
+assert.ok(brandAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(brandAudit.rows.filter(r=>r.result!=='PASS')));
+console.log(`PASS Sales brand assets audit: ${brandAudit.rows.length} checks`);
 console.log(`${passed} Sales database checks passed`);
 }catch(e){console.error(e.message);console.error(e.where,e.internalQuery,e.position);process.exitCode=1;}finally{await db.close();}

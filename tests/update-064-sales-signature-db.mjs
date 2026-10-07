@@ -13,11 +13,11 @@ export async function signatureChecks({db,read,check,cmd,sys,rpc,workspace,privi
  await check('064 migration preserves existing content, approval snapshots and sender/settings; legacy messages have no signature',async()=>{
   const before=await snapshot();await privileged(read('tms/migrations/059_sales_email_signatures.sql'));const after=await snapshot();
   const clean=structuredClone(after);for(const {row}of clean.sales_messages){assert.deepEqual(row.signature,{});delete row.signature;}
-  for(const {row}of clean.sales_settings){assert.equal(row.signature_enabled,true);assert.deepEqual(row.email_signature,signature.DEFAULTS);delete row.signature_enabled;delete row.email_signature;}
+  for(const {row}of clean.sales_settings){assert.equal(row.signature_enabled,true);assert.deepEqual(row.email_signature,signature.LEGACY_DEFAULTS);delete row.signature_enabled;delete row.email_signature;}
   assert.deepEqual(clean,before);
  });
  const saveSettings=async patch=>cmd('settings',{...(await workspace()).settings,...patch,sending_enabled:false});
- const defaults={...signature.DEFAULTS};
+ const defaults={...signature.LEGACY_DEFAULTS};
  await check('064 signature settings validate URLs, shape and text, retain fixed identity and deny direct browser writes',async()=>{
   for(const change of [{website_url:'javascript:alert(1)'},{website_url:'https://retodo-ops.com@evil.invalid/'},{linkedin_url:'https://linkedin.com.evil.invalid/in/eli/'},{name:null},{version:2},{closing:'Hi\nBcc: evil'},{confidentiality:null},{position:'x'.repeat(161)},{show_logo:'yes'},{html:'<script>x</script>'}])await assert.rejects(saveSettings({email_signature:{...defaults,...change}}),/Invalid Sales signature/);
   await assert.rejects(saveSettings({email_signature:{}}),/Invalid Sales signature/);

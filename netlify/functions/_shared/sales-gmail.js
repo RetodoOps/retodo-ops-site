@@ -126,11 +126,11 @@ function buildMime(message, conversation, reference) {
   }
   lines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`, '', `--${boundary}`);
   if(sig){
-    const alternative=boundary+'_alt',related=boundary+'_related',logoId='retodo-logo-v1@retodo-ops.com';
+    const alternative=boundary+'_alt',related=boundary+'_related',logoAsset=signature.logoAsset(sig),logoId=logoAsset.contentId;
     lines.push(`Content-Type: multipart/alternative; boundary="${alternative}"`, '', `--${alternative}`, 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', folded(signature.messageText(message.body,sig).replace(/\r?\n/g,'\r\n')), `--${alternative}`);
     if(sig.show_logo)lines.push(`Content-Type: multipart/related; boundary="${related}"; type="text/html"`, '', `--${related}`);
     lines.push('Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', folded('<!doctype html><html><body>'+signature.messageHtml(message.body,sig,{logoSrc:'cid:'+logoId})+'</body></html>'));
-    if(sig.show_logo)lines.push(`--${related}`, 'Content-Type: image/png; name="retodo-ops.png"', `Content-ID: <${logoId}>`, 'Content-Disposition: inline; filename="retodo-ops.png"', 'Content-Transfer-Encoding: base64', '', folded(Buffer.from(signature.LOGO_BASE64,'base64')), `--${related}--`);
+    if(sig.show_logo)lines.push(`--${related}`, 'Content-Type: image/png; name="retodo-ops.png"', `Content-ID: <${logoId}>`, 'Content-Disposition: inline; filename="retodo-ops.png"', 'Content-Transfer-Encoding: base64', '', folded(Buffer.from(logoAsset.base64,'base64')), `--${related}--`);
     lines.push(`--${alternative}--`);
   }else{
     // Existing messages keep their originally reviewed body, with no retrofit.

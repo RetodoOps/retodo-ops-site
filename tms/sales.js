@@ -130,7 +130,7 @@ function salesEditMessage(id){
 function salesReviewBatch(){
  const rows=[...SALES.selected.values()];if(!rows.length)throw new Error('Select the drafts you want to review');if(rows.length>50)throw new Error('Review up to 50 messages at once');rows.forEach(m=>SalesSignature.validate(m.signature));
  salesDialog(`Review ${rows.length} messages`,rows.map(m=>`<section class="sales-review-card"><h3>${salesEsc(m.company)} · ${salesEsc(m.kind)}</h3>${salesMessageMeta(m)}<h3>${salesEsc(m.subject)}</h3>${salesMessageContent(m)}${salesFiles(m)}</section>`).join('')+`<label class="sales-check"><input type="checkbox" name="confirmed" required>I approve these recipients, messages, signatures, attachments and timing for sending from Eli’s Sales alias.</label><p class="sales-small">${SALES.data.settings.sending_enabled?'Due messages can send on the next worker run.':'Sending is currently paused. Approved messages will wait until sending is enabled.'}</p>`,salesSubmit(`Approve ${rows.length} messages`),async()=>{
-  await salesCommand('approve',{signature_preview_version:1,messages:rows.map(m=>({id:m.id,version:m.version}))});salesClose(true);await salesLoad({clearSelection:true});salesNotice('Batch approved. Each message will still be checked for replies and suppression before sending.');
+  await salesCommand('approve',{signature_preview_version:2,messages:rows.map(m=>({id:m.id,version:m.version}))});salesClose(true);await salesLoad({clearSelection:true});salesNotice('Batch approved. Each message will still be checked for replies and suppression before sending.');
   if(SALES.data.settings.sending_enabled)try{await salesApi('run');}catch(e){salesNotice(e.message,true);}
  });
 }
