@@ -7,234 +7,85 @@
   <meta name="description" content="Discuss a white-label Nordic translation, MTPE, proofreading, localization or linguistic QA project with Retodo Ops." />
   <link rel="icon" href="logomark.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
-
   <nav class="navbar">
-    <div class="container">
-      <div class="navbar-inner">
-        <a href="index.html" class="navbar-logo"><img src="logo2.svg" alt="Retodo Ops" height="44" style="display:block;"></a>
-        <ul class="navbar-nav">
-          <li><a href="index.html#services" class="nav-link">Services</a></li>
-          <li><a href="index.html#languages" class="nav-link">Languages</a></li>
-          <li><a href="index.html#industries" class="nav-link">Industries</a></li>
-          <li><a href="index.html#why-us" class="nav-link">Why Us</a></li>
-        </ul>
-        <div class="navbar-cta">
-          <a href="contact.html" class="btn btn-primary btn-sm">Talk to an Expert</a>
-        </div>
-        <button class="hamburger" id="menuBtn" aria-label="Toggle menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </div>
+    <div class="container"><div class="navbar-inner">
+      <a href="index.html" class="navbar-logo"><img src="logo2.svg" alt="Retodo Ops" height="44" style="display:block;"></a>
+      <ul class="navbar-nav">
+        <li><a href="index.html#services" class="nav-link">Services</a></li>
+        <li><a href="index.html#languages" class="nav-link">Languages</a></li>
+        <li><a href="index.html#industries" class="nav-link">Industries</a></li>
+        <li><a href="index.html#why-us" class="nav-link">Why Us</a></li>
+      </ul>
+      <div class="navbar-cta"><a href="contact.html" class="btn btn-primary btn-sm">Talk to an Expert</a></div>
+      <button class="hamburger" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div></div>
     <div class="mobile-nav" id="mobileNav">
-      <a href="index.html#services">Services</a>
-      <a href="index.html#languages">Languages</a>
-      <a href="index.html#industries">Industries</a>
-      <a href="index.html#why-us">Why Us</a>
+      <a href="index.html#services">Services</a><a href="index.html#languages">Languages</a>
+      <a href="index.html#industries">Industries</a><a href="index.html#why-us">Why Us</a>
       <a href="contact.html" style="color:var(--orange);font-weight:700;">Talk to an Expert &rarr;</a>
     </div>
   </nav>
 
   <section class="page-hero">
     <div class="page-hero-photo"><img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy" /></div>
-    <div class="container">
-      <div class="eyebrow">Get in Touch</div>
-      <h1>Discuss a Nordic Project</h1>
+    <div class="container"><div class="eyebrow">Get in Touch</div><h1>Discuss a Nordic Project</h1>
       <p>Tell us what your team needs. We will review the scope, resource fit and deadline before confirming availability.</p>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="contact-layout">
-
-        <div class="contact-info">
-          <h2>Add a Specialist Nordic Team</h2>
-          <p>We support translation agencies and global content teams with discreet white-label delivery into Nordic languages—from one-off capacity needs to recurring accounts.</p>
-
-          <div class="contact-details">
-            <div class="contact-detail">
-              <div class="contact-detail-icon">📧</div>
-              <div>
-                <h4>Email</h4>
-                <p><a href="mailto:ops@retodo-ops.com" style="color:var(--accent-dark);">ops@retodo-ops.com</a></p>
-              </div>
-            </div>
-            <div class="contact-detail">
-              <div class="contact-detail-icon">⏱️</div>
-              <div>
-                <h4>What to Include</h4>
-                <p>Language pair, subject matter, volume, files, deadline and required workflow</p>
-              </div>
-            </div>
-            <div class="contact-detail">
-              <div class="contact-detail-icon">🌍</div>
-              <div>
-                <h4>Coverage</h4>
-                <p>English, German and French into Norwegian, Swedish, Danish, Finnish and Icelandic</p>
-              </div>
-            </div>
-            <div class="contact-detail">
-              <div class="contact-detail-icon">🔒</div>
-              <div>
-                <h4>Confidentiality</h4>
-                <p>White-label boundaries, NDAs and client-specific access controls supported.</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="contact-form">
-          <h3>Project Enquiry</h3>
-          <p>Share enough detail for us to assess the right specialist and production route.</p>
-
-          <form action="https://tms.retodo-ops.com/.netlify/functions/submit-project-enquiry" method="post" data-enquiry-form data-endpoint="https://tms.retodo-ops.com/.netlify/functions/submit-project-enquiry">
-            <div class="form-honeypot" aria-hidden="true">
-              <label for="project-website">Leave this field blank</label>
-              <input type="text" id="project-website" name="website" tabindex="-1" autocomplete="off" />
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="fname">First Name *</label>
-                <input type="text" id="fname" name="first_name" placeholder="Erik" required />
-              </div>
-              <div class="form-group">
-                <label for="lname">Last Name *</label>
-                <input type="text" id="lname" name="last_name" placeholder="Lindqvist" required />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="email">Work Email *</label>
-                <input type="email" id="email" name="email" placeholder="you@company.com" required />
-              </div>
-              <div class="form-group">
-                <label for="company">Company</label>
-                <input type="text" id="company" name="company" placeholder="Your Company" />
-              </div>
-            </div>
-
-
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="source">Source Language *</label>
-                <select id="source" name="source_language" required>
-                  <option value="" disabled selected>Select&hellip;</option>
-                  <option>English</option>
-                  <option>German</option>
-                  <option>French</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="target">Target Language *</label>
-                <select id="target" name="target_language" required>
-                  <option value="" disabled selected>Select&hellip;</option>
-                  <option>Norwegian (Bokmål)</option>
-                  <option>Norwegian (Nynorsk)</option>
-                  <option>Swedish</option>
-                  <option>Danish</option>
-                  <option>Finnish</option>
-                  <option>Icelandic</option>
-                  <option>Other</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="wordcount">Approximate Word Count</label>
-              <select id="wordcount" name="word_count">
-                <option value="" disabled selected>Select&hellip;</option>
-                <option>Under 500 words</option>
-                <option>500–2,000 words</option>
-                <option>2,000–10,000 words</option>
-                <option>10,000–50,000 words</option>
-                <option>50,000+ words / Ongoing</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="deadline">Deadline (if applicable)</label>
-              <input type="date" id="deadline" name="deadline" />
-            </div>
-
-            <div class="form-group">
-              <label for="message">Project Details *</label>
-              <textarea id="message" name="message" placeholder="Tell us about your project, subject matter, any special requirements, and how you found us&hellip;" required></textarea>
-            </div>
-
-            <p class="form-notice">Please do not include client files, passwords or confidential source content here. We will arrange a secure transfer channel if needed.</p>
-            <p class="form-privacy-note">By sending this enquiry, you acknowledge our <a href="privacy.html">Privacy Policy</a>.</p>
-            <button type="submit" class="btn btn-primary form-submit">Send Project Enquiry &rarr;</button>
-            <div class="form-status" id="projectEnquiryStatus" role="status" aria-live="polite" hidden></div>
-          </form>
-        </div>
-
+  <section class="section"><div class="container"><div class="contact-layout">
+    <div class="contact-info">
+      <h2>Add a Specialist Nordic Team</h2>
+      <p>We support translation agencies and global content teams with discreet white-label delivery into Nordic languages—from one-off capacity needs to recurring accounts.</p>
+      <div class="contact-details">
+        <div class="contact-detail"><div class="contact-detail-icon">📧</div><div><h4>Email</h4><p><a href="mailto:ops@retodo-ops.com" style="color:var(--accent-dark);">ops@retodo-ops.com</a></p></div></div>
+        <div class="contact-detail"><div class="contact-detail-icon">⏱️</div><div><h4>What to Include</h4><p>Language pair, subject matter, volume, files, deadline and required workflow</p></div></div>
+        <div class="contact-detail"><div class="contact-detail-icon">🌍</div><div><h4>Coverage</h4><p>English, German and French into Norwegian, Swedish, Danish, Finnish and Icelandic</p></div></div>
+        <div class="contact-detail"><div class="contact-detail-icon">🔒</div><div><h4>Confidentiality</h4><p>White-label boundaries, NDAs and client-specific access controls supported.</p></div></div>
       </div>
     </div>
-  </section>
 
-
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="footer-logo">Retodo<span> Ops</span></div>
-          <p>A specialist white-label partner for Nordic translation, MTPE, proofreading, localization and linguistic QA.</p>
+    <div class="contact-form">
+      <h3>Project Enquiry</h3>
+      <p>Share enough detail for us to assess the right specialist and production route.</p>
+      <form action="https://tms.retodo-ops.com/.netlify/functions/submit-project-enquiry" method="post" data-enquiry-form data-endpoint="https://tms.retodo-ops.com/.netlify/functions/submit-project-enquiry">
+        <div class="form-honeypot" aria-hidden="true"><label for="project-website">Leave this field blank</label><input type="text" id="project-website" name="website" tabindex="-1" autocomplete="off" /></div>
+        <div class="form-row">
+          <div class="form-group"><label for="fname">First Name *</label><input type="text" id="fname" name="first_name" placeholder="Erik" required /></div>
+          <div class="form-group"><label for="lname">Last Name *</label><input type="text" id="lname" name="last_name" placeholder="Lindqvist" required /></div>
         </div>
-        <div class="footer-col">
-          <h4>Services</h4>
-          <ul>
-            <li><a href="index.html#services">Translation</a></li>
-            <li><a href="index.html#services">MTPE</a></li>
-            <li><a href="index.html#services">Proofreading &amp; Editing</a></li>
-            <li><a href="index.html#services">Localization &amp; LQA</a></li>
-          </ul>
+        <div class="form-row">
+          <div class="form-group"><label for="email">Work Email *</label><input type="email" id="email" name="email" placeholder="you@company.com" required /></div>
+          <div class="form-group"><label for="company">Company</label><input type="text" id="company" name="company" placeholder="Your Company" /></div>
         </div>
-        <div class="footer-col">
-          <h4>Languages</h4>
-          <ul>
-            <li><a href="index.html#languages">Norwegian</a></li>
-            <li><a href="index.html#languages">Swedish</a></li>
-            <li><a href="index.html#languages">Danish</a></li>
-            <li><a href="index.html#languages">Finnish</a></li>
-          </ul>
+        <div class="form-row">
+          <div class="form-group"><label for="source">Source Language *</label><select id="source" name="source_language" required><option value="" disabled selected>Select&hellip;</option><option>English</option><option>German</option><option>French</option><option>Other</option></select></div>
+          <div class="form-group"><label for="target">Target Language *</label><select id="target" name="target_language" required><option value="" disabled selected>Select&hellip;</option><option>Norwegian (Bokmål)</option><option>Norwegian (Nynorsk)</option><option>Swedish</option><option>Danish</option><option>Finnish</option><option>Icelandic</option><option>Other</option></select></div>
         </div>
-        <div class="footer-col">
-          <h4>Company</h4>
-          <ul>
-            <li><a href="index.html#about">About Us</a></li>
-            <li><a href="index.html#industries">Industries</a></li>
-          </ul>
+        <div class="form-group"><label for="wordcount">Approximate Word Count</label><select id="wordcount" name="word_count"><option value="" disabled selected>Select&hellip;</option><option>Under 500 words</option><option>500–2,000 words</option><option>2,000–10,000 words</option><option>10,000–50,000 words</option><option>50,000+ words / Ongoing</option></select></div>
+        <div class="form-group"><label for="deadline">Deadline (if applicable)</label><input type="date" id="deadline" name="deadline" /></div>
+        <div class="form-group"><label for="message">Project Details *</label><textarea id="message" name="message" placeholder="Tell us about your project, subject matter, any special requirements, and how you found us&hellip;" required></textarea></div>
+        <div class="form-group">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAFE58tRuuQcvpTkl" data-theme="light"></div>
         </div>
-      </div>
-      <div class="footer-bottom">
-        <div>&copy; <span id="year"></span> Retodo Ops. Services invoiced by Retodo EOOD, Bulgaria.</div>
-        <div>
-          <a href="privacy.html">Privacy Policy</a> &middot;
-          <a href="terms.html">Terms of Website Use</a> &middot;
-          <a href="mailto:ops@retodo-ops.com">ops@retodo-ops.com</a>
-        </div>
-      </div>
+        <p class="form-notice">Please do not include client files, passwords or confidential source content here. We will arrange a secure transfer channel if needed.</p>
+        <p class="form-privacy-note">By sending this enquiry, you acknowledge our <a href="privacy.html">Privacy Policy</a>.</p>
+        <button type="submit" class="btn btn-primary form-submit">Send Project Enquiry &rarr;</button>
+        <div class="form-status" id="projectEnquiryStatus" role="status" aria-live="polite" hidden></div>
+      </form>
     </div>
-  </footer>
+  </div></div></section>
 
-  <!-- COOKIE BANNER -->
-  <div class="cookie-banner hidden" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
-    <div class="cookie-inner">
-      <p>This site stores only your cookie-notice preference in your browser. See our <a href="privacy.html">Privacy Policy</a> for details.</p>
-      <div class="cookie-actions">
-        <button class="btn btn-primary btn-sm" id="cookieAccept">Close</button>
-      </div>
-    </div>
-  </div>
+  <footer class="footer"><div class="container"><div class="footer-grid">
+    <div class="footer-brand"><div class="footer-logo">Retodo<span> Ops</span></div><p>A specialist white-label partner for Nordic translation, MTPE, proofreading, localization and linguistic QA.</p></div>
+    <div class="footer-col"><h4>Services</h4><ul><li><a href="index.html#services">Translation</a></li><li><a href="index.html#services">MTPE</a></li><li><a href="index.html#services">Proofreading &amp; Editing</a></li><li><a href="index.html#services">Localization &amp; LQA</a></li></ul></div>
+    <div class="footer-col"><h4>Languages</h4><ul><li><a href="index.html#languages">Norwegian</a></li><li><a href="index.html#languages">Swedish</a></li><li><a href="index.html#languages">Danish</a></li><li><a href="index.html#languages">Finnish</a></li></ul></div>
+    <div class="footer-col"><h4>Company</h4><ul><li><a href="index.html#about">About Us</a></li><li><a href="index.html#industries">Industries</a></li></ul></div>
+  </div><div class="footer-bottom"><div>&copy; <span id="year"></span> Retodo Ops. Services invoiced by Retodo EOOD, Bulgaria.</div><div><a href="privacy.html">Privacy Policy</a> &middot; <a href="terms.html">Terms of Website Use</a> &middot; <a href="mailto:ops@retodo-ops.com">ops@retodo-ops.com</a></div></div></div></footer>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <div class="cookie-banner hidden" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent"><div class="cookie-inner"><p>This site stores only your cookie-notice preference in your browser. See our <a href="privacy.html">Privacy Policy</a> for details.</p><div class="cookie-actions"><button class="btn btn-primary btn-sm" id="cookieAccept">Close</button></div></div></div>
+  <script src="script.js?v=061"></script>
+</body></html>

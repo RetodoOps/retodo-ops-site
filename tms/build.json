@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "063",
-  "release": "Update 063 — Sales pilot, reviewed outreach and materials",
-  "source_baseline": "Update 062 / 0a79fe4",
-  "built_on": "2026-10-04"
+  "build": "061",
+  "release": "Update 061 — Project enquiry anti-spam",
+  "source_baseline": "Update 060",
+  "built_on": "2026-09-29"
 }
