@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
+import {createRequire} from 'node:module';
 const modulePath=process.env.PGLITE_MODULE;
 if(!modulePath)throw new Error('Set PGLITE_MODULE to @electric-sql/pglite/dist/index.js');
 const {PGlite}=await import(pathToFileURL(modulePath));
@@ -32,6 +33,7 @@ await db.exec(read('tms/migrations/053_reports_functional_upgrade.sql'));
 await db.exec(read('tms/migrations/054_reports_eur_scoop_detail.sql'));
 await db.exec(read('tms/migrations/055_client_scoop_invoicing.sql'));
 await db.exec(read('tms/migrations/056_reports_selection_invoice_revisions_search.sql'));
+await db.exec("SET plpgsql.variable_conflict='error'");
 await db.exec(read('tms/migrations/057_sales_workspace.sql'));
 console.log('PASS Sales migration applied to actual 062 schema');
 await db.exec(read('tms/migrations/057_sales_workspace.sql'));
@@ -45,6 +47,16 @@ const sys=async(action,data={})=>{await db.exec("RESET ROLE;SET ROLE service_rol
 let passed=0;const check=async(name,fn)=>{await fn();console.log('PASS',name);passed++;};
 const rejects=(fn,pattern)=>assert.rejects(fn,pattern);
 await db.exec("SET ROLE authenticated;SET request.jwt.claim.role='authenticated'");
+await check('Original 057 polling query reproduces SQLSTATE 42702 before correction',async()=>{
+ await assert.rejects(sys('threads'),e=>e.code==='42702'&&e.message.includes('"c.*" is ambiguous'));
+});
+await db.exec('RESET ROLE');
+await db.exec(read('tms/migrations/058_sales_worker_thread_polling.sql'));
+await db.exec("SET ROLE authenticated;SET request.jwt.claim.role='authenticated'");
+console.log('PASS migration 058 applied; all following workflow tests use the corrected worker RPC');
+await check('Worker polling executes the real threads query with an empty mailbox',async()=>{
+ assert.deepEqual(await sys('threads'),[]);
+});
 let settings=(await workspace()).settings;
 const setSettings=async patch=>{settings={...settings,...patch};return cmd('settings',settings);};
 let counter=0;
@@ -124,6 +136,11 @@ await check('Uncertain send reconciles only once and pins Gmail thread',async()=
  await sys('finish_send',{id:claim.message.id,lease_id:claim.message.lease_id,gmail_id:'gmail-first',thread_id:'thread-first'});
  await rejects(sys('finish_send',{id:claim.message.id,lease_id:claim.message.lease_id,gmail_id:'gmail-first',thread_id:'thread-first'}),/no longer matches/);
  assert.equal((await detail(first.c)).conversations[0].thread_id,'thread-first');
+});
+await check('Thread polling returns the actual conversation row without mutating the queue',async()=>{
+ const before=await detail(first.c),threads=await sys('threads');
+ assert.equal(threads.length,1);assert.deepEqual(threads[0],before.conversations[0]);
+ assert.deepEqual(await detail(first.c),before);
 });
 await check('Follow-up waits for actual send time and skips weekends in Sofia',async()=>{
  assert.equal(await sys('claim'),null);
@@ -225,9 +242,102 @@ await check('Usage above reservation trips a hold for manual and automatic AI wo
  assert.equal((await workspace()).settings.budget_hold,true);await rejects(sys('reserve_ai',{id:id(308),kind:'draft',payload:{},reserved_eur:.01,cost_config:{}}),/on hold/);
  await rejects(setSettings({monthly_cap:10}),/Budget cannot/);settings.monthly_cap=30;
 });
+await check('Thread polling preserves eligibility, oldest-first ordering and the 20-row limit',async()=>{
+ await db.exec('BEGIN');
+ try {
+  await privileged("UPDATE sales_conversations SET state='closed'");
+  const expected=[];
+  for(let n=0;n<26;n++){
+   const f=await make(),state=n===0?'closed':n===1?'suppressed':n%2?'paused':'active';
+   const thread=n===2?'NULL':`'scan-${n}'`,synced=n===3?'NULL':`now()-interval '${100-n} minutes'`;
+   await privileged(`UPDATE sales_conversations SET state='${state}',thread_id=${thread},synced_at=${synced} WHERE id='${f.c}'`);
+   if(n>=3)expected.push(f.c);
+  }
+  const rows=await sys('threads');
+  assert.deepEqual(rows.map(row=>row.id),expected.slice(0,20));
+  assert.ok(rows.every(row=>row.thread_id&&!['closed','suppressed'].includes(row.state)&&row.recipient));
+ } finally {await db.exec('ROLLBACK');}
+});
+await check('Migration 058 reapplication preserves every Sales row, including approved and draft messages',async()=>{
+ const fixture=await make(),d=await detail(fixture.c),initial=d.messages.find(m=>m.kind==='initial');
+ await cmd('approve',{messages:[{id:initial.id,version:initial.version}]});
+ const snapshot=async()=>{
+  const tables=['sales_settings','sales_prospects','sales_contacts','sales_suppressions','sales_conversations','sales_messages','sales_approvals','sales_events','sales_materials','sales_ai_jobs','sales_runtime','sales_tasks'];
+  const result={};
+  for(const table of tables)result[table]=(await db.query(`SELECT to_jsonb(row_data) AS row FROM public.${table} row_data ORDER BY to_jsonb(row_data)::text`)).rows;
+  return result;
+ };
+ const before=await snapshot();await privileged(read('tms/migrations/058_sales_worker_thread_polling.sql'));
+ assert.deepEqual(await snapshot(),before);
+ const messages=(await detail(fixture.c)).messages;assert.equal(messages.filter(m=>m.state==='approved').length,1);assert.equal(messages.filter(m=>m.state==='draft').length,2);
+});
+await check('Real worker plus real SQL sends once, polls the thread, records a reply and cancels follow-ups',async()=>{
+ const {runWorker}=createRequire(import.meta.url)('../netlify/functions/_shared/sales-worker');
+ const env={SUPABASE_URL:'https://sales-db-test.invalid',SUPABASE_SERVICE_ROLE_KEY:'fixture-service',GOOGLE_CLIENT_ID:'fixture-client.apps.googleusercontent.com',GOOGLE_CLIENT_SECRET:'fixture-google',GOOGLE_REFRESH_TOKEN:'fixture-refresh',SALES_GMAIL_ACCOUNT_EMAIL:'mailbox@example.invalid'};
+ const savedEnv=Object.fromEntries(Object.keys(env).map(key=>[key,process.env[key]])),savedFetch=global.fetch;
+ let incoming=false,posts=0,sentMessage;
+ const actions=[];
+ await db.exec('BEGIN');
+ try {
+  await privileged("UPDATE sales_conversations SET state='closed';UPDATE sales_settings SET sending_enabled=true,research_enabled=false;UPDATE sales_runtime SET lease_until=now()-interval '1 minute',worker_error='previous polling failure'");
+  const fixture=await make(),before=await detail(fixture.c),initial=before.messages.find(m=>m.kind==='initial'),follow=before.messages.find(m=>m.kind==='followup');
+  await cmd('approve',{messages:[initial,follow].map(m=>({id:m.id,version:m.version}))});
+  Object.assign(process.env,env);
+  const response=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
+  global.fetch=async(url,options={})=>{
+   url=String(url);
+   if(url===env.SUPABASE_URL+'/rest/v1/rpc/sales_system_063'){
+    assert.equal(options.headers.Authorization,'Bearer fixture-service');
+    const {p_action,p_data}=JSON.parse(options.body);actions.push(p_action);
+    return response(await sys(p_action,p_data));
+   }
+   if(url==='https://oauth2.googleapis.com/token')return response({access_token:'fixture-access'});
+   if(!url.startsWith('https://gmail.googleapis.com/gmail/v1/users/me/'))throw new Error('Unexpected external request blocked: '+url);
+   assert.equal(options.headers.Authorization,'Bearer fixture-access');
+   if(url.endsWith('/profile'))return response({emailAddress:env.SALES_GMAIL_ACCOUNT_EMAIL});
+   if(url.endsWith('/settings/sendAs'))return response({sendAs:[{sendAsEmail:'eli.s@retodo-ops.com',verificationStatus:'accepted'}]});
+   if(url.includes('/messages?'))return response({messages:[]});
+   if(url.endsWith('/messages/send')){
+    posts++;assert.equal(posts,1,'Worker must not send the initial email twice');
+    const body=JSON.parse(options.body),mime=Buffer.from(body.raw,'base64url').toString('utf8');
+    const from=mime.match(/^From: (.+)\r?$/m)[1].trim().replace(/=\?UTF-8\?B\?([^?]+)\?=/gi,(_,value)=>Buffer.from(value,'base64').toString('utf8'));
+    assert.equal(from,'Eli Stoyanova <eli.s@retodo-ops.com>');assert.match(mime,/Reply-To: eli\.s@retodo-ops\.com/);
+    const rfc=mime.match(/^Message-ID: (.+)\r?$/m)[1].trim();
+    sentMessage={id:'integration-sent',labelIds:['SENT'],internalDate:String(Date.now()),payload:{mimeType:'text/plain',headers:[{name:'From',value:'eli.s@retodo-ops.com'},{name:'To',value:before.conversations[0].recipient},{name:'Subject',value:initial.subject},{name:'Message-ID',value:rfc}],body:{data:Buffer.from(initial.body).toString('base64url')}}};
+    return response({id:sentMessage.id,threadId:'integration-thread'});
+   }
+   if(url.endsWith('/threads/integration-thread?format=full')){
+    assert.ok(sentMessage);const messages=[sentMessage];
+    if(incoming)messages.push({id:'integration-reply',internalDate:String(Number(sentMessage.internalDate)+1000),payload:{mimeType:'text/plain',headers:[{name:'From',value:before.conversations[0].recipient},{name:'To',value:'eli.s@retodo-ops.com'},{name:'Subject',value:initial.subject},{name:'Message-ID',value:'<integration-reply@example.invalid>'}],body:{data:Buffer.from('Please tell me more.').toString('base64url')}}});
+    return response({id:'integration-thread',messages});
+   }
+   throw new Error('Unexpected Gmail request blocked: '+url);
+  };
+  const firstRun=await runWorker();assert.equal(firstRun.sent,1,JSON.stringify({result:firstRun,actions,messages:(await detail(fixture.c)).messages.map(m=>({kind:m.kind,state:m.state,error:m.last_error}))}));assert.equal(posts,1);
+  assert.ok(actions.indexOf('threads')<actions.indexOf('claim'));assert.ok(actions.indexOf('begin_send')<actions.indexOf('finish_send'));
+  let d=await detail(fixture.c);assert.equal(d.messages.find(m=>m.id===initial.id).state,'sent');assert.equal(d.messages.find(m=>m.id===follow.id).state,'approved');
+  incoming=true;
+  const replyRun=await runWorker();assert.equal(replyRun.sent,0);assert.equal(replyRun.synced,1);
+  d=await detail(fixture.c);assert.equal(d.conversations[0].state,'replied');assert.ok(d.messages.filter(m=>m.kind==='followup').every(m=>m.state==='cancelled'));
+  await runWorker();assert.equal(posts,1);assert.equal((await detail(fixture.c)).messages.filter(m=>m.gmail_id==='integration-reply').length,1);
+  const runtime=(await workspace()).runtime;assert.equal(runtime.worker_error,null);assert.ok(runtime.worker_at);assert.ok(runtime.mailbox_ok);
+ } finally {
+  global.fetch=savedFetch;for(const [key,value]of Object.entries(savedEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
+  await db.exec('ROLLBACK');
+ }
+});
+await check('Thread polling stays unavailable to browser roles and requires the service claim',async()=>{
+ await rejects(rpc('sales_system_063',['threads',{}]),/permission denied/);
+ await db.exec('RESET ROLE');
+ await rejects(rpc('sales_system_063',['threads',{}]),/Server access required/);
+ await db.exec('SET ROLE authenticated');
+});
 await db.exec('RESET ROLE');
 const audit=await db.query(read('tms/audits/017_update_063_sales_audit.sql'));
 assert.ok(audit.rows.every(r=>r.result==='PASS'),JSON.stringify(audit.rows.filter(r=>r.result!=='PASS')));
 console.log(`PASS Sales installation audit: ${audit.rows.length} checks`);
+const workerAudit=await db.query(read('tms/audits/018_update_063b_sales_worker_audit.sql'));
+assert.ok(workerAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(workerAudit.rows.filter(r=>r.result!=='PASS')));
+console.log(`PASS Sales worker correction audit: ${workerAudit.rows.length} checks`);
 console.log(`${passed} Sales database checks passed`);
 }catch(e){console.error(e.message);console.error(e.where,e.internalQuery,e.position);process.exitCode=1;}finally{await db.close();}
