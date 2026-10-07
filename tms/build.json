@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "063",
-  "release": "Update 063 — Sales pilot, reviewed outreach and materials",
-  "source_baseline": "Update 062 / 0a79fe4",
-  "built_on": "2026-10-04"
+  "build": "064",
+  "release": "Update 064 — Eli’s Sales email signature",
+  "source_baseline": "main 75b4b54 / Sales 063B and enquiry correction 063C",
+  "built_on": "2026-10-07"
 }

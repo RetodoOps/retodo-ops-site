@@ -1,6 +1,7 @@
 'use strict';
 
 const {connectionError}=require('./sales-diagnostics');
+const signature=require('../../../tms/sales-signature');
 
 // Intentionally separate from operational email. No default-sender mutation or fallback.
 const FROM = 'eli.s@retodo-ops.com';
@@ -116,13 +117,25 @@ function buildMime(message, conversation, reference) {
   const id = header(message.rfc_id);
   if (!/^<sales\.[a-f0-9-]{36}@retodo-ops\.com>$/.test(id)) throw new Error('A stable Sales message identifier is required');
   const files = validateAttachments(message.attachments);
+  const sig = signature.validate(message.signature);
   const boundary = 'sales_' + message.id.replace(/[^a-z0-9]/gi, '');
   const lines = [`From: ${encoded(NAME)} <${FROM}>`, `Reply-To: ${FROM}`, `To: ${to}`, `Subject: ${encoded(subject)}`, `Message-ID: ${id}`, 'MIME-Version: 1.0'];
   if (conversation.thread_id) {
     if (!reference || !/^<[^\s<>]+@[^\s<>]+>$/.test(header(reference))) throw new Error('A verified reply reference is required');
     lines.push(`In-Reply-To: ${reference}`, `References: ${reference}`);
   }
-  lines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`, '', `--${boundary}`, 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', folded(String(message.body).replace(/\r?\n/g, '\r\n')));
+  lines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`, '', `--${boundary}`);
+  if(sig){
+    const alternative=boundary+'_alt',related=boundary+'_related',logoId='retodo-logo-v1@retodo-ops.com';
+    lines.push(`Content-Type: multipart/alternative; boundary="${alternative}"`, '', `--${alternative}`, 'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', folded(signature.messageText(message.body,sig).replace(/\r?\n/g,'\r\n')), `--${alternative}`);
+    if(sig.show_logo)lines.push(`Content-Type: multipart/related; boundary="${related}"; type="text/html"`, '', `--${related}`);
+    lines.push('Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', folded('<!doctype html><html><body>'+signature.messageHtml(message.body,sig,{logoSrc:'cid:'+logoId})+'</body></html>'));
+    if(sig.show_logo)lines.push(`--${related}`, 'Content-Type: image/png; name="retodo-ops.png"', `Content-ID: <${logoId}>`, 'Content-Disposition: inline; filename="retodo-ops.png"', 'Content-Transfer-Encoding: base64', '', folded(Buffer.from(signature.LOGO_BASE64,'base64')), `--${related}--`);
+    lines.push(`--${alternative}--`);
+  }else{
+    // Existing messages keep their originally reviewed body, with no retrofit.
+    lines.push('Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64', '', folded(String(message.body).replace(/\r?\n/g,'\r\n')));
+  }
   for (const file of files) lines.push(`--${boundary}`, `Content-Type: ${file.mime}`, `Content-Disposition: attachment; filename*=UTF-8''${encodeURIComponent(file.name).replace(/'/g,'%27')}`, 'Content-Transfer-Encoding: base64', '', folded(file.bytes));
   lines.push(`--${boundary}--`, '');
   return b64url(lines.join('\r\n'));

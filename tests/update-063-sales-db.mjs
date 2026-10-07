@@ -68,7 +68,7 @@ const make=async()=>{
  return {p:p.id,k:k.id,c:c.id};
 };
 const detail=c=>rpc('sales_detail_063',[c]);
-const approve=async c=>{const d=await detail(c);const msgs=d.messages.filter(m=>m.state==='draft');await cmd('approve',{messages:msgs.map(m=>({id:m.id,version:m.version}))});return msgs;};
+const approve=async c=>{const d=await detail(c);const msgs=d.messages.filter(m=>m.state==='draft');await cmd('approve',{signature_preview_version:1,messages:msgs.map(m=>({id:m.id,version:m.version}))});return msgs;};
 await check('Admin-only RPC and RLS; PM/QA/resource/anonymous cannot read or mutate Sales',async()=>{
  for(const role of ['pm','qa','resource','client_relations']){
   await privileged(`UPDATE profiles SET role='${role}' WHERE id='${id(1)}'`);
@@ -92,13 +92,13 @@ await check('Duplicate company/domain/contact and parallel company approaches bl
 });
 await check('Stale/missing versions and unverified recipients fail whole-batch approval',async()=>{
  const d=await detail(first.c);const m=d.messages[0];
- await rejects(cmd('approve',{messages:[{id:m.id}]}),/changed/);
+ await rejects(cmd('approve',{signature_preview_version:1,messages:[{id:m.id}]}),/changed/);
  await rejects(cmd('message',{id:m.id,subject:'Changed',body:'Bad'}),/changed/);
  await privileged(`UPDATE sales_contacts SET verified_at=NULL WHERE id='${first.k}'`);
  await rejects(approve(first.c),/Verify/);
  await privileged(`UPDATE sales_contacts SET verified_at=now() WHERE id='${first.k}'`);
  const list=d.messages.map(m=>({id:m.id,version:m.version}));list[1].version=999;
- await rejects(cmd('approve',{messages:list}),/changed/);
+ await rejects(cmd('approve',{signature_preview_version:1,messages:list}),/changed/);
  assert.ok((await detail(first.c)).messages.every(m=>m.state==='draft'));
 });
 await check('Batch snapshot includes exact sender, recipient, body, attachments and timing; immutable history',async()=>{
@@ -162,7 +162,7 @@ await check('Inbound reply stops claimed and future outreach; repeated sync does
  assert.equal(await sys('begin_send',{id:follow.message.id,lease_id:follow.message.lease_id}),null);assert.equal(await sys('claim'),null);
 });
 await check('A human-reviewed reply can send from Eli on the same conversation',async()=>{
- const r=await cmd('reply',{conversation_id:first.c,subject:'Nordic services',body:'Reply draft'});await cmd('approve',{messages:[{id:r.id,version:1}]});
+ const r=await cmd('reply',{conversation_id:first.c,subject:'Nordic services',body:'Reply draft'});await cmd('approve',{signature_preview_version:1,messages:[{id:r.id,version:1}]});
  const c=await sys('claim');assert.equal(c.message.kind,'reply');assert.equal(c.conversation.sender,'eli.s@retodo-ops.com');
  await sys('sync',{conversation_id:first.c,messages:[]});assert.ok(await sys('begin_send',{id:c.message.id,lease_id:c.message.lease_id}));
  await sys('finish_send',{id:c.message.id,lease_id:c.message.lease_id,gmail_id:'gmail-sales-reply',thread_id:'thread-first'});
@@ -180,7 +180,7 @@ await check('Opt-outs and bounces create suppression; initial outreach and repli
   await sys('sync',{conversation_id:f.c,messages:[{gmail_id:'gmail-'+classification,rfc_id:'<'+classification+'@example.invalid>',classification,body:'Stop',subject:'Nordic services',sent_at:new Date().toISOString()}]});
   assert.equal(await sys('claim'),null);
   const d=await detail(f.c);const m=d.messages.find(m=>m.kind==='initial');await cmd('message',{...m,body:'Do not send'});
-  await rejects(cmd('approve',{messages:[{id:m.id,version:m.version+1}]}),/Verify/);
+  await rejects(cmd('approve',{signature_preview_version:1,messages:[{id:m.id,version:m.version+1}]}),/Verify/);
  }
 });
 await check('Domain suppression cancels even a claimed message before POST',async()=>{
@@ -260,7 +260,7 @@ await check('Thread polling preserves eligibility, oldest-first ordering and the
 });
 await check('Migration 058 reapplication preserves every Sales row, including approved and draft messages',async()=>{
  const fixture=await make(),d=await detail(fixture.c),initial=d.messages.find(m=>m.kind==='initial');
- await cmd('approve',{messages:[{id:initial.id,version:initial.version}]});
+ await cmd('approve',{signature_preview_version:1,messages:[{id:initial.id,version:initial.version}]});
  const snapshot=async()=>{
   const tables=['sales_settings','sales_prospects','sales_contacts','sales_suppressions','sales_conversations','sales_messages','sales_approvals','sales_events','sales_materials','sales_ai_jobs','sales_runtime','sales_tasks'];
   const result={};
@@ -271,6 +271,8 @@ await check('Migration 058 reapplication preserves every Sales row, including ap
  assert.deepEqual(await snapshot(),before);
  const messages=(await detail(fixture.c)).messages;assert.equal(messages.filter(m=>m.state==='approved').length,1);assert.equal(messages.filter(m=>m.state==='draft').length,2);
 });
+const {signatureChecks}=await import('./update-064-sales-signature-db.mjs');
+await signatureChecks({db,read,check,cmd,sys,rpc,workspace,privileged,make,detail});
 await check('Real worker plus real SQL sends once, polls the thread, records a reply and cancels follow-ups',async()=>{
  const {runWorker}=createRequire(import.meta.url)('../netlify/functions/_shared/sales-worker');
  const env={SUPABASE_URL:'https://sales-db-test.invalid',SUPABASE_SERVICE_ROLE_KEY:'fixture-service',GOOGLE_CLIENT_ID:'fixture-client.apps.googleusercontent.com',GOOGLE_CLIENT_SECRET:'fixture-google',GOOGLE_REFRESH_TOKEN:'fixture-refresh',SALES_GMAIL_ACCOUNT_EMAIL:'mailbox@example.invalid'};
@@ -281,7 +283,7 @@ await check('Real worker plus real SQL sends once, polls the thread, records a r
  try {
   await privileged("UPDATE sales_conversations SET state='closed';UPDATE sales_settings SET sending_enabled=true,research_enabled=false;UPDATE sales_runtime SET lease_until=now()-interval '1 minute',worker_error='previous polling failure'");
   const fixture=await make(),before=await detail(fixture.c),initial=before.messages.find(m=>m.kind==='initial'),follow=before.messages.find(m=>m.kind==='followup');
-  await cmd('approve',{messages:[initial,follow].map(m=>({id:m.id,version:m.version}))});
+  await cmd('approve',{signature_preview_version:1,messages:[initial,follow].map(m=>({id:m.id,version:m.version}))});
   Object.assign(process.env,env);
   const response=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
   global.fetch=async(url,options={})=>{
@@ -302,6 +304,7 @@ await check('Real worker plus real SQL sends once, polls the thread, records a r
     const body=JSON.parse(options.body),mime=Buffer.from(body.raw,'base64url').toString('utf8');
     const from=mime.match(/^From: (.+)\r?$/m)[1].trim().replace(/=\?UTF-8\?B\?([^?]+)\?=/gi,(_,value)=>Buffer.from(value,'base64').toString('utf8'));
     assert.equal(from,'Eli Stoyanova <eli.s@retodo-ops.com>');assert.match(mime,/Reply-To: eli\.s@retodo-ops\.com/);
+    assert.match(mime,/Content-Type: text\/html/);assert.match(mime,/Content-ID: <retodo-logo-v1@retodo-ops.com>/);assert.equal(initial.signature.closing,'Best Regards,');
     const rfc=mime.match(/^Message-ID: (.+)\r?$/m)[1].trim();
     sentMessage={id:'integration-sent',labelIds:['SENT'],internalDate:String(Date.now()),payload:{mimeType:'text/plain',headers:[{name:'From',value:'eli.s@retodo-ops.com'},{name:'To',value:before.conversations[0].recipient},{name:'Subject',value:initial.subject},{name:'Message-ID',value:rfc}],body:{data:Buffer.from(initial.body).toString('base64url')}}};
     return response({id:sentMessage.id,threadId:'integration-thread'});
@@ -339,5 +342,8 @@ console.log(`PASS Sales installation audit: ${audit.rows.length} checks`);
 const workerAudit=await db.query(read('tms/audits/018_update_063b_sales_worker_audit.sql'));
 assert.ok(workerAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(workerAudit.rows.filter(r=>r.result!=='PASS')));
 console.log(`PASS Sales worker correction audit: ${workerAudit.rows.length} checks`);
+const signatureAudit=await db.query(read('tms/audits/019_update_064_sales_signature_audit.sql'));
+assert.ok(signatureAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(signatureAudit.rows.filter(r=>r.result!=='PASS')));
+console.log(`PASS Sales signature audit: ${signatureAudit.rows.length} checks`);
 console.log(`${passed} Sales database checks passed`);
 }catch(e){console.error(e.message);console.error(e.where,e.internalQuery,e.position);process.exitCode=1;}finally{await db.close();}
