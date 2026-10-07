@@ -2,11 +2,12 @@
 
 Repository: RetodoOps/retodo-ops-site
 Remote baseline / starting HEAD: main `75b4b54e2f30fc010cd09dadb4f183c460e62255`
-Remote tree: `84ddb375f3aa4c424cb0b9d7ce6537c7b6199000`
+Starting remote tree: `84ddb375f3aa4c424cb0b9d7ce6537c7b6199000`
+Verified current main: `b21fa1bbf1be66eb0769c672759e147268711f23`; tree `8737cbad2398a74bbc028842ed2c4e4b342aeae2`, identical to the corrected 064A implementation checkpoint.
 Active local branch: `dev/update-064-sales-signature`
-Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this 064A correction checkpoint); implementation parent checkpoint `bcb34e2f58504d00931304bedff11d942c3cf20b`, parent main `75b4b54`.
+Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this installation-status checkpoint); corrected 064A implementation checkpoint `eb417d30135278f2bcdfe14b3ec0840197948db0`, starting main `75b4b54`.
 Delivery: `RetodoOps_Update_064A_Sales_Signature_Correct_Assets.zip` — complete changed files
-Build: 064A. Status: READY FOR USER INSTALLATION — supplied brand assets integrated; verification and corrected package complete. Starting remote task HEAD: ebeabb245373fc3bd41e8281e5168e631518d993; local starting HEAD: 594d39bfc2b5bca731f0f903936ff695247285ac. Main remains 75b4b54.
+Build: 064A. Status: USER-REPORTED INSTALLED — the user confirmed “done” after the corrected package installation instructions. Main source upload is independently verified: its entire tree matches the corrected 064A implementation. Production migration/audit execution and deployment are user-reported, not independently inspected. Received-email signature appearance and links remain the final acceptance check. Starting remote task HEAD for this status update: eb417d30135278f2bcdfe14b3ec0840197948db0; local starting HEAD: c1c18441c256f664e28b657e0963ed8c7ee7fb82.
 Last updated: 2026-10-07
 
 ## USER WORKFLOW — LOCKED
@@ -59,13 +60,17 @@ DELIVERY:
 - PASS: Chromium fixture workflow for settings/live preview/save with supplied logo, per-email inclusion, complete batch previews, captured vs current signature, edit choices, reply payload, mobile, XSS and prior navigation/materials/attachment flows. Desktop/mobile screenshots inspected.
 - Real worker + actual SQL uses intercepted Gmail: one send, thread polling, reply import and follow-up cancellation without duplicates. This now exercises HTML/signature MIME too.
 - SQL replay uses PGlite with Supabase platform stubs, available schema through 038 (explicit unrelated missing-037 audit-writer stub) and relevant 050/053/054/055/056/057/058/059/060. No full historical replay is claimed.
-- No live email, paid AI, production SQL or deployment was performed. The authorized non-main implementation checkpoint is saved at `ebeabb2`. Recipient Gmail/Outlook signature rendering is still a user acceptance check.
+- No live email, paid AI, production SQL or deployment was performed by the assistant. The corrected non-main implementation checkpoint is saved at `eb417d3`. Recipient Gmail/Outlook signature rendering is still a user acceptance check.
 
 RESUME CHECKPOINT (2026-10-07): retrieved and inspected the supplied Drive brand assets; integrated the exact 600×600 logo into renderer 2; re-ran all 41 service/MIME tests, 49 SQL workflow checks and 63 audit rows, all PASS. Browser fixture workflow passed with the corrected compact logo and current approval marker. The standalone preview was rendered and inspected. The non-main checkpoint is saved; the final ZIP contains 21 complete files. All 260 unchanged main blobs were hash-verified against current main 75b4b54.
+
+INSTALLATION CHECKPOINT (2026-10-07): user confirmed “done.” GitHub main advanced to `b21fa1b` with message “Add files via upload / RetodoOps_Update_064A_Sales_Signature_Correct_Assets”; its tree `8737cba` exactly matches the corrected implementation checkpoint `eb417d3`. Record installation as user-reported complete, with source upload verified. Do not ask the user to repeat migrations, audits, upload or deployment confirmation. The remaining action is one controlled received-email signature check.
 
 ## CHANGED FILES
 
 The 21 complete 064A files are enumerated in `UPDATE_064_MANUAL_UPLOAD.md`. The three 063C files restored from main are baseline preservation only and are included where required to preserve the current main tree.
+
+This installation-status checkpoint changes only `docs/context/CURRENT_WORK.md`; no new installation package is needed.
 
 ## REQUIRED CONTEXT
 
@@ -73,16 +78,15 @@ NONE for normal continuation. For installation, use `UPDATE_064_MANUAL_UPLOAD.md
 
 ## DO NOT REDO
 
-Do not recreate the signature implementation or repeat completed tests without a concrete new risk. Do not rerun OAuth, worker-secret setup or basic delivery/reply acceptance. Do not revert the 063C enquiry correction or push reconstructed Git history.
+Do not recreate the signature implementation or repeat completed tests without a concrete new risk. Do not repeat the user-confirmed 064A migration/audit/upload/deployment steps or ask for another deployment confirmation. Do not rerun OAuth, worker-secret setup or basic delivery/reply acceptance. Do not revert the 063C enquiry correction or push reconstructed Git history.
 
 ## NEXT EXACT ACTION
 
-Follow `UPDATE_064_MANUAL_UPLOAD.md`:
-1. Sales → Settings → Outreach: clear Allow approved messages to send and save.
-2. Run migration 059 only if not already installed, then migration 060. Run audit 019 (12 PASS rows) and audit 020 (9 PASS rows). Do not rerun older migrations afterward.
-3. Upload/commit all 21 complete files through the user-controlled workflow; after the normal deployment, hard-refresh Sales.
-4. Open Settings → Eli’s email signature, review the editable title/links and Save signature.
-5. Use Draft reply in the existing conversation with the controlled test address, preview and approve that one message, enable sending and Check now. Verify the received signature and links. Return sending to the desired pilot state.
+Run the final controlled signature acceptance check:
+1. Hard-refresh Sales. Open Settings → Eli’s email signature, review the editable title/links and Save signature.
+2. In Conversations, open the existing TEST conversation and Draft reply. Keep Include Eli’s signature selected, Preview complete email, then save for batch review.
+3. Review and approve only this test message. Confirm no other approved messages are queued before enabling sending, save the sending setting, and use Today → Check now.
+4. In the received email, verify the small supplied multicolour logo, name/title, working website and LinkedIn links, short confidentiality note and absence of an address. Return sending to the desired pilot state.
 
 Existing approved messages are not retrofitted. To add a signature to an old unsent draft, use Edit draft → Signature → Use current Sales signature → Save draft, then review/approve again. Do not change Gmail defaults or restart OAuth troubleshooting for this feature.
 
