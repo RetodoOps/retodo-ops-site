@@ -27,7 +27,7 @@
     if (declineBtn) declineBtn.addEventListener('click', function () { localStorage.setItem('cookieConsent', 'declined'); cookieBanner.classList.add('hidden'); });
   }
 
-  /* ── Project enquiry form / Update 061 ───────────────────── */
+  /* ── Project enquiry form / Update 063C ──────────────────── */
   var enquiryForm = document.querySelector('[data-enquiry-form]');
   if (enquiryForm) {
     var enquiryStatus = document.getElementById('projectEnquiryStatus');
@@ -51,6 +51,12 @@
     enquiryForm.addEventListener('submit', function (event) {
       if (!window.fetch || !enquiryEndpoint || enquiryForm.dataset.submitting === 'true') return;
       event.preventDefault();
+      var detailsInput = enquiryForm.querySelector('[name="message"]');
+      if (detailsInput && detailsInput.value.trim().length < 10) {
+        setEnquiryStatus('error', 'Project details are too short.');
+        detailsInput.focus();
+        return;
+      }
       var tokenInput = enquiryForm.querySelector('[name="cf-turnstile-response"]');
       if (!tokenInput || !tokenInput.value) {
         setEnquiryStatus('error', 'Please complete the security check and try again.');
