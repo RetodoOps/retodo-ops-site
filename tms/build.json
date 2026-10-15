@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "064A",
-  "release": "Update 064A — Sales signature with supplied brand assets",
-  "source_baseline": "main 75b4b54 / Sales 063B and enquiry correction 063C",
-  "built_on": "2026-10-07"
+  "build": "065",
+  "release": "Update 065 — Standalone invoices and Bulgarian / Word downloads",
+  "source_baseline": "main b21fa1b / Sales 064A",
+  "built_on": "2026-10-15"
 }
