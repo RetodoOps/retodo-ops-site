@@ -1,55 +1,43 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
-Current task: Update 065 — standalone client invoices and Bulgarian/PDF/Word downloads
-Status: READY FOR USER INSTALLATION — complete-file ZIP built; production acceptance pending
-Task branch: dev/update-065-invoice-downloads (local)
-Starting HEAD: b21fa1bbf1be66eb0769c672759e147268711f23 (main, build 064A)
-Latest durable checkpoint: packaging commit containing this record; prior verified checkpoint 2476c54
-Build: 065 locally; main baseline 064A
-Last updated: 2026-10-15
+Current task: Update 066 — reference invoice layout and Bulgarian issuer details
+Status: READY FOR USER INSTALLATION — verified complete-file package; production acceptance pending
+Task branch: dev/update-066-invoice-layout (local)
+Starting HEAD: 3e90411b25bb3cf868a8754aae1fdaa483f70374 (main, Update 065)
+Build: 066 locally; main 065
+Latest checkpoint: verification/package commit containing this record; scope checkpoint 34af9d4
+Last updated: 2026-10-16
 
 ## LOCKED RULES
-- Deliver complete changed files in a ZIP. User uploads/commits to main. No assistant push/merge/deployment/production SQL/configuration/data changes for this task.
-- Update this record at material checkpoints and commit locally. Preserve current Sales signature and public enquiry changes.
-- Standalone invoices select an existing Client, keep client payment terms and billing entity, accept manual rows with no Scoop or Project. Existing number prompt, roles, revision/payment protections remain.
-- Download language selector English/Bulgarian for PDF and real editable .docx. Translate document labels, dates and number formatting; preserve entered descriptions, notes, names, tax basis and bank details. No invented translations or legal/tax facts.
+- Deliver complete changed files in a ZIP. User uploads/commits to main. No assistant push/merge/deployment/production SQL/configuration/data changes.
+- Keep local checkpoints and this record. Preserve Sales, Reports and public enquiry changes.
+- Match supplied invoice layout in PDF and editable Word. Bulgarian output uses separate Bulgarian issuer fields. Preserve entered recipient, descriptions, tax basis and bank account; no guessed translations or tax facts.
+- Existing issued snapshots remain frozen. Adding Bulgarian issuer text to an old invoice requires an explicit admin revision with reason/history.
 
 ## FINDINGS / APPROACH
-- Main b21fa1b has Sales 064A but invoice files are still 062; invoice/report Update 064 ZIP was not uploaded to this main. Do not confuse Sales migration 058 with invoice-fix migration 058 from that ZIP.
-- Existing invoice_save_061 already supports manual-only invoices. Frontend create action is blocked by required Scoop selection. Add separate New invoice without Scoops dialog with Client/currency/number.
-- Recover only invoice frontend/revision/payment/deletion prerequisites from local completed Update 064; publish invoice-only forward migration 061 with unique filename. Preserve existing Reports SQL and UI from main.
-- Use a shared localized document model for PDF and Word so both reflect saved invoice data. Vendor DOCX browser library locally with license; no invoice data sent to an external converter.
+- Main includes Update 065 standalone/BG/Word at 3e90411. No need to replay or overwrite earlier fixes.
+- Previous transient 066 workspace disappeared; rebuild from main and saved scope, rerun verification.
+- Reference supplier: Ретодо ЕООД, ул. Светла 48А, ап. 23 / София / България; ЕИК 208524462; Обединена българска банка АД; Демир Атанасов. Optional fill button affects text only, requires matching configured registration and explicit save.
+- Never copy screenshot recipient, invoice number, dates, line items, tax basis or bank account into live data.
 
-## COMPLETED / CHANGED FILES
-- Baseline inspected; local worktree created from current origin/main.
-- Standalone client/currency/number dialog, localized PDF and DOCX download controls implemented.
-- New invoice-document.js shares saved facts across formats; DOCX 9.6.1 vendored with license.
-- Invoice-only 064 recovery delivered under migration 061 and audit 021; no Reports/Sales overwrite.
-- Changed: invoice.js/html/css, invoice-document.js, vendor/docx*, migrations/061*, audits/021*, build.json, tests/update-065-*, this record and UPDATE_065_MANUAL_UPLOAD.md.
-- All 14 package files are complete additions/replacements. Main rechecked unchanged at b21fa1b on 2026-10-15.
-- Desktop/mobile UI and final English/Bulgarian document pages inspected; DOCX ZIP/XML checks pass including actual browser downloads.
+## COMPLETED / TEST RESULTS
+- Shared reference layout implemented in PDF and native Word; separate Bulgarian issuer fields and reference-text fill with matching-registration gate.
+- Migration 062 adds optional document metadata and guarded save/revision wrappers. Old snapshots change only through explicit admin revision; previous full snapshot and payments retained.
+- 34 SQL workflow checks PASS; audit021 15 PASS, audit022 9 PASS; migration reapplication PASS.
+- Browser fixture suite PASS: settings fill/save, standalone manual metadata, English/Bulgarian Word, BG print, explicit issuer revision, payments/deletion, QA and mobile.
+- Native DOCX rendered: EN/BG single pages and all five pages of a 65-row document inspected. Browser PDF inspected. No clipping or row/header problems.
+- JS syntax and diff checks PASS. No production operations. PGlite test uses documented missing-037 audit stub; browser uses fixture RPCs.
+- Main rechecked at 3e90411 before packaging. Complete files only; no vendor duplication or Sales/Reports changes.
 
-## TEST RESULTS
-- PASS 32 isolated SQL workflow checks: manual-only save/issue/revise/pay/delete, tax totals, client due date, no Scoop mutations, later Scoop addition, duplicate/permission/revision guards, existing payment/deletion regression. Migration 061 reapplication passes.
-- PASS audit 021: 15 checks.
-- PASS Chromium fixture suite: standalone dialog, saved manual row, English/Bulgarian native Word downloads, localized PDF, unsaved-download guard, existing selection/revisions/full-partial payment/deletion, QA read-only and mobile.
-- PASS native DOCX generation and rendering: English and Bulgarian single-page samples; Bulgarian 65-row / five-page document. Fixed split invoice rows; repeated table headers and all pages inspected.
-- Test infrastructure only: corrupt cached Chromium restored from packaged compressed bytes; SQL allocation assertion uses owner role without changing production privileges. No functional failures remain.
-- JS syntax passes. SQL uses PGlite with explicit missing-037 audit stub; browser uses fixture RPCs, production acceptance and desktop Microsoft Word checks remain user steps.
-
-## UNRESOLVED / INCOMPLETE
-Production installation and desktop Microsoft Word acceptance pending.
-Older Reports 064 fixes are absent on main; do not silently claim installed. Not part of this invoice-only package.
-
-## REQUIRED CONTEXT
-UPDATE_065_MANUAL_UPLOAD.md for installation/acceptance only.
+## UNRESOLVED / REQUIRED CONTEXT
+User production installation and desktop Microsoft Word acceptance remain pending. Use UPDATE_066_MANUAL_UPLOAD.md for installation steps.
 
 ## NEXT EXACT ACTION
-User runs migration 061, audit 021 (15 PASS), uploads the 14 complete ZIP files, commits and refreshes Client invoices to Update 065. Test standalone creation and both download languages/formats as described in UPDATE_065_MANUAL_UPLOAD.md.
+User runs migration062, audit022 (9 PASS), uploads/commits ZIP files, refreshes to066, fills and saves BG settings. For existing issued invoices, select explicit BG issuer copy and Save revision with a reason.
 
 ## DO NOT REDO
-Do not redo Sales, OAuth, signatures, public enquiry protection, full context reconciliation or previously accepted Reports exports. No production actions.
+No Sales, OAuth, signatures, public enquiry, Reports changes or broad context reconciliation. No production actions.
 
 ## USER-REPORTED LIVE SALES ACCEPTANCE — PASSED 2026-10-07
 

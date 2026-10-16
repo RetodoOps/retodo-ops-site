@@ -1,7 +1,1 @@
-{
-  "product": "Retodo Ops TMS",
-  "build": "065",
-  "release": "Update 065 — Standalone invoices and Bulgarian / Word downloads",
-  "source_baseline": "main b21fa1b / Sales 064A",
-  "built_on": "2026-10-15"
-}
+{"product":"Retodo Ops TMS","build":"066","release":"Update 066 — Invoice layout and Bulgarian issuer details","source_baseline":"main 3e90411 / Update 065","built_on":"2026-10-16"}
