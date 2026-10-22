@@ -9,7 +9,7 @@ Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this li
 Delivery: `RetodoOps_Update_064A_Sales_Signature_Correct_Assets.zip` — complete changed files
 Build: 064A. Status: COMPLETE — USER-REPORTED LIVE ACCEPTANCE PASSED. On 2026-10-08 the user confirmed “Looking good! :) Sent and received.” after the controlled signature test instructions. Installation and received signature appearance are accepted; no signature issue is reported. Main source upload is independently verified: its entire tree matches the corrected 064A implementation. Production migration/audit execution, deployment and received-email rendering are user-reported, not independently inspected. Starting remote task HEAD for this status update: d15b65c50d0f0e104b0fd973462639e293b4979a; local starting HEAD: fadf72442412e417509c6f3dc8e7b2077d67d41f.
 Last updated: 2026-10-22
-Follow-on task: AI setup and first research acceptance. Initial status reported “AI research is not configured”; the user subsequently configured it and ran a live prospect-research task. On 2026-10-22 at 13:22 Europe/Sofia, the task completed successfully, accounted €0.02, and imported 0 new prospects because all returned companies already existed. This verifies provider access, execution and cost accounting; it is not a failure. Duplicate protection behaved as intended. Starting remote task HEAD for this checkpoint: a24aa9589c2924f64a1f3a719d89450db28d5d24; local HEAD: 0d45e220c102cc8d07239912e052b07b3b3ed4e4.
+Follow-on task: AI setup and first research acceptance. Initial status reported “AI research is not configured”; the user subsequently configured it and ran a live prospect-research task. On 2026-10-22 at 13:22 Europe/Sofia, the task completed and accounted €0.02, proving provider access and cost accounting. However, the detailed result contained zero prospect entries and only a generic note plus sources, including Retodo itself and generic Nordic providers. The earlier inference that all candidates were duplicates is superseded: no candidate cards reached the import result, so this is a research-quality/validation defect, not successful prospect discovery. Starting remote task HEAD for this checkpoint: 4f95997640d138d57bc094aa82ff63346c191cfd; local HEAD: 4026f66.
 
 ## USER WORKFLOW — LOCKED
 
@@ -89,13 +89,20 @@ AI SETUP DIAGNOSIS (2026-10-08): the code is installed; no application change is
 
 Reviewed official documentation on 2026-10-08: GPT-4.1 mini input $0.40 and output $1.60 per million tokens; non-preview web search $0.01 per call plus search-content tokens (8,000 input tokens per call for this model). Existing adapter/defaults match these prices. Sources: https://developers.openai.com/api/docs/models/gpt-4.1-mini ; https://developers.openai.com/api/docs/pricing ; https://developers.openai.com/api/docs/quickstart ; https://docs.netlify.com/build/environment-variables/get-started/ ; https://docs.netlify.com/build/functions/environment-variables/ .
 
-LIVE AI ACCEPTANCE (2026-10-22): prospect research completed at 13:22 Europe/Sofia, Accounted €0.02, 0 new prospects added, existing companies skipped. Provider connection, live research execution, duplicate filtering and cost accounting are now user-reported PASS. No outreach was sent. Keep automatic research off during the pilot.
+LIVE AI ACCEPTANCE (2026-10-22): prospect research completed at 13:22 Europe/Sofia and accounted €0.02. Provider connection, worker execution and cost accounting are user-reported PASS. Prospect discovery/import is NOT accepted: the completed result showed no prospect cards, only a generic note and source URLs. Therefore zero imports cannot be attributed to duplicate filtering. No outreach was sent. Keep automatic research off and do not pay for another run until corrected.
+
+DIAGNOSIS FROM CURRENT SOURCE AND REPORTED RESULT:
+- The AI returned web-search sources, but `result.prospects` visible in the completed-result modal was empty; duplicate filtering occurs later in SQL, so duplicates alone cannot explain the missing cards.
+- `validateResult` requires each candidate's `source_url` to exactly equal a URL in the provider citation list. Tracking/query variations such as `utm_source=openai`, fragments, trailing slashes or equivalent canonical URLs can silently discard otherwise structured candidates.
+- The research prompt asks for “relevant prospect companies” but does not explicitly exclude Retodo itself, distinguish buyers from Nordic-specialist competitors/suppliers, or require a concrete outsourcing/vendor-demand signal.
+- The database records only an imported count. It does not record separate counts/reasons for validator rejection, duplicate, suppression or insert conflict.
+- The Today UI always says “Existing companies were skipped” whenever a research result exists, even when zero candidates survived validation. This is misleading.
 
 Next steps:
-1. Open the completed research item with View result and inspect the returned companies/sources. Confirm they genuinely correspond to existing prospect records; do not rerun the identical brief.
-2. Run one deliberately different on-demand search aimed at uncovered companies: mid-sized European LSPs outside the current prospect list with public vendor-registration pages, current Nordic linguist recruitment or explicit Nordic demand. Prioritize Vendor/Resource/Localization Manager contacts and require public source evidence; do not invent emails.
-3. Review any newly imported companies for evidence, duplicates and contact quality. Suggested emails remain unverified until checked.
-4. Only after a suitable new prospect is accepted, generate one personalized outreach draft and follow-ups for review. Do not approve or send it yet. Sending remains subject to the explicit batch-approval workflow.
+1. Prepare a forward-only correction from current main 066, preserving all invoice work. Strengthen the research task to require buyer evidence, exclude Retodo and likely suppliers/competitors, and pass or otherwise enforce known-prospect exclusions safely.
+2. Replace fragile literal source-URL equality with safe canonical matching that removes tracking parameters while retaining scheme/host/path identity. Keep strict evidence requirements and do not accept arbitrary model URLs.
+3. Add auditable outcome counts for candidates returned, rejected by validation, duplicates, suppressions, conflicts and imported records. Make the result screen state the actual reason instead of always claiming duplicates.
+4. Add service, SQL and browser regression tests, package complete changed files in a ZIP, then run one controlled on-demand research acceptance test. Automatic research remains off.
 
 These are recommended next steps, not a record that AI configuration, paid research or prospect outreach has been executed or separately authorized by “What's next?”.
 
@@ -110,7 +117,7 @@ Existing approved messages are not retrofitted. To add a signature to an old uns
 - Reply detection and follow-up cancellation were checked; the user confirmed “Yes, correct.”
 - Corrected 064A signature sent and received successfully, with appearance accepted: “Looking good! :) Sent and received.” (2026-10-08).
 - Do not treat basic delivery/reply testing or OAuth as an unresolved blocker.
-- AI status progressed from missing key on 2026-10-08 to successful live research on 2026-10-22. The first task accounted €0.02 and imported no records because all results already existed. Live provider access and cost accounting are accepted; discovery of a genuinely new prospect and generated-draft acceptance remain pending. The signature task is complete.
+- AI status progressed from missing key on 2026-10-08 to a completed provider call on 2026-10-22. The task accounted €0.02, but its detailed result had no candidate prospect cards; the prior “all results already existed” interpretation is superseded. Live provider access and cost accounting are accepted. Research selection/validation and truthful outcome reporting require correction before another paid run. The signature task is complete.
 
 ## INSTALLED SALES BASELINE — 063 / 063A / 063B
 
