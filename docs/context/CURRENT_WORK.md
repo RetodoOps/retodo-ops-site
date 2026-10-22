@@ -3,13 +3,13 @@
 Repository: RetodoOps/retodo-ops-site
 Remote baseline / starting HEAD: main `75b4b54e2f30fc010cd09dadb4f183c460e62255`
 Starting remote tree: `84ddb375f3aa4c424cb0b9d7ce6537c7b6199000`
-Verified current main: `b21fa1bbf1be66eb0769c672759e147268711f23`; tree `8737cbad2398a74bbc028842ed2c4e4b342aeae2`, identical to the corrected 064A implementation checkpoint.
+Verified 064A installation main: `b21fa1bbf1be66eb0769c672759e147268711f23`; tree `8737cbad2398a74bbc028842ed2c4e4b342aeae2`, identical to the corrected 064A implementation checkpoint. Observed current main on 2026-10-22: `ebb6f20d061fc284399973997627d8a2bdec6b3a` (Update 066 invoice layout/BG); do not overwrite or push the reconstructed local history onto it.
 Active local branch: `dev/update-064-sales-signature`
-Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this AI-setup diagnostic checkpoint); corrected 064A implementation checkpoint `eb417d30135278f2bcdfe14b3ec0840197948db0`, starting main `75b4b54`.
+Latest durable checkpoint commit: `dev/update-064-sales-signature` HEAD (this live AI acceptance checkpoint); corrected 064A implementation checkpoint `eb417d30135278f2bcdfe14b3ec0840197948db0`, starting main `75b4b54`.
 Delivery: `RetodoOps_Update_064A_Sales_Signature_Correct_Assets.zip` — complete changed files
 Build: 064A. Status: COMPLETE — USER-REPORTED LIVE ACCEPTANCE PASSED. On 2026-10-08 the user confirmed “Looking good! :) Sent and received.” after the controlled signature test instructions. Installation and received signature appearance are accepted; no signature issue is reported. Main source upload is independently verified: its entire tree matches the corrected 064A implementation. Production migration/audit execution, deployment and received-email rendering are user-reported, not independently inspected. Starting remote task HEAD for this status update: d15b65c50d0f0e104b0fd973462639e293b4979a; local starting HEAD: fadf72442412e417509c6f3dc8e7b2077d67d41f.
-Last updated: 2026-10-08
-Follow-on task: AI setup. The user reports “AI research is not configured. Manual Sales tools are available / Background worker configured. / Mailbox check passed.” Source confirms the first message is raised when OPENAI_API_KEY is absent or empty in the running functions. Other AI settings have not yet been evaluated because this guard runs first. Starting remote task HEAD for this diagnostic checkpoint: 17521afdf4bebee2d935d7a945766af523d879fb; local HEAD: c85f65da51f8512d8791623a21177c6e112d732e.
+Last updated: 2026-10-22
+Follow-on task: AI setup and first research acceptance. Initial status reported “AI research is not configured”; the user subsequently configured it and ran a live prospect-research task. On 2026-10-22 at 13:22 Europe/Sofia, the task completed successfully, accounted €0.02, and imported 0 new prospects because all returned companies already existed. This verifies provider access, execution and cost accounting; it is not a failure. Duplicate protection behaved as intended. Starting remote task HEAD for this checkpoint: a24aa9589c2924f64a1f3a719d89450db28d5d24; local HEAD: 0d45e220c102cc8d07239912e052b07b3b3ed4e4.
 
 ## USER WORKFLOW — LOCKED
 
@@ -73,7 +73,7 @@ LIVE ACCEPTANCE CHECKPOINT (2026-10-08): user confirmed “Looking good! :) Sent
 
 The 21 complete 064A files are enumerated in `UPDATE_064_MANUAL_UPLOAD.md`. The three 063C files restored from main are baseline preservation only and are included where required to preserve the current main tree.
 
-This AI-setup diagnostic checkpoint changes only `docs/context/CURRENT_WORK.md`; no new installation package is needed.
+This live AI acceptance checkpoint changes only `docs/context/CURRENT_WORK.md`; no new installation package is needed.
 
 ## REQUIRED CONTEXT
 
@@ -89,13 +89,13 @@ AI SETUP DIAGNOSIS (2026-10-08): the code is installed; no application change is
 
 Reviewed official documentation on 2026-10-08: GPT-4.1 mini input $0.40 and output $1.60 per million tokens; non-preview web search $0.01 per call plus search-content tokens (8,000 input tokens per call for this model). Existing adapter/defaults match these prices. Sources: https://developers.openai.com/api/docs/models/gpt-4.1-mini ; https://developers.openai.com/api/docs/pricing ; https://developers.openai.com/api/docs/quickstart ; https://docs.netlify.com/build/environment-variables/get-started/ ; https://docs.netlify.com/build/functions/environment-variables/ .
 
-Proposed next steps:
-1. Keep automatic research off while configuring. Create/use a dedicated OpenAI project API key and add OPENAI_API_KEY to the function environment. Ensure API billing is available. Do not change the accepted mailbox settings.
-2. Set SALES_AI_PRICING_REVIEWED_ON=2026-10-08, SALES_AI_INPUT_USD_PER_MILLION=0.40, SALES_AI_OUTPUT_USD_PER_MILLION=1.60 and SALES_AI_SEARCH_USD_PER_CALL=0.01. Proposed initial SALES_AI_EUR_PER_USD=1.25 is a conservative internal budget allowance, not a verified currency conversion or invoice total; compare it against actual billing conditions and increase it if necessary. These are instructions/recommendations, not settings already applied or approved by the user. The review date expires after 30 days.
-3. After the user's normal deployment, refresh Sales → Settings → Connections. “AI is configured.” checks local configuration only; it does not test whether the key, permissions, credits or provider request work. The first controlled research run is still needed for live API acceptance.
-4. Review Target clients → Research brief and Approved company facts → Facts the writing assistant may use. Retain the €30 monthly ceiling and review the allowance before paid research.
-5. Once configured, use Find prospects for one on-demand research batch of up to five companies. Review evidence, company duplicates and suggested contacts; suggested emails remain unverified until checked.
-6. Prepare one personalized outreach draft and follow-ups for review before expanding the first batch. Sending remains subject to the existing explicit batch-approval workflow. Keep automatic research off until the first result has been reviewed.
+LIVE AI ACCEPTANCE (2026-10-22): prospect research completed at 13:22 Europe/Sofia, Accounted €0.02, 0 new prospects added, existing companies skipped. Provider connection, live research execution, duplicate filtering and cost accounting are now user-reported PASS. No outreach was sent. Keep automatic research off during the pilot.
+
+Next steps:
+1. Open the completed research item with View result and inspect the returned companies/sources. Confirm they genuinely correspond to existing prospect records; do not rerun the identical brief.
+2. Run one deliberately different on-demand search aimed at uncovered companies: mid-sized European LSPs outside the current prospect list with public vendor-registration pages, current Nordic linguist recruitment or explicit Nordic demand. Prioritize Vendor/Resource/Localization Manager contacts and require public source evidence; do not invent emails.
+3. Review any newly imported companies for evidence, duplicates and contact quality. Suggested emails remain unverified until checked.
+4. Only after a suitable new prospect is accepted, generate one personalized outreach draft and follow-ups for review. Do not approve or send it yet. Sending remains subject to the explicit batch-approval workflow.
 
 These are recommended next steps, not a record that AI configuration, paid research or prospect outreach has been executed or separately authorized by “What's next?”.
 
@@ -110,7 +110,7 @@ Existing approved messages are not retrofitted. To add a signature to an old uns
 - Reply detection and follow-up cancellation were checked; the user confirmed “Yes, correct.”
 - Corrected 064A signature sent and received successfully, with appearance accepted: “Looking good! :) Sent and received.” (2026-10-08).
 - Do not treat basic delivery/reply testing or OAuth as an unresolved blocker.
-- AI status checked 2026-10-08: OPENAI_API_KEY is unavailable to the deployed functions; worker configured and mailbox passed. AI setup instructions are the next action. Live research and generated draft acceptance remain pending. The signature task is complete.
+- AI status progressed from missing key on 2026-10-08 to successful live research on 2026-10-22. The first task accounted €0.02 and imported no records because all results already existed. Live provider access and cost accounting are accepted; discovery of a genuinely new prospect and generated-draft acceptance remain pending. The signature task is complete.
 
 ## INSTALLED SALES BASELINE — 063 / 063A / 063B
 
