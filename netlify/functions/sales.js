@@ -33,7 +33,10 @@ exports.handler=async event=>{
         // Resolve context through the same authenticated, role-protected read path as the page.
         const detail=await request('/rest/v1/rpc/sales_detail_063',{method:'POST',bearer,body:{p_id:input.prospect_id}});
         const p=detail.prospect;
-        payload.prospect={id:p.id,name:p.name,domain:p.domain,sector:p.sector,fit_note:p.fit_note,source_url:p.source_url};
+        // Prospect notes and fit analysis can contain confidential internal
+        // ranking context. Writing jobs receive only public identity fields and
+        // always treat the company as a cold prospect.
+        payload.prospect={id:p.id,name:p.name,domain:p.domain,sector:p.sector,source_url:p.source_url};
         if(input.contact_id) {
           const k=detail.contacts.find(c=>c.id===input.contact_id);
           if(!k) return jsonResponse(400,{error:'Contact does not belong to this prospect'});

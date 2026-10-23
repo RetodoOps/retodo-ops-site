@@ -18,7 +18,7 @@ WITH expected(name,domain) AS (VALUES
  VALUES
  ('Research profile column installed',EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='sales_settings' AND column_name='research_profile' AND data_type='jsonb' AND is_nullable='NO')),
  ('Research profile constraint validated',EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='public.sales_settings'::regclass AND conname='sales_settings_research_profile_067' AND convalidated)),
- ('Curated profile active',EXISTS(SELECT 1 FROM sales_settings WHERE research_profile->>'version'='1' AND research_profile->>'ideal_buyer' LIKE '%multi-language LSP%' AND research_profile->'exclude' ? 'Retodo Ops and retodo-ops.com')),
+ ('Curated profile active',EXISTS(SELECT 1 FROM sales_settings WHERE (research_profile->>'version')::integer>=1 AND research_profile->>'ideal_buyer' LIKE '%multi-language LSP%' AND research_profile->'exclude' ? 'Retodo Ops and retodo-ops.com')),
  ('Automatic research remains off',NOT EXISTS(SELECT 1 FROM sales_settings WHERE research_enabled)),
  ('All 26 canonical candidates present',(SELECT count(*) FROM expected e WHERE EXISTS(SELECT 1 FROM sales_prospects p WHERE p.domain=e.domain OR regexp_replace(lower(p.name),'[^a-z0-9]','','g')=regexp_replace(lower(e.name),'[^a-z0-9]','','g')))=26),
  ('New canonical candidates are qualified or further',(SELECT count(*) FROM expected e WHERE EXISTS(SELECT 1 FROM sales_prospects p WHERE (p.domain=e.domain OR regexp_replace(lower(p.name),'[^a-z0-9]','','g')=regexp_replace(lower(e.name),'[^a-z0-9]','','g')) AND p.stage IN('qualified','contacted','replied','opportunity','won','lost','suppressed')))=26),

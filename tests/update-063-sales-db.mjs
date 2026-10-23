@@ -277,6 +277,8 @@ const {brandAssetChecks}=await import('./update-064a-sales-brand-assets-db.mjs')
 await brandAssetChecks({db,read,check,cmd,sys,workspace,privileged,make,detail});
 const {researchLearningChecks}=await import('./update-067-sales-research-db.mjs');
 await researchLearningChecks({db,read,check,rpc,privileged});
+const {coldProspectChecks}=await import('./update-068-sales-cold-db.mjs');
+await coldProspectChecks({db,read,check,privileged});
 const sys67=async(action,data={})=>{await db.exec("RESET ROLE;SET ROLE service_role;SET request.jwt.claim.role='service_role'");try{return await rpc('sales_system_067',[action,data]);}finally{await db.exec("RESET ROLE;SET ROLE authenticated;SET request.jwt.claim.role='authenticated'");}};
 await check('Real worker plus real SQL sends once, polls the thread, records a reply and cancels follow-ups',async()=>{
  const {runWorker}=createRequire(import.meta.url)('../netlify/functions/_shared/sales-worker');
@@ -358,5 +360,8 @@ console.log(`PASS Sales brand assets audit: ${brandAudit.rows.length} checks`);
 const researchAudit=await db.query(read('tms/audits/021_update_067_sales_research_audit.sql'));
 assert.ok(researchAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(researchAudit.rows.filter(r=>r.result!=='PASS')));
 console.log(`PASS Sales research learning audit: ${researchAudit.rows.length} checks`);
+const coldAudit=await db.query(read('tms/audits/022_update_068_sales_cold_prospect_audit.sql'));
+assert.ok(coldAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(coldAudit.rows.filter(r=>r.result!=='PASS')));
+console.log(`PASS Sales cold-prospect audit: ${coldAudit.rows.length} checks`);
 console.log(`${passed} Sales database checks passed`);
 }catch(e){console.error(e.message);console.error(e.where,e.internalQuery,e.position);process.exitCode=1;}finally{await db.close();}

@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "067",
-  "release": "Update 067 — Curated Sales prospects and buyer-profile research",
-  "source_baseline": "main ebb6f20 / Update 066 invoice layout and Bulgarian issuer details",
-  "built_on": "2026-10-22"
+  "build": "068",
+  "release": "Update 068 — Cold-prospect confidentiality guard",
+  "source_baseline": "installed Update 067 prospect learning set",
+  "built_on": "2026-10-23"
 }

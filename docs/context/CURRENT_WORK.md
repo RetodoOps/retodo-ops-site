@@ -1,73 +1,65 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
-Current task: Update 067 — curated Sales prospects and buyer-profile research
-Status: READY FOR USER INSTALLATION — verified complete-file package; no production actions performed
-Starting remote HEAD: `ebb6f20d061fc284399973997627d8a2bdec6b3a` (main, Update 066)
+Current task: Update 068 — cold-prospect confidentiality guard
+Status: READY FOR USER INSTALLATION — verified complete-file package; no production actions performed by Codex
+Baseline: Update 067 installed and its first controlled research test completed
 Local branch: `dev/update-064-sales-signature` on reconstructed history; never push this history
-Build: 067 locally; main 066
-Last updated: 2026-10-22
+Build: 068 locally; installed build 067
+Last updated: 2026-10-23
 
 ## LOCKED WORKFLOW
 
 - Deliver complete changed files in a repository-root ZIP. The user uploads/commits to main.
 - Do not push, merge, deploy, run production SQL, change production configuration/data or send prospect outreach.
-- Preserve Update 066 invoice work and all earlier Sales signature, Gmail, Reports and public-enquiry behavior.
+- Preserve Update 066 invoice work and all Update 067 prospect data, Sales signature, Gmail, Reports and public-enquiry behavior.
 - Database migrations are forward-only. Preserve RLS, least privilege, approvals, suppressions and immutable history.
 
-## USER REQUEST
+## USER CLARIFICATION
 
-Use the two supplied prospect lists as learning material: clarify the buyer profile, reconcile duplicate/acquired names, remove organizations that no longer fit or operate under that name, add only high-confidence prospects to the Sales pipeline, and improve future AI research.
+The supplied historical lists record engagement through another company owned by the user, not through Retodo Ops. This relationship cannot be disclosed. All Sales prospects must be treated as first-time cold prospects to Retodo Ops.
 
-The earlier live AI task completed for €0.02 but returned zero prospect cards and generic sources, including Retodo itself. Provider access, worker execution and cost accounting passed; research selection, URL validation and result reporting did not.
+Historical rows may remain confidential internal training/ranking and canonicalization material. They must never appear or be implied in prospect notes, generated drafts, LinkedIn text, capability materials or outreach.
 
-## SOURCE ANALYSIS
+## ACCEPTANCE FINDING
 
-- Historic Plunet export: 7,674 records; 546 websites, 459 email fields and 530 order dates.
-- Named account report: 255 entities. 228 normalized-exact matches and 234 high-similarity matches to the historic export.
-- Reconciliation result: 26 current canonical pipeline candidates; 67 rows merge into them; 8 additional merge/re-verify examples; 12 explicit exclusions; 163 held for current evidence.
-- Current canonical mappings include SDL/Moravia → RWS, Jonckers → Acclaro, Venga → Argos, Morningside → Questel, Delingua/WHP → LanguageWire, PTW → Side and current consolidated groups for Acolad, TransPerfect, Translate.One and t'works.
-- e2f is excluded: its current business became TrustScale and no longer matches the target buyer profile.
-- Historical personal emails are not sent to web research or seeded. Four current public role-based application contacts are retained as unverified.
+The first controlled Update 067 research result returned Baltic Media, Business Team Translations and Jensen Localization.
 
-## IMPLEMENTED — UPDATE 067
+- Baltic Media: qualified on current public external-capacity and Nordic evidence.
+- Jensen Localization: qualified, but the historical relationship must not be recorded or referenced; treat as cold.
+- Business Team Translations: remains at research. Its cited careers page proves an external translator network but not current Nordic demand; its original Nordic rationale was inferential.
+- Automatic research remains off.
 
-- Forward-only migration `063_sales_prospect_learning.sql` adds a bounded JSON buyer profile, forces automatic research off, seeds 26 current canonical companies at `qualified`, adds four unverified public role contacts, and creates no conversations/messages/outreach.
-- New service-only `sales_system_067` supplies the curated profile, known company/domain exclusions and suppressed domains. It records returned, validation-rejected, duplicate, suppression, conflict and imported counts.
-- AI prompt now requires a current multi-language LSP/localization buyer, current official evidence, outside-capacity demand and canonical identity. It rejects Retodo, direct clients, individuals, directories, weak competitors and legacy aliases.
-- URL validation safely removes tracking parameters while retaining scheme/host/path/non-tracking-query identity.
-- Sales Today and result dialog show truthful outcome counts; the unconditional “Existing companies were skipped” claim is removed.
-- Existing `sales_system_063`, approval workflow, budget controls, Gmail protections and signature renderers remain intact.
-- Automatic research remains off. No paid AI call or outreach was made during development.
+## IMPLEMENTED — UPDATE 068
+
+- Forward-only migration `064_sales_cold_prospect_guard.sql` upgrades the buyer profile to version 2, enforces cold-only handling, leaves automatic research off and scrubs confidential relationship language from the Update 067 seed plus the known Jensen note.
+- Update 067 seed fit text is replaced with public-only reasons without changing stages, contacts, conversations or user workflow history.
+- Research now requires current official evidence of both external-capacity sourcing and Nordic-language demand. Certifications, age, size and broad European coverage alone are explicitly insufficient.
+- Result validation requires both signals in each fit statement and rejects confidential relationship wording.
+- Writing requests exclude free-form prospect fit notes/notes and pass only public identity fields with fixed `outreach_mode: cold`.
+- Draft and material validation fails closed if generated content implies prior work, orders, projects, clients, collaboration or another relationship.
+- Sales research/writing dialogs state the cold-only rule.
 
 ## VERIFIED
 
-- 54 database workflow checks PASS, including migration reapplication, 26 canonical seeds, four unverified role contacts, service-only context, truthful outcome counts, prior sending/reply/signature behavior and a real-worker/fixture-Gmail pass.
-- Read-only audits PASS: Sales 31, worker 11, signature 12, brand assets 9, Update 067 research 15.
-- 43 service, worker, diagnostic, signature and brand tests PASS, including tracking-URL canonicalization, strict path evidence, curated context, exclusions and dispatcher selection.
-- Full browser fixture PASS: truthful research counts/result dialog plus prior navigation, review, signatures, conversations, materials, XSS, mobile and role boundaries.
-- Analysis workbook rendered and visually inspected on all five tabs; no formula errors. It contains Summary, Pipeline Candidates, Training Examples, Source Reconciliation and Method.
+- 44 service, worker, diagnostic, signature and brand tests pass, including new cold-context stripping and weak-evidence rejection tests.
+- 57 database workflow checks pass. Read-only audits pass, including the 10-row Update 068 audit, migration reapplication, profile v2, seeded-text cleanup, Jensen cleanup, retained workflow rows and automatic research off.
+- Browser fixture passes with build 068 assets and prior Sales behavior retained.
+- ZIP contents are complete repository-root files and hash-checked against the verified working tree.
 
 ## DELIVERY
 
-- `RetodoOps_Update_067_Prospect_Learning.zip` — 16 complete repository files listed in `UPDATE_067_MANUAL_UPLOAD.md`.
-- `Retodo_Ops_Prospect_Learning_Set_2026-10-22.xlsx` — reusable analysis and training workbook, stored separately from the application repository.
-- Installation: run migration 063, then audit 021 (15 PASS), deploy, hard-refresh, confirm build 067 and automatic research off. Review public contacts before verification.
+- `RetodoOps_Update_068_Cold_Prospect_Guard.zip` — 14 complete files listed in `UPDATE_068_MANUAL_UPLOAD.md`.
+- Installation: upload files, run migration 064, run audit 022 (10 PASS), deploy and hard-refresh.
 
-## RETAINED UPDATE 066 INVOICE WORK
+## RETAINED UPDATE 066 / 067 WORK
 
-Main `ebb6f20d` contains Update 066 reference invoice layout and Bulgarian issuer details. Do not overwrite its migration 062, audits, PDF/Word layout, Bulgarian issuer settings or invoice revision safeguards. Existing issued snapshots remain frozen; old invoices gain Bulgarian issuer text only through explicit administrator revision with a reason. Production/desktop Word acceptance remains separate from this Sales update.
-
-## RETAINED LIVE SALES ACCEPTANCE
-
-- Mailbox, Eli alias, sending, reply detection and follow-up cancellation passed in the live pilot.
-- Corrected 064A signature was sent, received and accepted by the user.
-- AI provider access and cost accounting passed in the €0.02 task; discovery/import quality was not accepted and is the reason for Update 067.
+Do not overwrite or remove Update 066 invoice migration, audit, PDF/Word layout, Bulgarian issuer settings or invoice revision safeguards. Preserve Update 067 migration 063, the 26 canonical seed records, four unverified public role contacts, truthful research counters and service-only `sales_system_067`.
 
 ## NEXT EXACT ACTION
 
-The user uploads the Update 067 ZIP to current main, runs migration 063 and audit 021, deploys, and confirms the 26 qualified canonical prospects with automatic research still off. Then run one narrow on-demand research acceptance test and inspect the separated outcome counts before enabling any recurring research.
+The user uploads Update 068, runs migration 064 and audit 022, deploys and confirms build 068 with Research still On demand. Then inspect the already-completed Update 067 result counters via Sales → Today → Research & writing → Prospect research → View result. Do not run another paid research task or generate outreach until Update 068 is installed.
 
 ## DO NOT REDO
 
-Do not recreate the signature, restart OAuth, repeat delivery/reply tests, re-enable automatic research, seed legacy aliases, import historic personal emails, or rerun paid research before Update 067 is installed. Do not change or remove Update 066 invoice files.
+Do not re-run migration 063 as a substitute for 064, re-enable automatic research, import historical personal emails, describe any prospect as a previous Retodo client, generate outreach before Update 068, or change/remove Update 066 invoice files.

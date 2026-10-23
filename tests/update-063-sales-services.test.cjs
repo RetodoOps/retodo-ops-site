@@ -71,7 +71,7 @@ test('Cost bounds include tool turns, tool fees and output; missing/stale pricin
  process.env.SALES_AI_EUR_PER_USD='0.01';assert.throws(ai.pricing,/invalid/);priceEnv();
 });
 test('Research canonicalizes tracking URLs but keeps strict path evidence and reports validation outcomes',()=>{
- const p={name:'Company',domain:'company.invalid',source_url:'https://company.invalid/vendor',fit_note:'Fits',contacts:[{name:'Person',email:'bad\n@example.invalid',linkedin_url:'javascript:alert(1)',source_url:'https://company.invalid/vendor'}]};
+ const p={name:'Company',domain:'company.invalid',source_url:'https://company.invalid/vendor',fit_note:'Official vendor application recruits freelance linguists for Swedish and other Nordic projects.',contacts:[{name:'Person',email:'bad\n@example.invalid',linkedin_url:'javascript:alert(1)',source_url:'https://company.invalid/vendor'}]};
  const r=ai.validateResult('research',{prospects:[p,{...p,name:'Unverified',source_url:'https://company.invalid/other'}],notes:'Test'},[{url:p.source_url+'?utm_source=openai&gclid=fixture',title:'Evidence'}]);
  assert.equal(r.prospects.length,1);assert.equal(r.prospects[0].contacts[0].email,null);assert.equal(r.prospects[0].contacts[0].linkedin_url,'');
  assert.deepEqual(r.diagnostics,{returned:2,accepted:1,validation_rejected:1,contacts_returned:2,contacts_accepted:1,contacts_validation_rejected:1});
@@ -82,7 +82,19 @@ test('Research canonicalizes tracking URLs but keeps strict path evidence and re
 test('Research payload includes the curated buyer profile and known-company exclusions',()=>{
  const prepared=ai.prepare('research',{brief:'Current LSP buyers needing Nordic capacity'},{research_profile:{ideal_buyer:'Multi-language LSP',exclude:['Retodo Ops']},existing_prospects:[{name:'Acclaro',domain:'acclaro.com'}],suppressed_domains:['blocked.invalid']});
  assert.equal(prepared.research_profile.ideal_buyer,'Multi-language LSP');assert.deepEqual(prepared.existing_prospects,[{name:'Acclaro',domain:'acclaro.com'}]);assert.deepEqual(prepared.suppressed_domains,['blocked.invalid']);
- assert.match(prepared.task,/NEW buyer companies/);assert.match(prepared.task,/Retodo Ops/);assert.match(prepared.task,/suppressed_domains/);
+ assert.match(prepared.task,/NEW buyer companies/);assert.match(prepared.task,/BOTH/);assert.match(prepared.task,/General European-language coverage/);assert.match(prepared.task,/cold prospect/i);assert.match(prepared.task,/Retodo Ops/);assert.match(prepared.task,/suppressed_domains/);
+});
+test('Weak Nordic inference is rejected and confidential history cannot enter research or writing output',()=>{
+ const source='https://buyer.invalid/careers';
+ const base={name:'Buyer',domain:'buyer.invalid',country:'GB',sector:'LSP',source_url:source,contacts:[]};
+ const weak=ai.validateResult('research',{prospects:[{...base,fit_note:'ISO certified for 27 years across major European languages, suggesting capacity for Nordic projects.'}],notes:''},[{url:source,title:'Careers'}]);
+ assert.equal(weak.prospects.length,0);assert.equal(weak.diagnostics.validation_rejected,1);
+ const safe=ai.validateResult('research',{prospects:[{...base,fit_note:'The official vendor route recruits freelance linguists for current Swedish and Danish localization work.'}],notes:''},[{url:source,title:'Careers'}]);
+ assert.equal(safe.prospects.length,1);
+ const prepared=ai.prepare('draft',{prospect:{id,name:'Buyer',domain:'buyer.invalid',sector:'LSP',source_url:source,fit_note:'Former client with purchase history',notes:'Confidential Plunet record'},contact:{id,name:'Person',role_title:'Vendor Manager',email:'private@buyer.invalid'}},{approved_facts:'Verified public Retodo facts'});
+ assert.equal(prepared.outreach_mode,'cold');assert.equal(prepared.prospect.outreach_mode,'cold');assert.equal(prepared.prospect.fit_note,undefined);assert.equal(prepared.prospect.notes,undefined);assert.equal(prepared.contact.email,undefined);assert.doesNotMatch(JSON.stringify(prepared),/Plunet|purchase history|Former client/);
+ assert.throws(()=>ai.validateResult('draft',{subject:'Hello',initial:'We have previously worked with you.',followup_one:'Following up.',followup_two:'One last note.',linkedin_note:'Connect?'},[]),/prior relationship/);
+ assert.throws(()=>ai.validateResult('materials',{title:'Capabilities',content:'A presentation for our former client.'},[]),/prior relationship/);
 });
 test('AI timeout and invalid/incomplete results retain cost accounting; no implicit retry',async()=>{
  priceEnv();const original=global.fetch;let calls=0;
