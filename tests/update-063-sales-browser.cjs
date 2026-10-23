@@ -11,7 +11,7 @@ const id=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
  let browser;
  try{
   const binary=require(process.env.CHROMIUM_MODULE||'@sparticuz/chromium');
-  browser=await chromium.launch({headless:true,executablePath:await binary.executablePath(),args:binary.args});
+  browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE||await binary.executablePath(),args:binary.args});
   const page=await browser.newPage({viewport:{width:1440,height:1050},acceptDownloads:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
   const now=new Date().toISOString();let role='admin',lastCommand=null,failedApproval=false,lastQuery='';
@@ -20,7 +20,8 @@ const id=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
   const convo={id:id(12),prospect_id:prospect.id,contact_id:contact.id,recipient:contact.email,sender:'eli.s@retodo-ops.com',reply_to:'eli.s@retodo-ops.com',state:'active',thread_id:null,synced_at:null,company:prospect.name,contact_name:contact.name,created_at:now,updated_at:now};
   const messages=[0,1,2].map((step)=>({id:id(20+step),conversation_id:convo.id,kind:step?'followup':'initial',direction:'outbound',step,subject:'Nordic language support',body:step?'A short follow-up to the proposed partnership.':'Hello Alex,\n\nCould we discuss support for your Nordic localization projects?\n\nIf this is not relevant, reply and I will stop following up.',signature:step<2?{...defaults}:{},attachments:[],delay_days:[0,5,12][step],due_at:now,state:'draft',version:1,company:prospect.name,recipient:contact.email,sender:convo.sender,reply_to:convo.reply_to,verified_at:now,outreach_basis:contact.outreach_basis,created_at:now}));
   const material={id:id(40),title:'Nordic language support',content:'## Working together\nSupport for your Nordic localization work.\nA proposed discussion of requirements and the first project.\n\n## Next step\nDiscuss the brief with Eli Stoyanova.\neli.s@retodo-ops.com',version:1,updated_at:now};
-  const data={settings:{email_signature:{...defaults},signature_enabled:true,sending_enabled:false,research_enabled:false,monthly_cap:30,reserve_eur:5,recurring_eur:5,daily_limit:10,approved_facts:'Test facts only.',target_brief:'LSPs with Nordic vendor requirements.',research_interval_days:7},runtime:{mailbox_ok:false},counts:{prospects:1,review:3,queued:0,sent:0,replies:0,attention:0},prospect_count:1,prospects:[prospect],conversations:[convo],review:messages,materials:[material],tasks:[],attention:[],jobs:[],events:[],budget:{charged:.12,reserved:0}};
+  const researchJob={id:id(50),kind:'research',state:'completed',created_at:now,cost_eur:.02,reserved_eur:.05,result:{prospects:[],notes:'Fixture result',sources:[],imported:0,outcomes:{returned:4,accepted:2,validation_rejected:2,duplicates:1,suppressions:1,conflicts:0,imported:0}}};
+  const data={settings:{email_signature:{...defaults},signature_enabled:true,sending_enabled:false,research_enabled:false,monthly_cap:30,reserve_eur:5,recurring_eur:5,daily_limit:10,approved_facts:'Test facts only.',target_brief:'LSPs with Nordic vendor requirements.',research_interval_days:7},runtime:{mailbox_ok:false},counts:{prospects:1,review:3,queued:0,sent:0,replies:0,attention:0},prospect_count:1,prospects:[prospect],conversations:[convo],review:messages,materials:[material],tasks:[],attention:[],jobs:[researchJob],events:[],budget:{charged:.12,reserved:0}};
   await page.exposeFunction('fixtureRpc',async(name,args)=>{
    if(name==='current_app_role')return {data:role};if(name==='current_user_access_enabled')return {data:true};if(name==='tms_search_062')return {data:[]};
    if(name==='sales_workspace_063'){lastQuery=args.p_query;return {data:structuredClone({...data,prospects:args.p_query==='empty'?[]:data.prospects,prospect_count:args.p_query==='empty'?0:1})};}
@@ -42,6 +43,9 @@ const id=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
   await page.route('**/.netlify/functions/sales',async route=>{const body=route.request().postDataJSON();assert.ok(['status','run','check_mailbox','ai'].includes(body.action));await route.fulfill({contentType:'application/json',body:JSON.stringify(body.action==='status'?{ai_ready:false,ai_hold:'AI is not configured.',worker_ready:false}:body.action==='check_mailbox'?{account:'ops@retodo-ops.com',alias:'eli.s@retodo-ops.com'}:{queued:true})});});
   const base=`http://127.0.0.1:${server.address().port}/`;
   await page.goto(base+'sales.html');await page.getByText('Next actions',{exact:true}).waitFor();
+  await page.getByText('4 returned · 2 passed evidence checks · 2 rejected by validation · 1 already in Sales · 1 suppressed · 0 added.',{exact:true}).waitFor();
+  assert.equal(await page.getByText('Existing companies were skipped.',{exact:true}).count(),0);
+  await page.getByRole('button',{name:'View result',exact:true}).click();await page.getByText('Returned by AI',{exact:true}).waitFor();assert.match(await page.locator('#salesDialog').innerText(),/Rejected by validation\s*2/);await page.getByRole('button',{name:'Close',exact:true}).click();
   assert.equal(await page.locator('.sidebar a[href="sales.html"]').count(),1);assert.equal(await page.locator('.sidebar a[href^="invoice.html"]').count(),2);
   await page.screenshot({path:path.join(OUTPUT,'sales-today.png'),fullPage:true});
   await page.locator('[data-tab="prospects"]').click();await page.getByRole('button',{name:'Open',exact:true}).click();await page.getByRole('heading',{name:prospect.name,exact:true}).waitFor();

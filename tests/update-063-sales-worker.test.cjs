@@ -2,6 +2,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 const source=fs.readFileSync(path.join(__dirname,'../netlify/functions/_shared/sales-worker.js'),'utf8');
 const apiSource=fs.readFileSync(path.join(__dirname,'../netlify/functions/sales.js'),'utf8');
+test('Research uses the Update 067 dispatcher and loads the saved learning context',()=>{
+ assert.match(source,/serviceRpc\('sales_system_067'/);assert.match(source,/rpc\('research_context'\)/);
+ assert.match(apiSource,/worker\.rpc\('research_context'\)/);assert.doesNotMatch(source,/serviceRpc\('sales_system_063'/);
+});
 function harness({reply=false,timeout=false,settleFail=false,mailboxFail=false}={}){
  const calls=[];let claimed=false;
  const message={id:'message',lease_id:'lease',kind:'followup'},conversation={id:'conversation',thread_id:'thread'};

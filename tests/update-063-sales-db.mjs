@@ -275,6 +275,9 @@ const {signatureChecks}=await import('./update-064-sales-signature-db.mjs');
 await signatureChecks({db,read,check,cmd,sys,rpc,workspace,privileged,make,detail});
 const {brandAssetChecks}=await import('./update-064a-sales-brand-assets-db.mjs');
 await brandAssetChecks({db,read,check,cmd,sys,workspace,privileged,make,detail});
+const {researchLearningChecks}=await import('./update-067-sales-research-db.mjs');
+await researchLearningChecks({db,read,check,rpc,privileged});
+const sys67=async(action,data={})=>{await db.exec("RESET ROLE;SET ROLE service_role;SET request.jwt.claim.role='service_role'");try{return await rpc('sales_system_067',[action,data]);}finally{await db.exec("RESET ROLE;SET ROLE authenticated;SET request.jwt.claim.role='authenticated'");}};
 await check('Real worker plus real SQL sends once, polls the thread, records a reply and cancels follow-ups',async()=>{
  const {runWorker}=createRequire(import.meta.url)('../netlify/functions/_shared/sales-worker');
  const env={SUPABASE_URL:'https://sales-db-test.invalid',SUPABASE_SERVICE_ROLE_KEY:'fixture-service',GOOGLE_CLIENT_ID:'fixture-client.apps.googleusercontent.com',GOOGLE_CLIENT_SECRET:'fixture-google',GOOGLE_REFRESH_TOKEN:'fixture-refresh',SALES_GMAIL_ACCOUNT_EMAIL:'mailbox@example.invalid'};
@@ -290,10 +293,10 @@ await check('Real worker plus real SQL sends once, polls the thread, records a r
   const response=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
   global.fetch=async(url,options={})=>{
    url=String(url);
-   if(url===env.SUPABASE_URL+'/rest/v1/rpc/sales_system_063'){
+   if(url===env.SUPABASE_URL+'/rest/v1/rpc/sales_system_067'){
     assert.equal(options.headers.Authorization,'Bearer fixture-service');
     const {p_action,p_data}=JSON.parse(options.body);actions.push(p_action);
-    return response(await sys(p_action,p_data));
+    return response(await sys67(p_action,p_data));
    }
    if(url==='https://oauth2.googleapis.com/token')return response({access_token:'fixture-access'});
    if(!url.startsWith('https://gmail.googleapis.com/gmail/v1/users/me/'))throw new Error('Unexpected external request blocked: '+url);
@@ -333,8 +336,10 @@ await check('Real worker plus real SQL sends once, polls the thread, records a r
 });
 await check('Thread polling stays unavailable to browser roles and requires the service claim',async()=>{
  await rejects(rpc('sales_system_063',['threads',{}]),/permission denied/);
+ await rejects(rpc('sales_system_067',['threads',{}]),/permission denied/);
  await db.exec('RESET ROLE');
  await rejects(rpc('sales_system_063',['threads',{}]),/Server access required/);
+ await rejects(rpc('sales_system_067',['threads',{}]),/Server access required/);
  await db.exec('SET ROLE authenticated');
 });
 await db.exec('RESET ROLE');
@@ -350,5 +355,8 @@ console.log(`PASS Sales signature audit: ${signatureAudit.rows.length} checks`);
 const brandAudit=await db.query(read('tms/audits/020_update_064a_sales_brand_assets_audit.sql'));
 assert.ok(brandAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(brandAudit.rows.filter(r=>r.result!=='PASS')));
 console.log(`PASS Sales brand assets audit: ${brandAudit.rows.length} checks`);
+const researchAudit=await db.query(read('tms/audits/021_update_067_sales_research_audit.sql'));
+assert.ok(researchAudit.rows.every(r=>r.result==='PASS'),JSON.stringify(researchAudit.rows.filter(r=>r.result!=='PASS')));
+console.log(`PASS Sales research learning audit: ${researchAudit.rows.length} checks`);
 console.log(`${passed} Sales database checks passed`);
 }catch(e){console.error(e.message);console.error(e.where,e.internalQuery,e.position);process.exitCode=1;}finally{await db.close();}

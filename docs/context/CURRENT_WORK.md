@@ -1,86 +1,73 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
-Current task: Update 066 — reference invoice layout and Bulgarian issuer details
-Status: READY FOR USER INSTALLATION — verified complete-file package; production acceptance pending
-Task branch: dev/update-066-invoice-layout (local)
-Starting HEAD: 3e90411b25bb3cf868a8754aae1fdaa483f70374 (main, Update 065)
-Build: 066 locally; main 065
-Latest checkpoint: verification/package commit containing this record; scope checkpoint 34af9d4
-Last updated: 2026-10-16
+Current task: Update 067 — curated Sales prospects and buyer-profile research
+Status: READY FOR USER INSTALLATION — verified complete-file package; no production actions performed
+Starting remote HEAD: `ebb6f20d061fc284399973997627d8a2bdec6b3a` (main, Update 066)
+Local branch: `dev/update-064-sales-signature` on reconstructed history; never push this history
+Build: 067 locally; main 066
+Last updated: 2026-10-22
 
-## LOCKED RULES
-- Deliver complete changed files in a ZIP. User uploads/commits to main. No assistant push/merge/deployment/production SQL/configuration/data changes.
-- Keep local checkpoints and this record. Preserve Sales, Reports and public enquiry changes.
-- Match supplied invoice layout in PDF and editable Word. Bulgarian output uses separate Bulgarian issuer fields. Preserve entered recipient, descriptions, tax basis and bank account; no guessed translations or tax facts.
-- Existing issued snapshots remain frozen. Adding Bulgarian issuer text to an old invoice requires an explicit admin revision with reason/history.
+## LOCKED WORKFLOW
 
-## FINDINGS / APPROACH
-- Main includes Update 065 standalone/BG/Word at 3e90411. No need to replay or overwrite earlier fixes.
-- Previous transient 066 workspace disappeared; rebuild from main and saved scope, rerun verification.
-- Reference supplier: Ретодо ЕООД, ул. Светла 48А, ап. 23 / София / България; ЕИК 208524462; Обединена българска банка АД; Демир Атанасов. Optional fill button affects text only, requires matching configured registration and explicit save.
-- Never copy screenshot recipient, invoice number, dates, line items, tax basis or bank account into live data.
+- Deliver complete changed files in a repository-root ZIP. The user uploads/commits to main.
+- Do not push, merge, deploy, run production SQL, change production configuration/data or send prospect outreach.
+- Preserve Update 066 invoice work and all earlier Sales signature, Gmail, Reports and public-enquiry behavior.
+- Database migrations are forward-only. Preserve RLS, least privilege, approvals, suppressions and immutable history.
 
-## COMPLETED / TEST RESULTS
-- Shared reference layout implemented in PDF and native Word; separate Bulgarian issuer fields and reference-text fill with matching-registration gate.
-- Migration 062 adds optional document metadata and guarded save/revision wrappers. Old snapshots change only through explicit admin revision; previous full snapshot and payments retained.
-- 34 SQL workflow checks PASS; audit021 15 PASS, audit022 9 PASS; migration reapplication PASS.
-- Browser fixture suite PASS: settings fill/save, standalone manual metadata, English/Bulgarian Word, BG print, explicit issuer revision, payments/deletion, QA and mobile.
-- Native DOCX rendered: EN/BG single pages and all five pages of a 65-row document inspected. Browser PDF inspected. No clipping or row/header problems.
-- JS syntax and diff checks PASS. No production operations. PGlite test uses documented missing-037 audit stub; browser uses fixture RPCs.
-- Main rechecked at 3e90411 before packaging. Complete files only; no vendor duplication or Sales/Reports changes.
+## USER REQUEST
 
-## UNRESOLVED / REQUIRED CONTEXT
-User production installation and desktop Microsoft Word acceptance remain pending. Use UPDATE_066_MANUAL_UPLOAD.md for installation steps.
+Use the two supplied prospect lists as learning material: clarify the buyer profile, reconcile duplicate/acquired names, remove organizations that no longer fit or operate under that name, add only high-confidence prospects to the Sales pipeline, and improve future AI research.
+
+The earlier live AI task completed for €0.02 but returned zero prospect cards and generic sources, including Retodo itself. Provider access, worker execution and cost accounting passed; research selection, URL validation and result reporting did not.
+
+## SOURCE ANALYSIS
+
+- Historic Plunet export: 7,674 records; 546 websites, 459 email fields and 530 order dates.
+- Named account report: 255 entities. 228 normalized-exact matches and 234 high-similarity matches to the historic export.
+- Reconciliation result: 26 current canonical pipeline candidates; 67 rows merge into them; 8 additional merge/re-verify examples; 12 explicit exclusions; 163 held for current evidence.
+- Current canonical mappings include SDL/Moravia → RWS, Jonckers → Acclaro, Venga → Argos, Morningside → Questel, Delingua/WHP → LanguageWire, PTW → Side and current consolidated groups for Acolad, TransPerfect, Translate.One and t'works.
+- e2f is excluded: its current business became TrustScale and no longer matches the target buyer profile.
+- Historical personal emails are not sent to web research or seeded. Four current public role-based application contacts are retained as unverified.
+
+## IMPLEMENTED — UPDATE 067
+
+- Forward-only migration `063_sales_prospect_learning.sql` adds a bounded JSON buyer profile, forces automatic research off, seeds 26 current canonical companies at `qualified`, adds four unverified public role contacts, and creates no conversations/messages/outreach.
+- New service-only `sales_system_067` supplies the curated profile, known company/domain exclusions and suppressed domains. It records returned, validation-rejected, duplicate, suppression, conflict and imported counts.
+- AI prompt now requires a current multi-language LSP/localization buyer, current official evidence, outside-capacity demand and canonical identity. It rejects Retodo, direct clients, individuals, directories, weak competitors and legacy aliases.
+- URL validation safely removes tracking parameters while retaining scheme/host/path/non-tracking-query identity.
+- Sales Today and result dialog show truthful outcome counts; the unconditional “Existing companies were skipped” claim is removed.
+- Existing `sales_system_063`, approval workflow, budget controls, Gmail protections and signature renderers remain intact.
+- Automatic research remains off. No paid AI call or outreach was made during development.
+
+## VERIFIED
+
+- 54 database workflow checks PASS, including migration reapplication, 26 canonical seeds, four unverified role contacts, service-only context, truthful outcome counts, prior sending/reply/signature behavior and a real-worker/fixture-Gmail pass.
+- Read-only audits PASS: Sales 31, worker 11, signature 12, brand assets 9, Update 067 research 15.
+- 43 service, worker, diagnostic, signature and brand tests PASS, including tracking-URL canonicalization, strict path evidence, curated context, exclusions and dispatcher selection.
+- Full browser fixture PASS: truthful research counts/result dialog plus prior navigation, review, signatures, conversations, materials, XSS, mobile and role boundaries.
+- Analysis workbook rendered and visually inspected on all five tabs; no formula errors. It contains Summary, Pipeline Candidates, Training Examples, Source Reconciliation and Method.
+
+## DELIVERY
+
+- `RetodoOps_Update_067_Prospect_Learning.zip` — 16 complete repository files listed in `UPDATE_067_MANUAL_UPLOAD.md`.
+- `Retodo_Ops_Prospect_Learning_Set_2026-10-22.xlsx` — reusable analysis and training workbook, stored separately from the application repository.
+- Installation: run migration 063, then audit 021 (15 PASS), deploy, hard-refresh, confirm build 067 and automatic research off. Review public contacts before verification.
+
+## RETAINED UPDATE 066 INVOICE WORK
+
+Main `ebb6f20d` contains Update 066 reference invoice layout and Bulgarian issuer details. Do not overwrite its migration 062, audits, PDF/Word layout, Bulgarian issuer settings or invoice revision safeguards. Existing issued snapshots remain frozen; old invoices gain Bulgarian issuer text only through explicit administrator revision with a reason. Production/desktop Word acceptance remains separate from this Sales update.
+
+## RETAINED LIVE SALES ACCEPTANCE
+
+- Mailbox, Eli alias, sending, reply detection and follow-up cancellation passed in the live pilot.
+- Corrected 064A signature was sent, received and accepted by the user.
+- AI provider access and cost accounting passed in the €0.02 task; discovery/import quality was not accepted and is the reason for Update 067.
 
 ## NEXT EXACT ACTION
-User runs migration062, audit022 (9 PASS), uploads/commits ZIP files, refreshes to066, fills and saves BG settings. For existing issued invoices, select explicit BG issuer copy and Save revision with a reason.
+
+The user uploads the Update 067 ZIP to current main, runs migration 063 and audit 021, deploys, and confirms the 26 qualified canonical prospects with automatic research still off. Then run one narrow on-demand research acceptance test and inspect the separated outcome counts before enabling any recurring research.
 
 ## DO NOT REDO
-No Sales, OAuth, signatures, public enquiry, Reports changes or broad context reconciliation. No production actions.
 
-## USER-REPORTED LIVE SALES ACCEPTANCE — PASSED 2026-10-07
-
-- Mailbox check passed: primary account `aleksandra.a@retodo-ops.com`; Sales sender `eli.s@retodo-ops.com`.
-- The worker secret was corrected after being too short; background processing now starts.
-- Migration 058 corrected the original SQLSTATE 42702 `c.*` polling ambiguity.
-- The test email was successfully sent and received. From and Reply-To were correct.
-- Reply detection and follow-up cancellation were checked; the user confirmed “Yes, correct.”
-- Do not treat basic delivery/reply testing or OAuth as an unresolved blocker.
-- Optional AI configuration and live research acceptance remain unconfirmed and separate from the signature task.
-
-## INSTALLED SALES BASELINE — 063 / 063A / 063B
-
-The pilot is admin-only with exact batch review before sending and a €30 starting monthly incremental Sales ceiling. Every Sales From/Reply-To is Eli Stoyanova <eli.s@retodo-ops.com>. General Gmail remains Retodo Ops <ops@retodo-ops.com> with its existing reply preference and operational helpers.
-
-- Migration 057: 12 Sales tables, admin RLS/guarded RPCs, immutable approvals/events, evidence and deduplication, one open company approach, suppression, Client conversion, tasks/materials, durable AI jobs and conservative cost reservations.
-- Isolated Sales Gmail helper: accepted alias/primary mailbox checks, fresh reply checks, same-thread and separate-thread reply/bounce handling, stable Message-ID reconciliation. Ambiguous sends are not automatically retried.
-- Admin API, secret-protected worker and five-minute scheduler; global/message leases, pre-send database checks and default 10/day limit. Replies cancel follow-ups; manual Gmail replies/OOO pause; opt-outs/bounces suppress. Business days use Sofia weekdays from actual initial send.
-- AI uses structured research/drafts/materials, approved company facts, public source evidence and unverified suggested emails. LinkedIn contact actions remain manual. Budget includes entered other costs/reserve; unknown usage keeps reservations and may hold spending.
-- Sales tabs: Today, Prospects, Batch review, Conversations, Materials, Settings. Materials provide editable pitches/decks, local PowerPoint export, Markdown and print/PDF.
-- 063A mailbox diagnostics expose allowlisted actionable Google error codes while keeping secrets/raw provider errors hidden.
-- 063B migration 058 fixes only the server polling query alias. Current 059 retains this correction.
-
-## RETAINED PUBLIC ENQUIRY ANTI-SPAM WORK
-
-Main’s 2026-10-07 06:35:50Z commit uploaded the older named Update 061 anti-spam package after Sales 063B. It retained Sales files/migration 058 but replaced CURRENT_WORK/build metadata with stale 061 text. This document reconciles the two workstreams; build 064 now describes the latest change.
-
-Preserve `contact.html`, root `script.js`, `netlify/functions/submit-project-enquiry.js` and `UPDATE_061_MANUAL_UPLOAD.md` from that main upload, with the later 063C corrections at `75b4b54`. 063C adds the browser minimum of 10 characters and `Project details are too short.` feedback, restores build 063 and repairs continuity. Public project enquiries use Turnstile, plus existing honeypot/origin checks and Gmail delivery; required language/wordcount/deadline validations remain. The user reported a valid enquiry was sent and received. Live 063C browser feedback was not independently rechecked during this signature task.
-
-## RETAINED 061/062 BUSINESS DECISIONS
-
-- Client invoices can include selected approved Scoops across Projects, with PO-based selection, row correction/deletion and manual rows. Client payment days determine due date.
-- Update 062 permits admin-only, reasoned official invoice revisions with previous snapshots and financial safeguards; preserve receipts, issuer metadata, number ownership, client/currency and total-at-least-receipts protections.
-- Reports Projects view is one row per Scoop, with page sizes 25/50/100/250 (50 default). Typed XLSX is default and CSV optional.
-- EUR reporting uses a dated traceable ECB snapshot; missing rates/costs are explicit. Latest user rule is that empty supplier prices count as EUR 0; the separately delivered Reports 064 implementation remains absent from main and is not included in this invoice-only update. Provisional profit and final margin differ; do not invent Job revenue allocation.
-- Invoiced/Paid Scoop status is derived from invoices/receipts, separate from operational approval. Preserve 062 shared search, exact Scoop priority and restored Invoice navigation.
-- Supplier invoice cycle remains the 15th/last working day with 60 calendar days from cycle; implementation is later scope. Credit notes/annulment, bank FX differences and separate Invoice Reports are also later scope.
-- No invented issuer/legal/bank/tax configuration or reopening signing, invitations, Compliance and unrelated reconciliation.
-
-## SALES PILOT LIMITS / LATER WORK
-
-- Polling is not instant; replies can arrive after the final check. OOO needs manual review/resumption.
-- No automated LinkedIn messages, inbound attachment storage or tracking pixels.
-- Sales search remains separate from operational shared search. Current list paging/limits remain.
-- No UI to settle uncertain AI charges; use the existing documented evidenced administrator recovery process.
-- Broader roles, commercial quoting/proposals, rate/resource matching and native Google Slides integration remain later work.
+Do not recreate the signature, restart OAuth, repeat delivery/reply tests, re-enable automatic research, seed legacy aliases, import historic personal emails, or rerun paid research before Update 067 is installed. Do not change or remove Update 066 invoice files.

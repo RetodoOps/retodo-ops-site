@@ -1,1 +1,7 @@
-{"product":"Retodo Ops TMS","build":"066","release":"Update 066 — Invoice layout and Bulgarian issuer details","source_baseline":"main 3e90411 / Update 065","built_on":"2026-10-16"}
+{
+  "product": "Retodo Ops TMS",
+  "build": "067",
+  "release": "Update 067 — Curated Sales prospects and buyer-profile research",
+  "source_baseline": "main ebb6f20 / Update 066 invoice layout and Bulgarian issuer details",
+  "built_on": "2026-10-22"
+}

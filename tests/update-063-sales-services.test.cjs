@@ -70,11 +70,19 @@ test('Cost bounds include tool turns, tool fees and output; missing/stale pricin
  process.env.SALES_AI_PRICING_REVIEWED_ON='2020-01-01';assert.throws(ai.pricing,/Review/);priceEnv();
  process.env.SALES_AI_EUR_PER_USD='0.01';assert.throws(ai.pricing,/invalid/);priceEnv();
 });
-test('Research drops unsourced companies, invalid emails and unsafe LinkedIn URLs',()=>{
+test('Research canonicalizes tracking URLs but keeps strict path evidence and reports validation outcomes',()=>{
  const p={name:'Company',domain:'company.invalid',source_url:'https://company.invalid/vendor',fit_note:'Fits',contacts:[{name:'Person',email:'bad\n@example.invalid',linkedin_url:'javascript:alert(1)',source_url:'https://company.invalid/vendor'}]};
- const r=ai.validateResult('research',{prospects:[p,{...p,name:'Unverified',source_url:'https://made-up.invalid'}],notes:'Test'},[{url:p.source_url,title:'Evidence'}]);
+ const r=ai.validateResult('research',{prospects:[p,{...p,name:'Unverified',source_url:'https://company.invalid/other'}],notes:'Test'},[{url:p.source_url+'?utm_source=openai&gclid=fixture',title:'Evidence'}]);
  assert.equal(r.prospects.length,1);assert.equal(r.prospects[0].contacts[0].email,null);assert.equal(r.prospects[0].contacts[0].linkedin_url,'');
+ assert.deepEqual(r.diagnostics,{returned:2,accepted:1,validation_rejected:1,contacts_returned:2,contacts_accepted:1,contacts_validation_rejected:1});
+ assert.equal(ai.canonicalUrl('https://www.company.invalid/vendor/?utm_medium=test#part'),'https://company.invalid/vendor');
+ assert.notEqual(ai.canonicalUrl('https://company.invalid/vendor'),ai.canonicalUrl('https://company.invalid/other'));
  assert.throws(()=>ai.prepare('draft',{},{}),/approved company facts/);
+});
+test('Research payload includes the curated buyer profile and known-company exclusions',()=>{
+ const prepared=ai.prepare('research',{brief:'Current LSP buyers needing Nordic capacity'},{research_profile:{ideal_buyer:'Multi-language LSP',exclude:['Retodo Ops']},existing_prospects:[{name:'Acclaro',domain:'acclaro.com'}],suppressed_domains:['blocked.invalid']});
+ assert.equal(prepared.research_profile.ideal_buyer,'Multi-language LSP');assert.deepEqual(prepared.existing_prospects,[{name:'Acclaro',domain:'acclaro.com'}]);assert.deepEqual(prepared.suppressed_domains,['blocked.invalid']);
+ assert.match(prepared.task,/NEW buyer companies/);assert.match(prepared.task,/Retodo Ops/);assert.match(prepared.task,/suppressed_domains/);
 });
 test('AI timeout and invalid/incomplete results retain cost accounting; no implicit retry',async()=>{
  priceEnv();const original=global.fetch;let calls=0;

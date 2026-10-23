@@ -3,7 +3,7 @@ const {randomUUID,timingSafeEqual}=require('node:crypto');
 const {serviceRpc}=require('./supabase');
 const gmail=require('./sales-gmail');
 const ai=require('./sales-ai');
-const rpc=(action,data={})=>serviceRpc('sales_system_063',{p_action:action,p_data:data});
+const rpc=(action,data={})=>serviceRpc('sales_system_067',{p_action:action,p_data:data});
 
 function validWorkerKey(value) {
   const expected=process.env.SALES_WORKER_SECRET || '';
@@ -55,7 +55,8 @@ async function runWorker() {
     if (settings.research_enabled && (!settings.next_research_at || new Date(settings.next_research_at)<=new Date())) {
       try {
         const cost=ai.pricing();
-        await rpc('reserve_ai',{id:randomUUID(),kind:'research',payload:ai.prepare('research',{},settings),reserved_eur:ai.estimate('research',cost),cost_config:cost,scheduled:true});
+        const context=await rpc('research_context');
+        await rpc('reserve_ai',{id:randomUUID(),kind:'research',payload:ai.prepare('research',{}, {...settings,...context}),reserved_eur:ai.estimate('research',cost),cost_config:cost,scheduled:true});
       } catch(error) { summary.research_hold=error.message; }
     }
     const job=await rpc('claim_ai');

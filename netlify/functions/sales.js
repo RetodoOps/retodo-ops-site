@@ -27,6 +27,7 @@ exports.handler=async event=>{
     if(input.action==='ai') {
       if(!/^[a-f0-9-]{36}$/.test(input.id||'') || !['research','draft','materials'].includes(input.kind)) return jsonResponse(400,{error:'Invalid AI request'});
       const settings=await worker.rpc('config');
+      const researchContext=input.kind==='research'?await worker.rpc('research_context'):{};
       const payload={brief:input.brief};
       if(input.prospect_id) {
         // Resolve context through the same authenticated, role-protected read path as the page.
@@ -40,7 +41,7 @@ exports.handler=async event=>{
         }
       }
       const cost=ai.pricing();
-      const job=await worker.rpc('reserve_ai',{id:input.id,kind:input.kind,payload:ai.prepare(input.kind,payload,settings),reserved_eur:ai.estimate(input.kind,cost),cost_config:cost,created_by:user.id});
+      const job=await worker.rpc('reserve_ai',{id:input.id,kind:input.kind,payload:ai.prepare(input.kind,payload,{...settings,...researchContext}),reserved_eur:ai.estimate(input.kind,cost),cost_config:cost,created_by:user.id});
       let wake_error=null;try{await worker.invokeWorker();}catch(e){wake_error=e.message;}
       return jsonResponse(202,{id:job.id,state:job.state,wake_error});
     }

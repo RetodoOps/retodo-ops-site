@@ -6,6 +6,15 @@ const OUTPUT = 4000;
 const TOOLS = 2;
 const safeUrl = value => { try { const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) && !u.username && !u.password ? u.href : ''; } catch { return ''; } };
 const str = (value, max=2000) => typeof value === 'string' ? value.trim().slice(0,max) : '';
+const TRACKING_PARAM = /^(utm_.+|gclid|dclid|fbclid|msclkid|mc_cid|mc_eid)$/i;
+function canonicalUrl(value) {
+  const safe=safeUrl(value);if(!safe)return '';
+  const u=new URL(safe);u.hash='';u.hostname=u.hostname.toLowerCase().replace(/^www\./,'');
+  for(const key of [...u.searchParams.keys()])if(TRACKING_PARAM.test(key))u.searchParams.delete(key);
+  u.searchParams.sort();
+  u.pathname=u.pathname.replace(/\/{2,}/g,'/').replace(/\/$/,'')||'/';
+  return u.href;
+}
 
 // Prices are reviewed by the installer, not silently fetched or changed by a model.
 // Conservative reservations include a full context for every permitted tool turn.
@@ -57,7 +66,12 @@ function prepare(kind, payload, settings) {
   const clean = {brief:str(payload.brief || settings.target_brief,4000),approved_facts:facts};
   if (kind === 'research') {
     if (clean.brief.length<5) throw new Error('Describe your target clients first');
-    clean.task = 'Find up to 5 relevant prospect companies. Search public business sources. Give a specific sourced reason each fits. Identify up to 2 relevant decision-makers and public LinkedIn profile URLs if evidenced. Use company websites and public professional sources. Emails must appear exactly in a cited source; otherwise return null. Do not derive email patterns. Each source_url must be an exact URL returned by web search. No logins, scraping or LinkedIn contact actions. An empty result is acceptable when evidence is insufficient.';
+    const profile=settings.research_profile && typeof settings.research_profile==='object' ? settings.research_profile : {};
+    const profileText=JSON.stringify(profile);
+    clean.research_profile=profileText.length<=14000?JSON.parse(profileText):{};
+    clean.existing_prospects=(Array.isArray(settings.existing_prospects)?settings.existing_prospects:[]).slice(0,200).map(p=>({name:str(p.name,200),domain:str(p.domain,253)}));
+    clean.suppressed_domains=(Array.isArray(settings.suppressed_domains)?settings.suppressed_domains:[]).slice(0,200).map(x=>str(x,253)).filter(Boolean);
+    clean.task = 'Find up to 5 NEW buyer companies for Retodo Ops. A valid prospect is a current multi-language LSP/localization company that buys external language capacity and could need Nordic target languages. Require a current official company page and concrete evidence of a supplier, vendor, agency, freelancer or linguist route, unless the curated profile explicitly identifies demonstrated recent purchase demand. Prefer current official supplier/vendor pages. Exclude Retodo Ops and retodo-ops.com, direct end clients, individuals, directories/marketplaces, pure Nordic competitors or suppliers without buyer evidence, inactive entities, and acquired/rebranded aliases as separate prospects. Use the present canonical company name and domain. Do not return any company listed in existing_prospects or suppressed_domains. Give a specific sourced reason each buyer fits. Identify up to 2 relevant contacts only when evidenced on a public page. Emails must appear exactly in a cited source; otherwise return null. Do not derive email patterns. Each source_url must be a safe cited URL; tracking-parameter differences are acceptable but the scheme, host, path and non-tracking query must match a cited source. No logins, scraping or LinkedIn contact actions. An empty result is correct when the evidence is insufficient.';
   } else {
     clean.prospect = payload.prospect || null;
     clean.contact = payload.contact || null;
@@ -73,11 +87,18 @@ function validateResult(kind, result, sources) {
   if (!result || typeof result!=='object') throw new Error('The AI response was not usable');
   if (kind==='research') {
     if (!Array.isArray(result.prospects)) throw new Error('Research returned no prospect list');
-    const evidence = new Set(sources.map(s=>safeUrl(s.url)).filter(Boolean));
-    return {prospects:result.prospects.slice(0,5).map(p=>({
+    const evidence = new Set(sources.map(s=>canonicalUrl(s.url)).filter(Boolean));
+    const returned=result.prospects.length;
+    let contactReturned=0;
+    const prospects=result.prospects.slice(0,5).map(p=>{
+      const rawContacts=(Array.isArray(p.contacts)?p.contacts:[]).slice(0,2);contactReturned+=rawContacts.length;
+      const contacts=rawContacts.map(k=>({name:str(k.name,200),role_title:str(k.role_title,200),email:k.email && /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(k.email)?k.email.toLowerCase():null,linkedin_url:/^https:\/\/(?:[a-z]+\.)?linkedin\.com\/in\//i.test(k.linkedin_url)?safeUrl(k.linkedin_url):'',source_url:safeUrl(k.source_url)})).filter(k=>evidence.has(canonicalUrl(k.source_url)));
+      return {
       name:str(p.name,200),domain:str(p.domain,253).toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0],country:str(p.country,100),sector:str(p.sector,200),fit_note:str(p.fit_note,4000),source_url:safeUrl(p.source_url),
-      contacts:(Array.isArray(p.contacts)?p.contacts:[]).slice(0,2).map(k=>({name:str(k.name,200),role_title:str(k.role_title,200),email:k.email && /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(k.email)?k.email.toLowerCase():null,linkedin_url:/^https:\/\/(?:[a-z]+\.)?linkedin\.com\/in\//i.test(k.linkedin_url)?safeUrl(k.linkedin_url):'',source_url:safeUrl(k.source_url)})).filter(k=>evidence.has(k.source_url)),
-    })).filter(p=>p.name && /^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}$/.test(p.domain) && evidence.has(p.source_url)),notes:str(result.notes,3000),sources};
+      contacts,
+    };}).filter(p=>p.name && /^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}$/.test(p.domain) && evidence.has(canonicalUrl(p.source_url)));
+    const contactAccepted=prospects.reduce((sum,p)=>sum+p.contacts.length,0);
+    return {prospects,notes:str(result.notes,3000),sources,diagnostics:{returned,accepted:prospects.length,validation_rejected:Math.max(0,returned-prospects.length),contacts_returned:contactReturned,contacts_accepted:contactAccepted,contacts_validation_rejected:Math.max(0,contactReturned-contactAccepted)}};
   }
   if (kind==='draft') {
     const out={}; for(const name of Object.keys(schemas.draft.properties)) out[name]=str(result[name],name==='subject'?200:6000);
@@ -119,4 +140,4 @@ async function run(job) {
   }
 }
 
-module.exports={pricing,estimate,actualCost,prepare,run,validateResult,MODEL};
+module.exports={pricing,estimate,actualCost,prepare,run,validateResult,canonicalUrl,MODEL};

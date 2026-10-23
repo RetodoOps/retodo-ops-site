@@ -30,7 +30,7 @@ function setup(options={}){
   calls.push({url:String(url),method:request.method||'GET'});
   if(url===fixture.SUPABASE_URL+'/auth/v1/user')return options.auth||response({id:'fixture-admin'});
   if(url===fixture.SUPABASE_URL+'/rest/v1/rpc/sales_is_admin_063')return response(options.admin!==false);
-  if(url===fixture.SUPABASE_URL+'/rest/v1/rpc/sales_system_063'){
+  if(url===fixture.SUPABASE_URL+'/rest/v1/rpc/sales_system_067'){
    const input=JSON.parse(request.body);records.push(input);
    return options.rpc?options.rpc(input):response({ok:true});
   }
