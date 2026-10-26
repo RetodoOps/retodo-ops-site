@@ -1,40 +1,48 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
-Current task: Update 069 — repair manual draft saving and include undelivered invoice Update 067
-Status: READY FOR USER INSTALLATION — combined complete-file ZIP; no production actions performed
-Task branch: dev/update-069-invoice-draft-fix (local only)
-Starting HEAD: 0ff1c19 (main, Sales Update 068)
-Build: 069
+Current task: Update 070 — Invoice Reports, PDF/ZIP, tax choices, editor cleanup and client creation
+Status: READY FOR USER INSTALLATION — verification/package commit includes this checkpoint; production acceptance pending
+Task branch: dev/update-070-invoice-report-downloads (local only)
+Starting HEAD: 121731e (main; exact tree matches delivered Update 069)
+Build: 070
 Last updated: 2026-10-26
 
 ## LOCKED WORKFLOW
-- Complete replacement files in repository-root ZIP; user uploads/commits.
-- No assistant push, merge, deployment, production SQL/configuration/data changes or prospect outreach.
-- Forward-only migrations; preserve RLS, roles, payment protections, immutable snapshots and all Sales Update 067/068 files.
-- User has NOT uploaded the separately delivered Invoice Update 067 ZIP. That older ZIP is superseded by this combined Update 069, because main now uses 067/068 for Sales.
+- User uploads/commits complete replacement files from ZIP. No assistant push, merge, deployment, production SQL/config/data changes or outreach.
+- Forward-only SQL; preserve RLS, admin-only receipt entry, existing revisions, snapshots and numbering.
+- Preserve all Sales Update 067/068 files and Update 069 draft-saving fix. Source commit does not confirm production migrations.
 
-## CURRENT FINDING AND REPAIR
-- User's invoice UI is Update 066. Saving a manual-only draft fails with `record "sc" is not assigned yet`.
-- Reproduced exact error on the first manual save in a fresh SQL session. Earlier tests warmed the function by saving Scoops first, masking the unassigned-record planning error.
-- New migration 066 replaces only invoice_save_061. Each row resets a typed project UUID to NULL; only the Scoop branch assigns it. The INSERT never references unassigned sc. Existing validations, locks, events and roles remain intact.
-- Combined package imports undelivered optional BG/defaults/Invoice Reports work, rebased onto current main without overwriting Sales.
-- Invoice Reports migration renamed from undelivered 063_invoice_reports.sql to 065_invoice_reports.sql. RPC identifiers remain unchanged for compatibility. Sales migrations 063/064 are untouched.
-- New audit024 checks Reports (7 PASS); audit025 checks draft repair (7 PASS).
+## IMPLEMENTED
+- Compact invoice list based on user reference: checkbox, linked number, Type, linked Client, date, payment status, amount/currency, PDF download and existing payment action.
+- Paid green, Unpaid red, Partially paid yellow; computed from receipts/balance. Draft/Cancelled/Annulled are neutral and excluded from payment filters. Lifecycle status remains unchanged.
+- Search/filter and currency-summary panels collapse to emphasize the list. Existing sorting/paging, Excel/CSV and payment protections retained. New read-only invoice_report_070 adds payment-status filters/sorting and explicit Invoice document type. Old RPC remains intact.
+- Current data model has invoices only. Type is Invoice; drafts are not proformas. User has been told that proforma creation requires a separate workflow; no proforma numbering/accounting policy invented.
+- Direct, selectable-text PDFs in EN/BG, using current saved invoice details and issued snapshots; draft PDFs use current configured parties and a draft warning. Fonts and libraries are local vendor assets. No print dialog or external PDF service.
+- Selection persists across pages/sorts. Applying different filters clears it. Select-page checkbox is explicit; maximum 100 invoices per ZIP. All selected documents must succeed before download; errors preserve selection and produce no partial archive. Missing BG data fails clearly, without silently switching language.
+- Tax treatment dropdown has the five exact Bulgarian options from the screenshot, blank choice and Other / existing custom basis. Existing text is preserved. Selection does not change the VAT percentage or default a legal basis.
 
-## VERIFICATION
-- 42 isolated SQL workflow checks PASS, including exact pre-fix reproduction, cold manual-only save/update, three rows totalling EUR 2230, manual rows before/after a Scoop, issued revisions, payment idempotency and role protections.
-- Invoice audits021/022/024/025 PASS; repair reapplication leaves invoice data unchanged.
-- All three invoice/report/operational Reports browser suites PASS; JavaScript syntax, diff and ZIP verification PASS.
-- SQL uses PGlite and the documented missing-037 audit writer stub; browser checks use fixture RPCs. Production acceptance remains the user's step.
+## USER ADDITIONS INCORPORATED BEFORE DELIVERY
+- Browser-generated print headers/footers removed by using direct Download PDF in the invoice editor too. New native PDF has no running title/date/URL/page-number margin text.
+- Tax event date removed from form, model metadata and PDF/Word, including legacy invoice downloads; immutable historical snapshots remain.
+- Highlighted explanatory, duplicate status and language captions removed. Main actions use bold filled purple buttons; scoped styles override the existing automatic action-prominent styling.
+- Invoice number is first and visually emphasized in the editor; issued-number changes use the existing guarded revision path. No permission/duplicate-number safeguards bypassed.
+- Country code removed from Add client. Screenshot actually showed duplicate Client code MIRO; user informed, unique client codes retained, feedback now identifies the conflicting code/client.
 
-## NEXT EXACT ACTION
-Deliver RetodoOps_Update_069_Invoice_Draft_Fix_Reports.zip with UPDATE_069_MANUAL_UPLOAD.md.
-Immediate unblock: user may run migration066 then audit025 on installed invoice066, without installing Reports first. Retry Save draft without refreshing the unsaved editor.
-Full install: migrations065 then066, audits024 then025, upload all ZIP files and refresh to069. Do not upload the superseded Invoice Update067 package.
+## VERIFIED
+- 43 isolated SQL workflows PASS, including payment filter/sort/role checks and prior invoice-save/revision/payment safeguards. Read-only audit026: 6 PASS. Prior invoice audits pass; new migration reapplication passes.
+- Browser invoice suite PASS: tax options/custom text, native EN/BG PDF and Word without tax-event date, no noisy editor captions, filled bold buttons, number correction, edit/issue/revise/pay, QA/mobile. Client-create browser test PASS without country code and with duplicate-code handling.
+- Browser report suite PASS: links, colours, payment filters, XLSX/CSV, selection across pages, real EN/BG PDF and ZIP bytes, draft PDF, missing/deleted/BG-disabled error handling, existing payment retries/stale revisions and QA/mobile.
+- Operational Projects/Jobs/Margin report regression PASS. No operational report logic changed.
+- Generated English/Bulgarian PDFs rendered and inspected; four-page long-row test retains all 40 rows, repeats headings and stays within page bounds. Cyrillic text extraction passes. JavaScript syntax, git diff and package checks pass.
+- Database tests use PGlite and the documented missing-037 audit writer stub; browser RPCs are fixtures. No live production changes.
 
-## INVOICE BEHAVIOR RETAINED
-New BG version optional/off; Recipient English defaults to Client name, preparer defaults Demir Atanasov / Демир Атанасов unless an explicit setting exists. Existing documents stay frozen. Reports lists invoice links, currency-separated balances and guarded admin payment entry. Unknown payment retries retain request only in the current page; after reload check history before recording again. Client invoices only.
+## DELIVERY / NEXT EXACT ACTION
+Deliver RetodoOps_Update_070_Invoice_Report_PDF_Tax.zip and UPDATE_070_MANUAL_UPLOAD.md.
+User runs migration067_invoice_report_downloads.sql and audit026 (6 PASS), uploads package files, deploys and refreshes Invoice/Reports to070. Prerequisite Update069 includes migrations065/066; do not replay old migrations unless they were never installed.
+
+## RETAINED INVOICE DETAILS
+Update069 fixed the unassigned sc RECORD on a first manual draft save. Existing optional BG/default preparer behavior and frozen document revisions stay unchanged. Reports cover client invoices; supplier invoices and proforma creation remain separate. Unknown payment request retries are retained only in the current page; after navigation/reload check receipt history before recording another payment.
 
 ## SALES CONTEXT RETAINED FROM MAIN 0ff1c19
 Main contains Sales Update 068; production SQL acceptance is not inferred from source commit. The following Sales decisions/findings remain authoritative; do not rerun paid research or change automatic research in this invoice task.
@@ -63,6 +71,13 @@ The first controlled Update 067 research result returned Baltic Media, Business 
 - Writing requests exclude free-form prospect fit notes/notes and pass only public identity fields with fixed `outreach_mode: cold`.
 - Draft and material validation fails closed if generated content implies prior work, orders, projects, clients, collaboration or another relationship.
 - Sales research/writing dialogs state the cold-only rule.
+
+## USER ADDITIONS INCORPORATED BEFORE DELIVERY
+- Browser-generated print headers/footers removed by using direct Download PDF in the invoice editor too. New native PDF has no running title/date/URL/page-number margin text.
+- Tax event date removed from form, model metadata and PDF/Word, including legacy invoice downloads; immutable historical snapshots remain.
+- Highlighted explanatory, duplicate status and language captions removed. Main actions use bold filled purple buttons; scoped styles override the existing automatic action-prominent styling.
+- Invoice number is first and visually emphasized in the editor; issued-number changes use the existing guarded revision path. No permission/duplicate-number safeguards bypassed.
+- Country code removed from Add client. Screenshot actually showed duplicate Client code MIRO; user informed, unique client codes retained, feedback now identifies the conflicting code/client.
 
 ## VERIFIED
 

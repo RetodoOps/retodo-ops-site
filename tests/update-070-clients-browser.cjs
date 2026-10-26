@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+(async()=>{
+ const binary=require(process.env.CHROMIUM_MODULE),browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE,args:binary.args});
+ const page=await browser.newPage(),errors=[];let saved=null,serverDuplicate=false,calls=0;page.on('pageerror',e=>errors.push(e.message));
+ await page.exposeFunction('fixtureCreate',async payload=>{calls++;if(serverDuplicate)return{error:{code:'23505',message:'duplicate'}};saved=payload;return{data:{id:'created'}};});
+ await page.addInitScript(()=>{window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'fixture'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},rpc:async name=>({data:name==='current_app_role'?'admin':true}),from:table=>({select:()=>table==='clients'?{order:async()=>({data:[{id:'existing',code:'MIRO',name:'Existing Client',client_type:'Direct',restriction_status:'Active'}]})}:Promise.resolve({data:[]}),insert:payload=>({select:()=>({single:()=>window.fixtureCreate(payload)})})})})};});
+ await page.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({contentType:'text/javascript',body:''}));
+ await page.route('http://127.0.0.1:8766/**',route=>{const u=new URL(route.request().url());if(u.pathname==='/tms/client.html')return route.fulfill({contentType:'text/html',body:'<h1>Created client</h1>'});const file=path.join(__dirname,'..',decodeURIComponent(u.pathname));return route.fulfill(fs.existsSync(file)?{body:fs.readFileSync(file),contentType:file.endsWith('.html')?'text/html':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'application/octet-stream'}:{status:404,body:'Missing'});});
+ await page.goto('http://127.0.0.1:8766/tms/clients.html');await page.getByText('Existing Client',{exact:true}).waitFor();await page.evaluate(()=>openCreateClient());
+ assert.equal(await page.locator('#newClientCountry').count(),0);
+ await page.locator('#newClientName').fill('ИД Конслт Сървис ЕООД');await page.locator('#newClientCode').fill('miro');await page.locator('#createClientBtn').click();await page.getByText('Client code “MIRO” belongs to Existing Client. Enter a different client code.',{exact:true}).waitFor();assert.equal(calls,0);
+ await page.locator('#newClientCode').fill('IDC');serverDuplicate=true;await page.locator('#createClientBtn').click();await page.getByText('Client code “IDC” is already used. Enter a different client code.',{exact:true}).waitFor();assert.equal(calls,1);assert.equal(await page.locator('#createClientBtn').isEnabled(),true);
+ serverDuplicate=false;await page.locator('#newClientCode').fill('IDCS');await page.locator('#createClientBtn').click();await page.waitForURL('**/client.html?id=created');assert.equal(saved.code,'IDCS');assert.ok(!Object.hasOwn(saved,'country_code'));assert.equal(saved.name,'ИД Конслт Сървис ЕООД');assert.deepEqual(errors,[]);
+ console.log('PASS client creation without country code; duplicate code identified before save and on server conflict');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

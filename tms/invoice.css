@@ -14,3 +14,6 @@
 .document-options{margin:18px 0;padding:12px;border:1px solid var(--border,#d9d9d9);border-radius:8px}.document-options summary{cursor:pointer;font-weight:600}.document-options .fields{margin-top:14px}#applyIssuerBgLabel{display:flex;gap:10px;align-items:center}#applyIssuerBgLabel[hidden]{display:none}#applyIssuerBg{width:auto}
 
 .invoice-main .bg-version-choice{display:flex;flex-direction:row;align-items:center;gap:10px;margin-top:18px}
+
+/* Update 070: clear primary actions and editable invoice numbering. */
+.invoice-main button.primary{background:#6542aa!important;border-color:#6542aa!important;color:#fff!important;font-weight:750!important}.invoice-main button.accent{background:#eee7fc;border-color:#c4b0ea;color:#4f2f87;font-weight:750}.invoice-main .invoice-number-field input{font-weight:750;color:#4f2f87;background:#f2ecfc;border-color:#ba9ee3}.invoice-main button.primary:hover:not(:disabled){background:#54358f!important}.invoice-main button.danger{font-weight:700}#confirmDelete{background:#a82e3e;color:white;border-color:#a82e3e}#settingsDialog button[type=submit]{background:#6542aa;color:#fff;border-color:#6542aa;font-weight:750}

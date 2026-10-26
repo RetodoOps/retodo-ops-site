@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "069",
-  "release": "Update 069 — Invoice draft repair, optional Bulgarian and Invoice Reports",
-  "source_baseline": "main 0ff1c19; preserves Sales Update 068",
+  "build": "070",
+  "release": "Update 070 — Invoice reports, clean PDF downloads, tax choices and client creation",
+  "source_baseline": "main 121731e (Update 069); Sales 068 preserved",
   "built_on": "2026-10-26"
 }

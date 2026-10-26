@@ -78,19 +78,25 @@ async function createClient() {
         errorEl.classList.remove('hidden');
         return;
     }
+    const existing = clients.find(client => String(client.code || '').toUpperCase() === code);
+    if (existing) {
+        errorEl.textContent = `Client code “${code}” belongs to ${existing.name}. Enter a different client code.`;
+        errorEl.classList.remove('hidden');
+        document.getElementById('newClientCode').focus();
+        return;
+    }
     button.disabled = true;
     button.textContent = 'Creating…';
     const { data, error } = await _sb.from('clients').insert({
         name,
         code,
         client_type: document.getElementById('newClientType').value,
-        country_code: document.getElementById('newClientCountry').value.trim().toUpperCase() || null,
         default_currency: document.getElementById('newClientCurrency').value,
     }).select('id').single();
     button.disabled = false;
     button.textContent = 'Create and open';
     if (error) {
-        errorEl.textContent = error.code === '23505' ? 'That client code is already in use.' : error.message;
+        errorEl.textContent = error.code === '23505' ? `Client code “${code}” is already used. Enter a different client code.` : error.message;
         errorEl.classList.remove('hidden');
         return;
     }
