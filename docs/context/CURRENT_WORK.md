@@ -1,6 +1,39 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
+Current task: Update 071 — release corrected invoice numbers
+Status: READY FOR USER INSTALLATION; production acceptance pending
+Task branch: dev/update-071-invoice-number-release (local only)
+Starting HEAD: 8222949 (main; Update 070 upload)
+Build: 071
+Last updated: 2026-10-26
+
+## USER REQUEST AND SCOPE
+- User could not issue invoice 20 after correcting the earlier invoice to 21. Screenshot error: Invoice number already belongs to another invoice or its revision.
+- Root cause: invoice_numbers_062 retained every previous number, even after correction.
+- User STOPPED removal of Client code. No client code changes are included. The abandoned local client-code worktree is not a continuation source.
+- Continue complete-file ZIP/manual upload workflow. No assistant push, merge, deployment or production SQL/config/data changes.
+
+## IMPLEMENTED
+- Forward migration 068_invoice_number_release.sql removes only reservations that no longer match their invoice's current number. Current numbers stay reserved for every lifecycle status.
+- The existing reservation trigger now claims the replacement before releasing the old number in the same transaction. Failure rolls everything back.
+- Historical snapshots, invoice facts, receipts and events remain unchanged. Existing access and duplicate-current-number protections remain.
+- Issuing a freed earlier number or renumbering now chooses the next unused number above the chosen number, skipping current numbers. This prevents issuing 20 from suggesting occupied 21 again.
+- The migration changes only the next-number expression inside the existing issue/revise functions, with prerequisite guards. It is safe to reapply.
+
+## VERIFIED
+- 49 isolated PostgreSQL/PGlite workflow tests pass, including exact reproduction before repair, issuing 20 after 20-to-21 correction, next number 22, duplicate 21 rejection, future release, rollback after late trigger failure, preserved receipts/history/events and migration reapplication.
+- Read-only audit027 returns 8 PASS. Prior invoice/report audits pass.
+- Tests use the existing minimal Supabase platform fixtures and documented missing-037 audit-writer stub. No live database was changed. No frontend logic changed.
+
+## DELIVERY / NEXT ACTION
+- RetodoOps_Update_071_Invoice_Number_Release.zip contains six complete files listed in UPDATE_071_MANUAL_UPLOAD.md.
+- User runs migration068, then audit027 (8 PASS), uploads files and commits. Refresh, reopen the saved draft and retry number 0000000020.
+- Source main 8222949 contains Update070; production SQL acceptance is not inferred from source commit.
+
+# PRIOR UPDATE 070 CONTEXT
+
+Repository: RetodoOps/retodo-ops-site
 Current task: Update 070 — Invoice Reports, PDF/ZIP, tax choices, editor cleanup and client creation
 Status: READY FOR USER INSTALLATION — verification/package commit includes this checkpoint; production acceptance pending
 Task branch: dev/update-070-invoice-report-downloads (local only)

@@ -1,7 +1,7 @@
 {
   "product": "Retodo Ops TMS",
-  "build": "070",
-  "release": "Update 070 — Invoice reports, clean PDF downloads, tax choices and client creation",
-  "source_baseline": "main 121731e (Update 069); Sales 068 preserved",
+  "build": "071",
+  "release": "Update 071 — Release corrected invoice numbers",
+  "source_baseline": "main 8222949 (Update 070)",
   "built_on": "2026-10-26"
 }
