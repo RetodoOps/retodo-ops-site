@@ -9,6 +9,7 @@ const clean=v=>String(v??'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g
 const escape=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function model(invoice,billing,issuer,language='en'){
  const lang=language==='bg'?'bg':'en',t=labels[lang],locale=lang==='bg'?'bg-BG':'en-GB',doc=invoice.document_details_066||{};
+ if(lang==='bg'&&doc.bulgarian_enabled===false)throw new Error('Enable the optional Bulgarian version and save the invoice before downloading in Bulgarian.');
  const number=n=>Number(n||0).toLocaleString(locale,{minimumFractionDigits:2,maximumFractionDigits:2});
  const cash=n=>number(n)+' '+(invoice.currency==='EUR'?'€':clean(invoice.currency));
  const date=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'')?new Date(v+'T12:00:00Z').toLocaleDateString(locale,{timeZone:'UTC'}):t.unset;

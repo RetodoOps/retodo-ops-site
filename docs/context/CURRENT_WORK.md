@@ -1,19 +1,43 @@
 # CURRENT WORK
 
 Repository: RetodoOps/retodo-ops-site
-Current task: Update 068 — cold-prospect confidentiality guard
-Status: READY FOR USER INSTALLATION — verified complete-file package; no production actions performed by Codex
-Baseline: Update 067 installed and its first controlled research test completed
-Local branch: `dev/update-064-sales-signature` on reconstructed history; never push this history
-Build: 068 locally; installed build 067
-Last updated: 2026-10-23
+Current task: Update 069 — repair manual draft saving and include undelivered invoice Update 067
+Status: READY FOR USER INSTALLATION — combined complete-file ZIP; no production actions performed
+Task branch: dev/update-069-invoice-draft-fix (local only)
+Starting HEAD: 0ff1c19 (main, Sales Update 068)
+Build: 069
+Last updated: 2026-10-26
 
 ## LOCKED WORKFLOW
+- Complete replacement files in repository-root ZIP; user uploads/commits.
+- No assistant push, merge, deployment, production SQL/configuration/data changes or prospect outreach.
+- Forward-only migrations; preserve RLS, roles, payment protections, immutable snapshots and all Sales Update 067/068 files.
+- User has NOT uploaded the separately delivered Invoice Update 067 ZIP. That older ZIP is superseded by this combined Update 069, because main now uses 067/068 for Sales.
 
-- Deliver complete changed files in a repository-root ZIP. The user uploads/commits to main.
-- Do not push, merge, deploy, run production SQL, change production configuration/data or send prospect outreach.
-- Preserve Update 066 invoice work and all Update 067 prospect data, Sales signature, Gmail, Reports and public-enquiry behavior.
-- Database migrations are forward-only. Preserve RLS, least privilege, approvals, suppressions and immutable history.
+## CURRENT FINDING AND REPAIR
+- User's invoice UI is Update 066. Saving a manual-only draft fails with `record "sc" is not assigned yet`.
+- Reproduced exact error on the first manual save in a fresh SQL session. Earlier tests warmed the function by saving Scoops first, masking the unassigned-record planning error.
+- New migration 066 replaces only invoice_save_061. Each row resets a typed project UUID to NULL; only the Scoop branch assigns it. The INSERT never references unassigned sc. Existing validations, locks, events and roles remain intact.
+- Combined package imports undelivered optional BG/defaults/Invoice Reports work, rebased onto current main without overwriting Sales.
+- Invoice Reports migration renamed from undelivered 063_invoice_reports.sql to 065_invoice_reports.sql. RPC identifiers remain unchanged for compatibility. Sales migrations 063/064 are untouched.
+- New audit024 checks Reports (7 PASS); audit025 checks draft repair (7 PASS).
+
+## VERIFICATION
+- 42 isolated SQL workflow checks PASS, including exact pre-fix reproduction, cold manual-only save/update, three rows totalling EUR 2230, manual rows before/after a Scoop, issued revisions, payment idempotency and role protections.
+- Invoice audits021/022/024/025 PASS; repair reapplication leaves invoice data unchanged.
+- All three invoice/report/operational Reports browser suites PASS; JavaScript syntax, diff and ZIP verification PASS.
+- SQL uses PGlite and the documented missing-037 audit writer stub; browser checks use fixture RPCs. Production acceptance remains the user's step.
+
+## NEXT EXACT ACTION
+Deliver RetodoOps_Update_069_Invoice_Draft_Fix_Reports.zip with UPDATE_069_MANUAL_UPLOAD.md.
+Immediate unblock: user may run migration066 then audit025 on installed invoice066, without installing Reports first. Retry Save draft without refreshing the unsaved editor.
+Full install: migrations065 then066, audits024 then025, upload all ZIP files and refresh to069. Do not upload the superseded Invoice Update067 package.
+
+## INVOICE BEHAVIOR RETAINED
+New BG version optional/off; Recipient English defaults to Client name, preparer defaults Demir Atanasov / Демир Атанасов unless an explicit setting exists. Existing documents stay frozen. Reports lists invoice links, currency-separated balances and guarded admin payment entry. Unknown payment retries retain request only in the current page; after reload check history before recording again. Client invoices only.
+
+## SALES CONTEXT RETAINED FROM MAIN 0ff1c19
+Main contains Sales Update 068; production SQL acceptance is not inferred from source commit. The following Sales decisions/findings remain authoritative; do not rerun paid research or change automatic research in this invoice task.
 
 ## USER CLARIFICATION
 
@@ -56,7 +80,7 @@ The first controlled Update 067 research result returned Baltic Media, Business 
 
 Do not overwrite or remove Update 066 invoice migration, audit, PDF/Word layout, Bulgarian issuer settings or invoice revision safeguards. Preserve Update 067 migration 063, the 26 canonical seed records, four unverified public role contacts, truthful research counters and service-only `sales_system_067`.
 
-## NEXT EXACT ACTION
+## RETAINED SALES NEXT ACTION (CONFIRM INSTALLATION SEPARATELY)
 
 The user uploads Update 068, runs migration 064 and audit 022, deploys and confirms build 068 with Research still On demand. Then inspect the already-completed Update 067 result counters via Sales → Today → Research & writing → Prospect research → View result. Do not run another paid research task or generate outreach until Update 068 is installed.
 

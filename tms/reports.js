@@ -228,6 +228,7 @@ if(typeof document!=='undefined') {
     }
     (async()=>{
         if(!await requireAuth())return;
+        if(type==='invoices'){await InvoiceReport.init();return;}
         if(!['projects','jobs','margin'].includes(type)){el('reportFilters').hidden=true;el('reportMessage').textContent='Invoice reporting is not available in this release. Select Projects, Jobs or Margin.';return;}
         document.querySelector(`[data-report-type="${type}"]`).classList.add('active');
         el('resourceField').hidden=type!=='jobs';

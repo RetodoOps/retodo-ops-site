@@ -1,0 +1,10 @@
+-- Read-only installation audit: expect 7 PASS.
+WITH checks AS (
+ SELECT 'report RPC' check_name,to_regprocedure('public.invoice_report_067(jsonb,integer,integer,text,boolean)') IS NOT NULL ok
+ UNION ALL SELECT 'authenticated report access',has_function_privilege('authenticated','public.invoice_report_067(jsonb,integer,integer,text,boolean)','EXECUTE')
+ UNION ALL SELECT 'anonymous report denied',NOT has_function_privilege('anon','public.invoice_report_067(jsonb,integer,integer,text,boolean)','EXECUTE')
+ UNION ALL SELECT 'validator internal',NOT has_function_privilege('authenticated','public.invoice_document_validate_066(jsonb)','EXECUTE')
+ UNION ALL SELECT 'optional BG flag',position('bulgarian_enabled' IN pg_get_functiondef('public.invoice_document_validate_066(jsonb)'::regprocedure))>0
+ UNION ALL SELECT 'guarded payment RPC',to_regprocedure('public.invoice_receive_payment_064(uuid,integer,text,numeric,date,text,uuid)') IS NOT NULL
+ UNION ALL SELECT 'no direct finance writes',NOT has_table_privilege('authenticated','public.payments','INSERT') AND NOT has_table_privilege('authenticated','public.client_invoices','UPDATE')
+) SELECT check_name,CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END result FROM checks ORDER BY check_name;
